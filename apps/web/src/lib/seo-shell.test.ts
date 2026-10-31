@@ -57,10 +57,15 @@ describe("SEO shell hardening", () => {
     const detailSrc = readFileSync(join(pagesRoot, "examples/[slug].astro"), "utf8");
     expect(indexSrc).toContain('canonicalPath="/examples/"');
     expect(indexSrc).toContain("ItemList");
+    expect(indexSrc).toContain("Free printable");
     expect(detailSrc).toContain("FAQPage");
     expect(detailSrc).toContain("BreadcrumbList");
     expect(detailSrc).toContain("Make a variant with AI");
     expect(detailSrc).toContain("Answer key");
+    expect(detailSrc).toContain("Print puzzle");
+    expect(detailSrc).toContain("no-print");
+    const globalCss = readFileSync(join(import.meta.dirname, "../styles/global.css"), "utf8");
+    expect(globalCss).toContain("@media print");
     expect(EXAMPLES.length).toBeGreaterThanOrEqual(20);
   });
 });

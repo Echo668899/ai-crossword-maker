@@ -1,5 +1,7 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { EXAMPLES } from "./examples";
+import { EXAMPLES, relatedExamples } from "./examples";
 import { buildExamplePuzzle } from "./build-example";
 
 describe("examples quality", () => {
@@ -13,6 +15,7 @@ describe("examples quality", () => {
     for (const ex of EXAMPLES) {
       expect(ex.title.trim().length).toBeGreaterThan(2);
       expect(ex.topic.trim().length).toBeGreaterThan(2);
+      expect(ex.gradeBand.trim().length).toBeGreaterThan(3);
       expect(ex.blurb.trim().length).toBeGreaterThan(20);
       expect(ex.entries.length).toBeGreaterThanOrEqual(6);
       for (const entry of ex.entries) {
@@ -32,5 +35,25 @@ describe("examples quality", () => {
       expect(built.svgBlank).toContain("<svg");
       expect(built.svgAnswers).toContain("<svg");
     }
+  });
+
+  it("builds related internal links for each slug", () => {
+    for (const ex of EXAMPLES) {
+      const related = relatedExamples(ex.slug, 5);
+      expect(related.length).toBeGreaterThanOrEqual(3);
+      expect(related.every((r) => r.slug !== ex.slug)).toBe(true);
+    }
+  });
+
+  it("example detail template includes print CTA, FAQ, and teacher/pricing links", () => {
+    const detail = readFileSync(join(import.meta.dirname, "../pages/examples/[slug].astro"), "utf8");
+    expect(detail).toContain("Print puzzle");
+    expect(detail).toContain("window.print()");
+    expect(detail).toContain("FAQPage");
+    expect(detail).toContain("Make a variant with AI");
+    expect(detail).toContain("/crossword-maker-for-teachers/");
+    expect(detail).toContain("/pricing/");
+    expect(detail).toContain("relatedExamples");
+    expect(detail).toMatch(/How do I print/);
   });
 });

@@ -214,3 +214,78 @@ h3 {
     transition: none !important;
   }
 }
+
+.print-btn {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 650;
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-primary);
+  background: var(--color-primary);
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.print-btn-secondary {
+  background: #fff;
+  color: var(--color-primary);
+}
+
+.example-grid-frame {
+  overflow: auto;
+  background: #fff;
+  padding: 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+@media print {
+  body {
+    background: #fff !important;
+    color: #000;
+  }
+
+  .site-header,
+  .site-footer,
+  .no-print {
+    display: none !important;
+  }
+
+  .container {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+  }
+
+  .example-page {
+    padding-top: 0 !important;
+  }
+
+  .example-grid-frame {
+    border: none;
+    padding: 0;
+  }
+
+  .grid-two {
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 1rem;
+  }
+
+  .example-answer-key {
+    break-before: page;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  .example-answer-key summary {
+    list-style: none;
+  }
+
+  a {
+    color: #000;
+    text-decoration: none;
+  }
+}

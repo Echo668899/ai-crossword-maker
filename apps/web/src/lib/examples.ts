@@ -1,8 +1,18 @@
+export type ExampleSubject =
+  | "science"
+  | "social"
+  | "language"
+  | "esl"
+  | "classroom"
+  | "arts";
+
 export interface ExamplePuzzle {
   slug: string;
   title: string;
   topic: string;
-  subject: "science" | "social" | "language" | "esl" | "classroom" | "arts";
+  subject: ExampleSubject;
+  /** Short audience hint for SEO blurbs (English classrooms). */
+  gradeBand: string;
   blurb: string;
   reviewState: "sample" | "human_reviewed";
   entries: Array<{ answer: string; clue: string }>;
@@ -15,6 +25,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Solar System",
     topic: "Solar System",
     subject: "science",
+    gradeBand: "Grades 3–6 science",
     blurb: "Planets, orbits, and space vocabulary for elementary science.",
     reviewState: "sample",
     entries: [
@@ -33,6 +44,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Human Body Organs",
     topic: "Human Body Organs",
     subject: "science",
+    gradeBand: "Grades 4–8 health",
     blurb: "Major organs and body systems for health class.",
     reviewState: "sample",
     entries: [
@@ -51,6 +63,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "US States",
     topic: "US States",
     subject: "social",
+    gradeBand: "Grades 3–6 geography",
     blurb: "A starter set of U.S. state names for geography practice.",
     reviewState: "sample",
     entries: [
@@ -69,6 +82,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Water Cycle",
     topic: "Water Cycle",
     subject: "science",
+    gradeBand: "Grades 3–6 earth science",
     blurb: "Evaporation, condensation, and precipitation vocabulary.",
     reviewState: "sample",
     entries: [
@@ -87,6 +101,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Photosynthesis",
     topic: "Photosynthesis",
     subject: "science",
+    gradeBand: "Grades 4–8 life science",
     blurb: "How plants make food using light.",
     reviewState: "sample",
     entries: [
@@ -105,6 +120,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Parts of Speech",
     topic: "Parts of Speech",
     subject: "language",
+    gradeBand: "Grades 3–8 language arts",
     blurb: "Grammar labels for language arts.",
     reviewState: "sample",
     entries: [
@@ -123,6 +139,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Shakespeare Characters",
     topic: "Shakespeare Characters",
     subject: "language",
+    gradeBand: "Grades 7–12 literature",
     blurb: "Famous names from the plays (Sample).",
     reviewState: "sample",
     entries: [
@@ -141,6 +158,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Ancient Egypt",
     topic: "Ancient Egypt",
     subject: "social",
+    gradeBand: "Grades 4–8 world history",
     blurb: "Nile civilization vocabulary for world history.",
     reviewState: "sample",
     entries: [
@@ -159,6 +177,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Weather",
     topic: "Weather",
     subject: "science",
+    gradeBand: "Grades 2–5 / ESL",
     blurb: "Everyday weather words for science or ESL.",
     reviewState: "sample",
     entries: [
@@ -177,6 +196,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Fractions",
     topic: "Fractions",
     subject: "classroom",
+    gradeBand: "Grades 3–6 math",
     blurb: "Core fraction vocabulary for math class.",
     reviewState: "sample",
     entries: [
@@ -195,6 +215,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Civil Rights Leaders",
     topic: "Civil Rights Leaders",
     subject: "social",
+    gradeBand: "Grades 5–9 social studies",
     blurb: "Introductory names and ideas (Sample — review before classroom use).",
     reviewState: "sample",
     entries: [
@@ -213,6 +234,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Thanksgiving Vocabulary",
     topic: "Thanksgiving Vocabulary",
     subject: "classroom",
+    gradeBand: "Elementary seasonal",
     blurb: "Seasonal classroom words (Sample).",
     reviewState: "sample",
     entries: [
@@ -231,6 +253,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Ocean Animals",
     topic: "Ocean Animals",
     subject: "science",
+    gradeBand: "Grades 2–5 science",
     blurb: "Sea life vocabulary for elementary science.",
     reviewState: "sample",
     entries: [
@@ -249,6 +272,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Music Terms",
     topic: "Music Terms",
     subject: "arts",
+    gradeBand: "Elementary music",
     blurb: "Basic music classroom vocabulary.",
     reviewState: "sample",
     entries: [
@@ -267,6 +291,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Computer Basics",
     topic: "Computer Basics",
     subject: "classroom",
+    gradeBand: "Digital literacy",
     blurb: "Intro tech words for digital literacy.",
     reviewState: "sample",
     entries: [
@@ -285,6 +310,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "ESL Food Vocabulary",
     topic: "ESL Food Vocabulary",
     subject: "esl",
+    gradeBand: "ESL / beginner",
     blurb: "Everyday food words for English learners.",
     reviewState: "sample",
     entries: [
@@ -303,6 +329,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "ESL Travel Phrases",
     topic: "ESL Travel Phrases",
     subject: "esl",
+    gradeBand: "ESL / beginner–A2",
     blurb: "Travel-themed words for ESL lessons.",
     reviewState: "sample",
     entries: [
@@ -321,6 +348,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Classroom Objects",
     topic: "Classroom Objects",
     subject: "classroom",
+    gradeBand: "ESL / early elementary",
     blurb: "Objects students see every day at school.",
     reviewState: "sample",
     entries: [
@@ -339,6 +367,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Earth Day",
     topic: "Earth Day",
     subject: "science",
+    gradeBand: "Grades 2–6 science",
     blurb: "Conservation vocabulary for Earth Day lessons.",
     reviewState: "sample",
     entries: [
@@ -357,6 +386,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
     title: "Periodic Table Basics",
     topic: "Periodic Table Basics",
     subject: "science",
+    gradeBand: "Grades 6–9 chemistry",
     blurb: "Introductory element names for chemistry units.",
     reviewState: "sample",
     entries: [
@@ -368,6 +398,101 @@ export const EXAMPLES: ExamplePuzzle[] = [
       { answer: "SODIUM", clue: "Element in table salt (Na)" },
       { answer: "NEON", clue: "Gas used in bright advertising lights" },
       { answer: "ZINC", clue: "Metal used to coat steel to prevent rust" },
+    ],
+  },
+  {
+    slug: "dinosaurs",
+    title: "Dinosaurs",
+    topic: "Dinosaurs",
+    subject: "science",
+    gradeBand: "Grades 2–5 science",
+    blurb: "Free printable dinosaur names and paleontology words for elementary science.",
+    reviewState: "sample",
+    entries: [
+      { answer: "FOSSIL", clue: "Preserved remains of ancient life in rock" },
+      { answer: "TREX", clue: "Nickname for Tyrannosaurus rex" },
+      { answer: "BONES", clue: "Hard parts that form a skeleton" },
+      { answer: "EXTINCT", clue: "No longer living anywhere on Earth" },
+      { answer: "REPTILE", clue: "Cold-blooded animal group dinosaurs belonged to" },
+      { answer: "CLAWS", clue: "Sharp nails on dinosaur feet or hands" },
+      { answer: "NEST", clue: "Place where eggs are laid" },
+      { answer: "SCALE", clue: "Small plate covering some dinosaur skin" },
+    ],
+  },
+  {
+    slug: "american-revolution",
+    title: "American Revolution",
+    topic: "American Revolution",
+    subject: "social",
+    gradeBand: "Grades 5–8 U.S. history",
+    blurb: "Printable classroom crossword on independence-era vocabulary (Sample — review before use).",
+    reviewState: "sample",
+    entries: [
+      { answer: "COLONY", clue: "Settlement ruled by a distant country" },
+      { answer: "TAX", clue: "Money people must pay to a government" },
+      { answer: "LIBERTY", clue: "Freedom from unfair control" },
+      { answer: "TEA", clue: "Drink dumped in Boston Harbor in protest" },
+      { answer: "ARMY", clue: "Organized fighting force" },
+      { answer: "FLAG", clue: "Cloth symbol of a nation" },
+      { answer: "TREATY", clue: "Formal agreement that ends a war" },
+      { answer: "PATRIOT", clue: "Colonist who supported independence" },
+    ],
+  },
+  {
+    slug: "seasons",
+    title: "Seasons",
+    topic: "Four Seasons",
+    subject: "classroom",
+    gradeBand: "Early elementary / ESL",
+    blurb: "Simple seasons vocabulary crossword — free printable with answer key.",
+    reviewState: "sample",
+    entries: [
+      { answer: "SPRING", clue: "Season when many plants begin to bloom" },
+      { answer: "SUMMER", clue: "Warmest season of the year" },
+      { answer: "AUTUMN", clue: "Season also called fall" },
+      { answer: "WINTER", clue: "Coldest season in many places" },
+      { answer: "SNOW", clue: "Frozen flakes that fall in cold weather" },
+      { answer: "LEAF", clue: "Flat green plant part that changes color in fall" },
+      { answer: "HEAT", clue: "Warmth from the sun in summer" },
+      { answer: "RAIN", clue: "Water that falls from clouds" },
+    ],
+  },
+  {
+    slug: "money-math",
+    title: "Money Math",
+    topic: "Money and Coins",
+    subject: "classroom",
+    gradeBand: "Grades 2–5 math",
+    blurb: "Coin and money words for elementary math practice worksheets.",
+    reviewState: "sample",
+    entries: [
+      { answer: "DOLLAR", clue: "Basic unit of U.S. money" },
+      { answer: "CENT", clue: "One hundredth of a dollar" },
+      { answer: "PENNY", clue: "Copper-colored coin worth one cent" },
+      { answer: "NICKEL", clue: "Coin worth five cents" },
+      { answer: "DIME", clue: "Small coin worth ten cents" },
+      { answer: "QUARTER", clue: "Coin worth twenty-five cents" },
+      { answer: "CHANGE", clue: "Coins you get back after paying" },
+      { answer: "PRICE", clue: "How much something costs" },
+    ],
+  },
+  {
+    slug: "plants-and-seeds",
+    title: "Plants and Seeds",
+    topic: "Plants and Seeds",
+    subject: "science",
+    gradeBand: "Grades 2–5 life science",
+    blurb: "Plant life-cycle words for printable science crosswords with answer key.",
+    reviewState: "sample",
+    entries: [
+      { answer: "SEED", clue: "Tiny package that can grow into a plant" },
+      { answer: "ROOT", clue: "Part that grows underground and takes in water" },
+      { answer: "STEM", clue: "Upright part that supports leaves and flowers" },
+      { answer: "FLOWER", clue: "Colorful part that often makes seeds" },
+      { answer: "SOIL", clue: "Dirt plants grow in" },
+      { answer: "SPROUT", clue: "Young plant just starting to grow" },
+      { answer: "POLLEN", clue: "Powder flowers use to make seeds" },
+      { answer: "GARDEN", clue: "Place where people grow plants" },
     ],
   },
 ];
@@ -384,4 +509,13 @@ export function examplesBySubject() {
     map.set(ex.subject, list);
   }
   return map;
+}
+
+/** Prefer same-subject neighbors, then fill from other subjects for internal linking. */
+export function relatedExamples(slug: string, limit = 5): ExamplePuzzle[] {
+  const current = getExample(slug);
+  if (!current) return EXAMPLES.filter((e) => e.slug !== slug).slice(0, limit);
+  const same = EXAMPLES.filter((e) => e.slug !== slug && e.subject === current.subject);
+  const other = EXAMPLES.filter((e) => e.slug !== slug && e.subject !== current.subject);
+  return [...same, ...other].slice(0, limit);
 }

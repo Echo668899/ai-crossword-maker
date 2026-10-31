@@ -30,5 +30,5 @@
 ## 90-day
 
 - **A:** P0 shells + maker demo + FAQ + sitemap (done)
-- **B:** polish examples/internal links; ESL depth (in progress)
+- **B:** examples≥25 + print/FAQ/related links polish (in progress); ESL depth still light
 - **C:** GSC-driven long-tail; 1–2 how-tos; honest comparison pages
