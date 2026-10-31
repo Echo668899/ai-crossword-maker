@@ -108,6 +108,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "magnets",
       "volcanoes",
       "biomes",
+      "electricity",
+      "fossils",
     ],
   },
   {
@@ -131,6 +133,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "prefixes-and-suffixes",
       "figurative-language",
       "compound-words",
+      "root-words",
     ],
   },
   {
@@ -153,6 +156,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "telling-time",
       "decimals",
       "area-and-perimeter",
+      "multiplication",
     ],
   },
   {
@@ -174,6 +178,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "continents-and-oceans",
       "world-capitals",
       "thirteen-colonies",
+      "westward-expansion",
     ],
   },
   {
@@ -194,6 +199,28 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "civil-rights-leaders",
       "greek-mythology",
       "branches-of-government",
+      "westward-expansion",
+    ],
+  },
+  {
+    slug: "how-to-make-a-geography-vocabulary-crossword",
+    title: "How to Make a Geography Vocabulary Crossword",
+    description:
+      "Turn a geography unit word bank into a printable crossword with definition clues, interlocking grid, and answer key.",
+    toolPaths: [
+      "/ai-crossword-maker/",
+      "/crossword-maker-from-word-list/",
+      "/printable-crossword-maker/",
+      "/crossword-maker-for-teachers/",
+    ],
+    exampleSlugs: [
+      "map-skills",
+      "landforms",
+      "continents-and-oceans",
+      "world-capitals",
+      "natural-resources",
+      "biomes",
+      "westward-expansion",
     ],
   },
 ];

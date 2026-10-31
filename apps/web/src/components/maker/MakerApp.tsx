@@ -45,19 +45,19 @@ const NAME_LINE_OPTIONS: Array<{ id: NameLinePresetId; label: string }> = [
 
 /** Classroom long-tail chips — fill Topic without spending AI until Generate. */
 const TOPIC_QUICK_PICKS = [
-  "Volcanoes for grade 4",
-  "Thirteen Colonies for grade 5",
-  "Compound Words for grade 3",
-  "Area and Perimeter for grade 4",
-  "Biomes for grade 5",
+  "Electricity for grade 4",
+  "Westward Expansion for grade 5",
+  "Root Words for grade 3",
+  "Multiplication for grade 3",
+  "Fossils for grade 4",
 ] as const;
 
 const EXAMPLE_SEED_SLUGS = [
-  "volcanoes",
-  "thirteen-colonies",
-  "compound-words",
-  "area-and-perimeter",
-  "biomes",
+  "electricity",
+  "westward-expansion",
+  "root-words",
+  "multiplication",
+  "fossils",
 ] as const;
 
 interface EntryRow {
@@ -1205,13 +1205,13 @@ export default function MakerApp({
               <p className="muted" style={{ margin: 0, fontSize: "0.88rem" }}>
                 Prefer a ready printable?
                 {" "}
-                <a href="/examples/volcanoes/">Volcanoes</a>
+                <a href="/examples/electricity/">Electricity</a>
                 {" · "}
-                <a href="/examples/thirteen-colonies/">Thirteen Colonies</a>
+                <a href="/examples/westward-expansion/">Westward Expansion</a>
                 {" · "}
                 <a href="/examples/">All examples</a>
                 {" · "}
-                <a href="/blog/how-to-make-a-history-vocabulary-crossword/">History how-to</a>
+                <a href="/blog/how-to-make-a-geography-vocabulary-crossword/">Geography how-to</a>
               </p>
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
                 <label style={{ display: "grid", gap: "0.35rem" }}>
