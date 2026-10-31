@@ -100,6 +100,28 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "food-chains",
       "photosynthesis",
       "water-cycle",
+      "simple-machines",
+      "phases-of-the-moon",
+    ],
+  },
+  {
+    slug: "how-to-make-a-crossword-from-a-spelling-list",
+    title: "How to Make a Crossword from a Spelling List",
+    description:
+      "Turn a weekly spelling or vocabulary list into a printable crossword with definition clues, interlocking grid, and answer key.",
+    toolPaths: [
+      "/crossword-maker-from-word-list/",
+      "/ai-crossword-maker/",
+      "/printable-crossword-maker/",
+      "/crossword-maker-for-teachers/",
+    ],
+    exampleSlugs: [
+      "homophones",
+      "antonyms",
+      "synonyms",
+      "irregular-verbs",
+      "parts-of-speech",
+      "place-value",
     ],
   },
 ];

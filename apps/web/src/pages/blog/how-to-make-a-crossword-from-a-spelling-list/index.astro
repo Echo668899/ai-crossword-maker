@@ -1,0 +1,131 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getBlogPost, relatedBlogPosts } from "../../../lib/blog-posts";
+import { getExample } from "../../../lib/examples";
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const meta = getBlogPost("how-to-make-a-crossword-from-a-spelling-list")!;
+const relatedGuides = relatedBlogPosts(meta.slug);
+const featuredExamples = meta.exampleSlugs.map((s) => getExample(s)).filter(Boolean);
+const title = "How to Make a Crossword from a Spelling List — Printable Worksheet";
+const description =
+  "Turn a weekly spelling or vocabulary list into a printable crossword: paste words, add definition clues, build the grid, and export a student sheet plus answer key.";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath="/blog/how-to-make-a-crossword-from-a-spelling-list/"
+  jsonLd={[
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: "How to Make a Crossword from a Spelling List",
+      description,
+      inLanguage: "en",
+      mainEntityOfPage: `${site}/blog/how-to-make-a-crossword-from-a-spelling-list/`,
+      author: { "@type": "Organization", name: "AI Crossword Maker" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
+        { "@type": "ListItem", position: 2, name: "Blog", item: `${site}/blog/` },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: "How to make a crossword from a spelling list",
+          item: `${site}/blog/how-to-make-a-crossword-from-a-spelling-list/`,
+        },
+      ],
+    },
+  ]}
+>
+  <article class="container section prose" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / <a href="/blog/">Blog</a> / Spelling list crossword
+    </nav>
+    <h1>How to Make a Crossword from a Spelling List</h1>
+    <p>
+      Weekly spelling lists are already the right length for a classroom crossword — usually 8–16 words students must spell correctly.
+      Turning that list into a printable puzzle with an answer key adds retrieval practice without inventing a brand-new activity from scratch.
+    </p>
+    <p>
+      <a href="/crossword-maker-from-word-list/"><strong>Paste your spelling list</strong></a>
+      or
+      <a href="/ai-crossword-maker/">generate from a topic</a>
+      · teacher presets on
+      <a href="/crossword-maker-for-teachers/">Teachers</a>.
+    </p>
+
+    <h2>1. Clean the list to A–Z answers</h2>
+    <p>
+      Keep one spelling word per line. Strip numbers, bullets, and non-letter characters so each answer is A–Z only.
+      Prefer 3–12 letter classroom words; very long compounds may not place well in a compact teaching grid.
+      Homophone pairs (flour / flower) are excellent — see our
+      <a href="/examples/homophones/">homophones example</a>.
+    </p>
+
+    <h2>2. Add short definition clues (or fill with AI)</h2>
+    <p>
+      For spelling practice, clues should test meaning without giving away the letters: “Powder used for baking bread,” not “F____R.”
+      In Words mode you can paste words alone and let AI draft clues (counts toward the free daily quota), then edit anything too vague.
+      Or skip AI and type your own clues — layout never requires a credit.
+    </p>
+
+    <h2>3. Build the grid, then skim placements</h2>
+    <p>
+      Click <strong>Build grid</strong>. If a long word will not place, drop one item or swap a shorter synonym from the same unit.
+      You can also <strong>Load example seed</strong> from a reviewed classroom printable and replace entries with this week’s list.
+    </p>
+
+    <h2>4. Print puzzle + answer key</h2>
+    <p>
+      Use
+      <a href="/printable-crossword-maker/">Printable</a>
+      or the Teachers landing for Letter/A4, optional name/class/date lines, and a matching answer key.
+      Free exports may include a light site footer; Pro removes branding. Step-by-step print tips:
+      <a href="/blog/how-to-print-crossword-worksheets/">How to print crossword worksheets</a>.
+    </p>
+
+    <h2>Ready spelling / language examples</h2>
+    <p>
+      Start from a reviewed printable:
+      <a href="/examples/homophones/">homophones</a>,
+      <a href="/examples/antonyms/">antonyms</a>,
+      <a href="/examples/synonyms/">synonyms</a>,
+      or <a href="/examples/irregular-verbs/">irregular verbs</a>.
+    </p>
+    <ul>
+      {
+        featuredExamples.map((ex) =>
+          ex ? (
+            <li>
+              <a href={`/examples/${ex.slug}/`}>{ex.title}</a>
+              <span class="muted"> — {ex.gradeBand}</span>
+            </li>
+          ) : null,
+        )
+      }
+    </ul>
+
+    <h2>Related guides</h2>
+    <ul>
+      {
+        relatedGuides.map((g) => (
+          <li>
+            <a href={`/blog/${g.slug}/`}>{g.title}</a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="muted" style="font-size:0.92rem;">
+      Comparing tools?
+      <a href="/vs/">Honest comparisons</a>
+      · <a href="/vs/eclipse-crossword/">vs Eclipse Crossword</a>
+      · <a href="/vs/my-crossword-maker/">vs My Crossword Maker</a>
+      · <a href="/vs/crossword-labs/">vs Crossword Labs</a>
+    </p>
+  </article>
+</BaseLayout>
