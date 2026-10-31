@@ -13,7 +13,7 @@ import {
 import { Button } from "@acm/ui";
 import { StatusPill } from "@acm/ui";
 import { loadDraft, saveDraft } from "../../lib/maker-storage";
-import { SAMPLE_MANUAL_ENTRIES } from "../../lib/sample-entries";
+import { SAMPLE_MANUAL_ENTRIES, TEACHER_CLASSROOM_ENTRIES } from "../../lib/sample-entries";
 import { apiFetch } from "../../lib/api";
 import { hydrateFromSnapshot, type CloudSnapshot } from "../../lib/snapshot-hydrate";
 import TurnstileField, { turnstileConfigured } from "../security/TurnstileField";
@@ -451,7 +451,8 @@ export default function MakerApp({
       return;
     }
     pushHistory(parsed);
-    dispatch({ type: "setMode", mode: "manual" });
+    // Stay in Words mode when the page/user started from a vocabulary list.
+    dispatch({ type: "setMode", mode: state.mode === "words" || state.mode === "paste" ? "words" : "manual" });
     dispatch({ type: "setStatus", statusMessage: `Imported ${parsed.length} rows from paste.` });
   }
 
@@ -1300,6 +1301,11 @@ export default function MakerApp({
 
           {state.mode === "paste" || state.mode === "import" ? (
             <div style={{ display: "grid", gap: "0.75rem" }}>
+              <p className="muted" style={{ margin: 0, fontSize: "0.92rem" }}>
+                Paste a spelling or vocabulary list, then Parse into editor. Layout never spends AI credits.
+                {" "}
+                <a href="/blog/how-to-make-a-crossword-from-a-word-list/">Word-list how-to</a>
+              </p>
               <label style={{ display: "grid", gap: "0.35rem" }}>
                 <span style={{ fontWeight: 650 }}>
                   {state.mode === "import" ? "CSV / TSV / TXT paste" : "Paste answers"}
@@ -1308,7 +1314,7 @@ export default function MakerApp({
                   value={state.pasteText}
                   onChange={(e) => dispatch({ type: "setPaste", pasteText: e.target.value })}
                   rows={8}
-                  placeholder={"MARS | The red planet\nEARTH\tOur home planet"}
+                  placeholder={"MARS | The red planet\nEARTH\tOur home planet\nVENUS"}
                   style={{ ...inputStyle, fontFamily: "var(--font-mono)", resize: "vertical" }}
                 />
               </label>
@@ -1322,6 +1328,54 @@ export default function MakerApp({
 
           {state.mode === "words" || state.mode === "manual" || state.mode === "topic" ? (
             <div style={{ marginTop: state.mode === "topic" ? "1rem" : 0 }}>
+              {state.mode === "words" ? (
+                <div style={{ display: "grid", gap: "0.55rem", marginBottom: "0.85rem" }}>
+                  <p className="muted" style={{ margin: 0, fontSize: "0.92rem" }}>
+                    Keep your answers. Add clues manually (or leave blank for later).{" "}
+                    <a href="/blog/how-to-make-a-crossword-from-a-word-list/">How to make a crossword from a word list</a>
+                  </p>
+                  <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap" }}>
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        pushHistory([...TEACHER_CLASSROOM_ENTRIES]);
+                        dispatch({ type: "setTitle", title: "Classroom Objects (Sample)" });
+                        dispatch({
+                          type: "setStatus",
+                          statusMessage: "Loaded classroom sample — edit clues, then Build grid (no AI).",
+                        });
+                      }}
+                    >
+                      Load classroom sample
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        pushHistory([...SAMPLE_MANUAL_ENTRIES]);
+                        dispatch({ type: "setTitle", title: "Solar System (Sample)" });
+                        dispatch({
+                          type: "setStatus",
+                          statusMessage: "Loaded solar sample — click Build grid (no AI).",
+                        });
+                      }}
+                    >
+                      Load solar sample
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        dispatch({ type: "setMode", mode: "paste" });
+                        dispatch({
+                          type: "setStatus",
+                          statusMessage: "Paste mode — one answer per line, then Parse into editor.",
+                        });
+                      }}
+                    >
+                      Paste a list
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
               <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem", marginBottom: "0.5rem" }}>
                 <strong>Entries{state.rows.length ? ` (${state.rows.length})` : ""}</strong>
                 <div style={{ display: "flex", gap: "0.35rem" }}>
@@ -1339,6 +1393,11 @@ export default function MakerApp({
               {state.mode === "topic" && state.rows.length === 0 ? (
                 <p className="muted" style={{ margin: "0 0 0.65rem", fontSize: "0.9rem" }}>
                   Entries appear here after Generate with AI — or Add row to draft manually.
+                </p>
+              ) : null}
+              {state.mode === "words" && state.rows.length === 0 ? (
+                <p className="muted" style={{ margin: "0 0 0.65rem", fontSize: "0.9rem" }}>
+                  Add rows, load a sample, or Paste a list — then Build grid. No AI required for layout.
                 </p>
               ) : null}
               {duplicateAnswers.length ? (
@@ -1602,9 +1661,11 @@ export default function MakerApp({
               emptyHint={
                 state.mode === "topic" && !state.rows.length
                   ? "Pick a topic chip (or type one), Generate with AI, then preview here — or Load sample words."
-                  : state.rows.some((r) => r.answer.trim())
-                    ? "Click Build grid to place your entries. Shuffle layout is free and never spends AI credits."
-                    : "Add answers and clues, then Build grid — or switch to Topic (AI) for a free demo."
+                  : state.mode === "words" && !state.rows.length
+                    ? "Load a classroom sample or Paste a list, then Build grid — layout never spends AI credits."
+                    : state.rows.some((r) => r.answer.trim())
+                      ? "Click Build grid to place your entries. Shuffle layout is free and never spends AI credits."
+                      : "Add answers and clues, then Build grid — or switch to Topic (AI) for a free demo."
               }
             />
           </div>

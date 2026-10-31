@@ -1,20 +1,86 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import MakerApp from "../../components/maker/MakerApp";
+
+const faqs = [
+  {
+    q: "Will AI replace my vocabulary list?",
+    a: "No. Word-list mode keeps your answers. When AI clue-fill is enabled, it only drafts missing clues — it does not swap your words without confirmation.",
+  },
+  {
+    q: "What paste formats work?",
+    a: "One answer per line, ANSWER | clue, tab-separated columns, or CSV with header answer,clue,category. Digits and punctuation are stripped from answers for the grid.",
+  },
+  {
+    q: "Can I print with an answer key?",
+    a: "Yes. Build the grid, then export a student PDF and a separate answer-key PDF. Optional name/class/date lines appear on the student sheet only.",
+  },
+];
 ---
 
 <BaseLayout
   title="Crossword Maker from a Word List — Vocabulary Crossword Generator"
   description="Generate a crossword from your vocabulary list. Paste answers, add or generate clues, build an interlocking grid, and print with an answer key."
   canonicalPath="/crossword-maker-from-word-list/"
+  jsonLd={{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  }}
 >
   <section class="container section" style="padding-top:1.5rem;">
     <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;"><a href="/">Home</a> / Word list</nav>
     <h1 style="margin:0 0 0.5rem;">Crossword Maker from a Word List</h1>
-    <p style="max-width:60ch;margin:0 0 1rem;">
+    <p style="max-width:62ch;margin:0 0 1rem;">
       Keep your answers. Add clues manually or (when AI is enabled) fill missing clues only — we will not replace your vocabulary without confirmation.
       CSV example header: <code>answer,clue,category</code>.
+      New here?
+      <a href="/blog/how-to-make-a-crossword-from-a-word-list/">How to make a crossword from a word list</a>.
     </p>
     <MakerApp client:load initialMode="words" heading="Start from your vocabulary list" />
+  </section>
+
+  <section class="container section" aria-labelledby="wordlist-howto-cta">
+    <h2 id="wordlist-howto-cta" class="section-title">Spelling list ready?</h2>
+    <p style="max-width:62ch;margin:0 0 0.85rem;">
+      Paste answers first, tighten clues, then Build grid. Layout reshuffles never spend AI credits.
+      Prefer a classroom preset with Name + Class + Date? Open the teachers landing.
+    </p>
+    <p style="display:flex;flex-wrap:wrap;gap:0.75rem 1rem;align-items:center;margin:0;">
+      <a class="print-btn" href="/blog/how-to-make-a-crossword-from-a-word-list/">Read the word-list how-to</a>
+      <a href="/crossword-maker-for-teachers/">Teachers classroom maker</a>
+      <a href="/printable-crossword-maker/">Printable PDF + answer key</a>
+    </p>
+  </section>
+
+  <section class="container section">
+    <h2 class="section-title">Starter word lists</h2>
+    <p style="max-width:62ch;margin:0 0 0.75rem;">
+      Open a human-reviewed example, print as-is, or load the words into the maker to remix clues.
+    </p>
+    <ul>
+      <li><a href="/examples/classroom-objects/">Classroom objects</a> — Grades K–5</li>
+      <li><a href="/examples/parts-of-speech/">Parts of speech</a> — language arts</li>
+      <li><a href="/examples/irregular-verbs/">Irregular verbs</a> — ESL / grammar</li>
+      <li><a href="/examples/esl-food-vocabulary/">ESL food vocabulary</a> — beginner themes</li>
+      <li><a href="/examples/fractions/">Fractions</a> — Grades 3–6 math</li>
+    </ul>
+    <p>
+      Also see
+      <a href="/blog/how-to-make-a-crossword-puzzle/">how to make a crossword</a> ·
+      <a href="/blog/how-to-print-crossword-worksheets/">print worksheets</a> ·
+      <a href="/examples/">full examples library</a>.
+    </p>
+  </section>
+
+  <section class="container section faq">
+    <h2 class="section-title">FAQ</h2>
+    {faqs.map((f) => (
+      <details><summary>{f.q}</summary><p style="margin:0.6rem 0 0;">{f.a}</p></details>
+    ))}
   </section>
 </BaseLayout>

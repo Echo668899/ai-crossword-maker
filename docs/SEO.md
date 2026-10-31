@@ -14,7 +14,8 @@
 | `/examples/` + `/examples/[slug]/` | topic long-tail (≥30 seeds; ESL + new classroom long-tail) |
 | `/esl-crossword-generator/` | ESL vocabulary + CEFR presets |
 | `/cefr-crossword/` | A1–C1 level picker (independent page) |
-| `/blog/` + how-to posts | crawlable guides ↔ examples mesh + maker / printable |
+| `/blog/` + how-to posts | crawlable guides ↔ examples mesh + maker / printable / word-list |
+| `/crossword-maker-from-word-list/` | vocabulary list → grid (FAQ + how-to CTA) |
 | `/pricing/`, `/how-it-works/` | conversion / trust |
 
 ## Technical baseline
@@ -30,9 +31,10 @@
 - Teacher/printable pages + examples cross-link blog/ESL/CEFR; home features high-traffic examples
 - Teachers ↔ printable dedicated CTAs; print how-to post bridges both landings
 - Shared `blog-posts` catalog drives related guides; example pages link “Related how-tos”
+- Word-list landing FAQ + how-to `/blog/how-to-make-a-crossword-from-a-word-list/` bridges paste → print
 
 ## 90-day
 
 - **A:** P0 shells + maker demo + FAQ + sitemap (done)
 - **B:** examples≥25 + print/FAQ/related links polish (done); ESL/CEFR depth + how-tos (done)
-- **C:** first-pass high-traffic review + name-line presets (done via PR #9); second-pass examples + print how-to + teachers↔printable CTAs (PR #10); long-tail +5 + blog mesh + maker UX (this slice); GSC-driven long-tail next; honest `/vs/` comparison pages still open
+- **C:** first-pass high-traffic review + name-line presets (PR #9); second-pass examples + print how-to (PR #10); long-tail +5 + blog mesh (PR #11); word-list how-to + Words UX (this slice); GSC-driven long-tail next; honest `/vs/` comparison pages still open

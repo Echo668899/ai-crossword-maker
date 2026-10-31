@@ -1,0 +1,148 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getBlogPost, relatedBlogPosts } from "../../../lib/blog-posts";
+import { getExample } from "../../../lib/examples";
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const meta = getBlogPost("how-to-make-a-crossword-from-a-word-list")!;
+const relatedGuides = relatedBlogPosts(meta.slug);
+const featuredExamples = meta.exampleSlugs.map((s) => getExample(s)).filter(Boolean);
+const title = "How to Make a Crossword from a Word List — Vocabulary Worksheet";
+const description =
+  "Turn a spelling or vocabulary list into a printable crossword: paste answers, add clues, build the grid, and export a student sheet plus answer key.";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath="/blog/how-to-make-a-crossword-from-a-word-list/"
+  jsonLd={[
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: "How to Make a Crossword from a Word List",
+      description,
+      inLanguage: "en",
+      mainEntityOfPage: `${site}/blog/how-to-make-a-crossword-from-a-word-list/`,
+      author: { "@type": "Organization", name: "AI Crossword Maker" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
+        { "@type": "ListItem", position: 2, name: "Blog", item: `${site}/blog/` },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: "How to make a crossword from a word list",
+          item: `${site}/blog/how-to-make-a-crossword-from-a-word-list/`,
+        },
+      ],
+    },
+  ]}
+>
+  <article class="container section prose" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / <a href="/blog/">Blog</a> / Crossword from a word list
+    </nav>
+    <h1>How to Make a Crossword from a Word List</h1>
+    <p>
+      Already have a spelling list, unit vocabulary, or ESL word bank? Keep those answers — do not start from a blank topic.
+      Paste the list, add clues (or leave blanks for later), build an interlocking grid, then print a student sheet and matching answer key.
+    </p>
+    <p>
+      <a href="/crossword-maker-from-word-list/"><strong>Open the word-list crossword maker</strong></a>
+      or jump to the
+      <a href="/crossword-maker-for-teachers/">teachers classroom preset</a>
+      with a ready classroom sample.
+    </p>
+
+    <h2>1. Gather answers only (clues can wait)</h2>
+    <p>
+      Copy 8–20 English words from your lesson plan or LMS. Prefer A–Z letters only — digits and punctuation are stripped for the grid.
+      One answer per line is enough; you can add clues later. Formats that work:
+    </p>
+    <ul>
+      <li><code>ANSWER</code> alone</li>
+      <li><code>ANSWER | short clue</code></li>
+      <li>Tab-separated <code>ANSWER[TAB]clue</code></li>
+      <li>CSV header <code>answer,clue,category</code> (category is ignored for layout)</li>
+    </ul>
+
+    <h2>2. Paste into Word list mode</h2>
+    <p>
+      On the
+      <a href="/crossword-maker-from-word-list/">word list maker</a>, stay in Words / Paste text mode.
+      Click <strong>Parse into editor</strong>, then skim for duplicates — two identical answers confuse numbering.
+      Prefer a ready seed? Try
+      {
+        featuredExamples.map((ex, i) => (
+          <>
+            {i > 0 ? (i === featuredExamples.length - 1 ? ", or " : ", ") : ""}
+            <a href={`/examples/${ex!.slug}/`}>{ex!.title.toLowerCase()}</a>
+          </>
+        ))
+      }
+      .
+    </p>
+
+    <h2>3. Fill or tighten clues</h2>
+    <p>
+      Empty clues still allow a layout build, but classroom handouts need definitions students can solve.
+      Keep clues short, age-appropriate, and free of the answer string.
+      AI clue-fill (when enabled) only drafts missing clues — it should not replace your vocabulary list without confirmation.
+    </p>
+
+    <h2>4. Build grid, then print</h2>
+    <p>
+      Click <strong>Build grid</strong>. Shuffle layout is free and never spends AI credits.
+      Export a student PDF (optional name/class/date lines) and a separate answer-key PDF.
+      Details:
+      <a href="/blog/how-to-print-crossword-worksheets/">how to print crossword worksheets</a>
+      ·
+      <a href="/printable-crossword-maker/">printable crossword maker</a>.
+    </p>
+
+    <h2>Word list vs Topic (AI)</h2>
+    <p>
+      Use <strong>word list</strong> when the answers are fixed by your curriculum.
+      Use <a href="/ai-crossword-maker/">Topic (AI)</a> when you want candidate words + clues from a theme, then edit.
+      Both paths share the same grid engine, print layout, and free demo constraints.
+    </p>
+
+    <h2>Quick checklist</h2>
+    <ul>
+      <li>At least 2 valid A–Z answers (ideally 8+ for a classroom sheet).</li>
+      <li>No duplicate answers after normalize.</li>
+      <li>Clues do not contain the answer string.</li>
+      <li>Student PDF and answer key match the same grid version.</li>
+    </ul>
+
+    <h2>Related guides &amp; tools</h2>
+    <ul>
+      {
+        relatedGuides.map((g) => (
+          <li>
+            <a href={`/blog/${g.slug}/`}>{g.title}</a>
+          </li>
+        ))
+      }
+      <li>
+        <a href="/crossword-maker-from-word-list/">Word list maker</a> ·
+        <a href="/crossword-maker-for-teachers/">Teachers</a> ·
+        <a href="/examples/">Examples</a>
+      </li>
+      <li><a href="/esl-crossword-generator/">ESL generator</a> · <a href="/pricing/">Pricing</a></li>
+    </ul>
+
+    <p style="margin-top:1.5rem;">
+      <a href="/crossword-maker-from-word-list/">Start from your vocabulary list</a>
+      or browse
+      <a href="/examples/classroom-objects/">classroom objects</a>
+      and
+      <a href="/examples/irregular-verbs/">irregular verbs</a>
+      for printable starters.
+    </p>
+  </article>
+</BaseLayout>

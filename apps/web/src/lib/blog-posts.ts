@@ -51,6 +51,24 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "renewable-energy",
     ],
   },
+  {
+    slug: "how-to-make-a-crossword-from-a-word-list",
+    title: "How to Make a Crossword from a Word List",
+    description:
+      "Paste a spelling or vocabulary list, add or fill clues, build an interlocking grid, and print with an answer key.",
+    toolPaths: [
+      "/crossword-maker-from-word-list/",
+      "/crossword-maker-for-teachers/",
+      "/printable-crossword-maker/",
+    ],
+    exampleSlugs: [
+      "classroom-objects",
+      "parts-of-speech",
+      "irregular-verbs",
+      "esl-food-vocabulary",
+      "fractions",
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string) {
