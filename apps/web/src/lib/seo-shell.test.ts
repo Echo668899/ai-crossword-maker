@@ -129,7 +129,7 @@ describe("SEO shell hardening", () => {
     expect(blogIndex).toContain('canonicalPath="/blog/"');
     expect(blogIndex).toContain("ItemList");
     expect(blogIndex).toContain("BLOG_POSTS");
-    expect(blogIndex).toContain("/examples/force-and-motion/");
+    expect(blogIndex).toContain("/examples/ecosystems/");
     expect(blogIndex).toContain("/crossword-maker-from-word-list/");
     const blogCatalog = readFileSync(join(import.meta.dirname, "blog-posts.ts"), "utf8");
     expect(blogCatalog).toContain("how-to-print-crossword-worksheets");
@@ -139,6 +139,7 @@ describe("SEO shell hardening", () => {
     expect(blogCatalog).toContain("how-to-make-a-science-vocabulary-crossword");
     expect(blogCatalog).toContain("how-to-make-a-crossword-from-a-spelling-list");
     expect(blogCatalog).toContain("how-to-make-a-math-vocabulary-crossword");
+    expect(blogCatalog).toContain("how-to-make-a-social-studies-vocabulary-crossword");
     const scienceHowto = readFileSync(
       join(pagesRoot, "blog/how-to-make-a-science-vocabulary-crossword/index.astro"),
       "utf8",
@@ -160,6 +161,13 @@ describe("SEO shell hardening", () => {
     expect(mathHowto).toContain("/ai-crossword-maker/");
     expect(mathHowto).toContain("@type\": \"Article\"");
     expect(mathHowto).toContain("/examples/measurement/");
+    const socialHowto = readFileSync(
+      join(pagesRoot, "blog/how-to-make-a-social-studies-vocabulary-crossword/index.astro"),
+      "utf8",
+    );
+    expect(socialHowto).toContain("/ai-crossword-maker/");
+    expect(socialHowto).toContain("@type\": \"Article\"");
+    expect(socialHowto).toContain("/examples/branches-of-government/");
     expect(howto).toContain("/ai-crossword-maker/");
     expect(howto).toContain("@type\": \"Article\"");
     expect(howto).toContain("blog-posts");
@@ -192,6 +200,11 @@ describe("SEO shell hardening", () => {
     expect(EXAMPLES.some((e) => e.slug === "force-and-motion")).toBe(true);
     expect(EXAMPLES.some((e) => e.slug === "measurement")).toBe(true);
     expect(EXAMPLES.some((e) => e.slug === "life-cycles")).toBe(true);
+    expect(EXAMPLES.some((e) => e.slug === "ecosystems")).toBe(true);
+    expect(EXAMPLES.some((e) => e.slug === "magnets")).toBe(true);
+    expect(EXAMPLES.some((e) => e.slug === "figurative-language")).toBe(true);
+    expect(EXAMPLES.some((e) => e.slug === "decimals")).toBe(true);
+    expect(EXAMPLES.some((e) => e.slug === "natural-resources")).toBe(true);
   });
 
   it("ships honest comparison pages without AggregateRating fiction", () => {
@@ -203,6 +216,7 @@ describe("SEO shell hardening", () => {
       join(pagesRoot, "vs/discovery-education-puzzlemaker/index.astro"),
       "utf8",
     );
+    const vsArmored = readFileSync(join(pagesRoot, "vs/armored-penguin/index.astro"), "utf8");
     const blogIndex = readFileSync(join(pagesRoot, "blog/index.astro"), "utf8");
     const pricing = readFileSync(join(pagesRoot, "pricing/index.astro"), "utf8");
     const footer = readFileSync(join(import.meta.dirname, "../layouts/BaseLayout.astro"), "utf8");
@@ -211,6 +225,7 @@ describe("SEO shell hardening", () => {
     expect(vsHub).toContain("/vs/my-crossword-maker/");
     expect(vsHub).toContain("/vs/eclipse-crossword/");
     expect(vsHub).toContain("/vs/discovery-education-puzzlemaker/");
+    expect(vsHub).toContain("/vs/armored-penguin/");
     expect(vsLabs).toContain('canonicalPath="/vs/crossword-labs/"');
     expect(vsLabs).toContain("FAQPage");
     expect(vsLabs).toContain("Crossword Labs alternative");
@@ -231,20 +246,28 @@ describe("SEO shell hardening", () => {
     expect(vsDiscovery).toContain("Discovery Education Puzzlemaker alternative");
     expect(vsDiscovery).not.toMatch(/"@type"\s*:\s*"AggregateRating"/);
     expect(vsDiscovery).not.toMatch(/ratingValue|reviewCount/i);
+    expect(vsArmored).toContain('canonicalPath="/vs/armored-penguin/"');
+    expect(vsArmored).toContain("FAQPage");
+    expect(vsArmored).toContain("Armored Penguin alternative");
+    expect(vsArmored).not.toMatch(/"@type"\s*:\s*"AggregateRating"/);
+    expect(vsArmored).not.toMatch(/ratingValue|reviewCount/i);
     expect(blogIndex).toContain("/vs/");
     expect(blogIndex).toContain("/vs/my-crossword-maker/");
     expect(blogIndex).toContain("/vs/crossword-labs/");
     expect(blogIndex).toContain("/vs/eclipse-crossword/");
     expect(blogIndex).toContain("/vs/discovery-education-puzzlemaker/");
+    expect(blogIndex).toContain("/vs/armored-penguin/");
     expect(pricing).toContain("/vs/my-crossword-maker/");
     expect(pricing).toContain("/vs/crossword-labs/");
     expect(pricing).toContain("/vs/eclipse-crossword/");
     expect(pricing).toContain("/vs/discovery-education-puzzlemaker/");
+    expect(pricing).toContain("/vs/armored-penguin/");
     expect(footer).toContain("/vs/");
     expect(footer).toContain("/vs/my-crossword-maker/");
     expect(footer).toContain("/vs/crossword-labs/");
     expect(footer).toContain("/vs/eclipse-crossword/");
     expect(footer).toContain("/vs/discovery-education-puzzlemaker/");
+    expect(footer).toContain("/vs/armored-penguin/");
   });
 
   it("wires example detail pages into the blog how-to mesh", () => {
@@ -252,7 +275,7 @@ describe("SEO shell hardening", () => {
     expect(detailSrc).toContain("blogPostsForExample");
     expect(detailSrc).toContain("Related how-tos");
     const examplesIndex = readFileSync(join(pagesRoot, "examples/index.astro"), "utf8");
-    expect(examplesIndex).toContain("LONG_TAIL_BATCH_5_SLUGS");
+    expect(examplesIndex).toContain("LONG_TAIL_BATCH_6_SLUGS");
     expect(examplesIndex).toContain("subjectJump");
     const maker = readFileSync(
       join(import.meta.dirname, "../components/maker/MakerApp.tsx"),
@@ -266,7 +289,7 @@ describe("SEO shell hardening", () => {
     expect(maker).toContain("TEACHER_CLASSROOM_ENTRIES");
     expect(maker).toContain("Load classroom sample");
     expect(maker).toContain("/blog/how-to-make-a-crossword-from-a-word-list/");
-    expect(maker).toContain("/examples/force-and-motion/");
-    expect(maker).toContain("/blog/how-to-make-a-math-vocabulary-crossword/");
+    expect(maker).toContain("/examples/ecosystems/");
+    expect(maker).toContain("/blog/how-to-make-a-social-studies-vocabulary-crossword/");
   });
 });
