@@ -32,6 +32,7 @@ SECRETS=(
   STRIPE_PRICE_ACTIVITY_PACK
   TURNSTILE_SECRET_KEY
   ADMIN_EMAILS
+  RESEND_API_KEY
 )
 
 info "Secret put plan for Worker acm-api ($(cf_auth_status))"

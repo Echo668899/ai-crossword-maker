@@ -20,6 +20,13 @@ export type ApiEnv = {
   AUTH_COOKIE_SECURE?: string;
   AUTH_DEV_LOG_LINKS?: string;
   AUTH_DEV_RETURN_LINK?: string;
+  /** Magic-link mail: `resend` | `none` (default auto: resend when RESEND_API_KEY set). */
+  MAIL_PROVIDER?: string;
+  /** Verified sender, e.g. noreply@crosswordmaker.app (non-secret var). */
+  MAIL_FROM?: string;
+  MAIL_FROM_NAME?: string;
+  /** Resend API key (Worker secret). */
+  RESEND_API_KEY?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
   /** Turnstile Siteverify secret (Worker secret). */

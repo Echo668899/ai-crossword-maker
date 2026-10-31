@@ -48,3 +48,7 @@ TURNSTILE_HOSTNAMES = "crosswordmaker.app,localhost,127.0.0.1"
 TURNSTILE_ACTION = "ai-topic"
 # Comma-separated admin emails (prefer secret/var in production). Empty denies /admin API.
 # ADMIN_EMAILS = "ops@example.com"
+# Magic-link mail (production): set RESEND_API_KEY via secret; verify MAIL_FROM domain in Resend.
+MAIL_PROVIDER = "resend"
+MAIL_FROM = "noreply@crosswordmaker.app"
+MAIL_FROM_NAME = "Crossword Maker"

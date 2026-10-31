@@ -12,6 +12,11 @@ AUTH_PUBLIC_ORIGIN=http://127.0.0.1:4321
 AUTH_COOKIE_SECURE=false
 AUTH_DEV_LOG_LINKS=true
 AUTH_DEV_RETURN_LINK=true
+# Production mailer (optional locally). Prefer AUTH_DEV_RETURN_LINK for local smoke.
+# MAIL_PROVIDER=resend
+# MAIL_FROM=noreply@crosswordmaker.app
+# MAIL_FROM_NAME=Crossword Maker
+# RESEND_API_KEY=
 # GOOGLE_CLIENT_ID=
 # GOOGLE_CLIENT_SECRET=
 

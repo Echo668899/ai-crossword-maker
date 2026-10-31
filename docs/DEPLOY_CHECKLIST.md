@@ -58,10 +58,12 @@ pnpm exec wrangler secret put STRIPE_PRICE_CREDITS_100
 pnpm exec wrangler secret put STRIPE_PRICE_ACTIVITY_PACK
 pnpm exec wrangler secret put TURNSTILE_SECRET_KEY
 pnpm exec wrangler secret put ADMIN_EMAILS
+pnpm exec wrangler secret put RESEND_API_KEY
 # Creem primary: CREEM_API_KEY, CREEM_WEBHOOK_SECRET,
 #   CREEM_PRODUCT_PRO_MONTHLY, CREEM_PRODUCT_PRO_YEARLY,
 #   CREEM_PRODUCT_CREDITS_50, CREEM_PRODUCT_CREDITS_100, CREEM_PRODUCT_ACTIVITY_PACK
 # Optional Stripe fallback: STRIPE_* prices + webhook
+# Non-secret mail vars in wrangler.toml: MAIL_PROVIDER, MAIL_FROM, MAIL_FROM_NAME
 ```
 
 Web build / Pages env (non-secret): `PUBLIC_TURNSTILE_SITE_KEY`, `PUBLIC_SITE_URL`.
@@ -117,5 +119,5 @@ GitHub Actions workflow `.github/workflows/deploy-cloudflare.yml`:
 - [ ] Legal entity filled on Privacy / Terms / Refund / Contact (human)
 - [ ] Live billing keys + webhook soak
 - [ ] Turnstile if anon AI wide-open
-- [ ] Production mailer or Google OAuth
+- [ ] Production mailer (`RESEND_API_KEY` + verified `MAIL_FROM`) or Google OAuth
 - [ ] GSC property after DNS live
