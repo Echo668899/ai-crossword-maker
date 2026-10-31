@@ -45,19 +45,19 @@ const NAME_LINE_OPTIONS: Array<{ id: NameLinePresetId; label: string }> = [
 
 /** Classroom long-tail chips — fill Topic without spending AI until Generate. */
 const TOPIC_QUICK_PICKS = [
-  "States of Matter for grade 4",
-  "Food Chains for grade 5",
-  "Continents and Oceans for grade 3",
-  "Synonyms for ESL A2",
-  "Telling Time for grade 2",
+  "Rock Cycle for grade 5",
+  "Types of Clouds for grade 4",
+  "Map Skills for grade 3",
+  "Antonyms for ESL A2",
+  "Geometry Shapes for grade 3",
 ] as const;
 
 const EXAMPLE_SEED_SLUGS = [
-  "states-of-matter",
-  "food-chains",
-  "continents-and-oceans",
-  "synonyms",
-  "telling-time",
+  "rock-cycle",
+  "types-of-clouds",
+  "map-skills",
+  "antonyms",
+  "geometry-shapes",
 ] as const;
 
 interface EntryRow {
@@ -1205,11 +1205,13 @@ export default function MakerApp({
               <p className="muted" style={{ margin: 0, fontSize: "0.88rem" }}>
                 Prefer a ready printable?
                 {" "}
-                <a href="/examples/states-of-matter/">States of matter</a>
+                <a href="/examples/rock-cycle/">Rock cycle</a>
                 {" · "}
-                <a href="/examples/food-chains/">Food chains</a>
+                <a href="/examples/types-of-clouds/">Types of clouds</a>
                 {" · "}
                 <a href="/examples/">All examples</a>
+                {" · "}
+                <a href="/blog/how-to-make-a-science-vocabulary-crossword/">Science how-to</a>
               </p>
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
                 <label style={{ display: "grid", gap: "0.35rem" }}>
@@ -1277,7 +1279,7 @@ export default function MakerApp({
                   onClick={() => {
                     const slug =
                       EXAMPLE_SEED_SLUGS[Math.floor(Math.random() * EXAMPLE_SEED_SLUGS.length)] ??
-                      "states-of-matter";
+                      "rock-cycle";
                     const ex = getExample(slug);
                     if (!ex) return;
                     pushHistory(ex.entries.map((e) => ({ answer: e.answer, clue: e.clue })));
@@ -1381,7 +1383,7 @@ export default function MakerApp({
                         Manual Words + clues — layout never spends AI credits.{" "}
                         <a href="/examples/">Browse printable examples</a>
                         {" · "}
-                        <a href="/vs/crossword-labs/">vs Crossword Labs</a>
+                        <a href="/vs/">Compare makers</a>
                       </>
                     )}
                   </p>
@@ -1417,7 +1419,7 @@ export default function MakerApp({
                       onClick={() => {
                         const slug =
                           EXAMPLE_SEED_SLUGS[Math.floor(Math.random() * EXAMPLE_SEED_SLUGS.length)] ??
-                          "synonyms";
+                          "rock-cycle";
                         const ex = getExample(slug);
                         if (!ex) return;
                         pushHistory(ex.entries.map((e) => ({ answer: e.answer, clue: e.clue })));

@@ -129,13 +129,21 @@ describe("SEO shell hardening", () => {
     expect(blogIndex).toContain('canonicalPath="/blog/"');
     expect(blogIndex).toContain("ItemList");
     expect(blogIndex).toContain("BLOG_POSTS");
-    expect(blogIndex).toContain("/examples/states-of-matter/");
+    expect(blogIndex).toContain("/examples/rock-cycle/");
     expect(blogIndex).toContain("/crossword-maker-from-word-list/");
     const blogCatalog = readFileSync(join(import.meta.dirname, "blog-posts.ts"), "utf8");
     expect(blogCatalog).toContain("how-to-print-crossword-worksheets");
     expect(blogCatalog).toContain("how-to-make-a-crossword-puzzle");
     expect(blogCatalog).toContain("how-to-make-esl-vocabulary-crosswords");
     expect(blogCatalog).toContain("how-to-make-a-crossword-from-a-word-list");
+    expect(blogCatalog).toContain("how-to-make-a-science-vocabulary-crossword");
+    const scienceHowto = readFileSync(
+      join(pagesRoot, "blog/how-to-make-a-science-vocabulary-crossword/index.astro"),
+      "utf8",
+    );
+    expect(scienceHowto).toContain("/ai-crossword-maker/");
+    expect(scienceHowto).toContain("@type\": \"Article\"");
+    expect(scienceHowto).toContain("/examples/rock-cycle/");
     expect(howto).toContain("/ai-crossword-maker/");
     expect(howto).toContain("@type\": \"Article\"");
     expect(howto).toContain("blog-posts");
@@ -160,20 +168,37 @@ describe("SEO shell hardening", () => {
     expect(EXAMPLES.some((e) => e.slug === "renewable-energy")).toBe(true);
     expect(EXAMPLES.some((e) => e.slug === "states-of-matter")).toBe(true);
     expect(EXAMPLES.some((e) => e.slug === "telling-time")).toBe(true);
+    expect(EXAMPLES.some((e) => e.slug === "rock-cycle")).toBe(true);
+    expect(EXAMPLES.some((e) => e.slug === "geometry-shapes")).toBe(true);
   });
 
-  it("ships an honest Crossword Labs comparison page without AggregateRating fiction", () => {
-    const vs = readFileSync(join(pagesRoot, "vs/crossword-labs/index.astro"), "utf8");
+  it("ships honest comparison pages without AggregateRating fiction", () => {
+    const vsHub = readFileSync(join(pagesRoot, "vs/index.astro"), "utf8");
+    const vsLabs = readFileSync(join(pagesRoot, "vs/crossword-labs/index.astro"), "utf8");
+    const vsMcm = readFileSync(join(pagesRoot, "vs/my-crossword-maker/index.astro"), "utf8");
     const blogIndex = readFileSync(join(pagesRoot, "blog/index.astro"), "utf8");
     const pricing = readFileSync(join(pagesRoot, "pricing/index.astro"), "utf8");
     const footer = readFileSync(join(import.meta.dirname, "../layouts/BaseLayout.astro"), "utf8");
-    expect(vs).toContain('canonicalPath="/vs/crossword-labs/"');
-    expect(vs).toContain("FAQPage");
-    expect(vs).toContain("Crossword Labs alternative");
-    expect(vs).not.toMatch(/"@type"\s*:\s*"AggregateRating"/);
-    expect(vs).not.toMatch(/ratingValue|reviewCount/i);
+    expect(vsHub).toContain('canonicalPath="/vs/"');
+    expect(vsHub).toContain("ItemList");
+    expect(vsHub).toContain("/vs/my-crossword-maker/");
+    expect(vsLabs).toContain('canonicalPath="/vs/crossword-labs/"');
+    expect(vsLabs).toContain("FAQPage");
+    expect(vsLabs).toContain("Crossword Labs alternative");
+    expect(vsLabs).not.toMatch(/"@type"\s*:\s*"AggregateRating"/);
+    expect(vsLabs).not.toMatch(/ratingValue|reviewCount/i);
+    expect(vsMcm).toContain('canonicalPath="/vs/my-crossword-maker/"');
+    expect(vsMcm).toContain("FAQPage");
+    expect(vsMcm).toContain("My Crossword Maker alternative");
+    expect(vsMcm).not.toMatch(/"@type"\s*:\s*"AggregateRating"/);
+    expect(vsMcm).not.toMatch(/ratingValue|reviewCount/i);
+    expect(blogIndex).toContain("/vs/");
+    expect(blogIndex).toContain("/vs/my-crossword-maker/");
     expect(blogIndex).toContain("/vs/crossword-labs/");
+    expect(pricing).toContain("/vs/my-crossword-maker/");
     expect(pricing).toContain("/vs/crossword-labs/");
+    expect(footer).toContain("/vs/");
+    expect(footer).toContain("/vs/my-crossword-maker/");
     expect(footer).toContain("/vs/crossword-labs/");
   });
 
@@ -181,6 +206,9 @@ describe("SEO shell hardening", () => {
     const detailSrc = readFileSync(join(pagesRoot, "examples/[slug].astro"), "utf8");
     expect(detailSrc).toContain("blogPostsForExample");
     expect(detailSrc).toContain("Related how-tos");
+    const examplesIndex = readFileSync(join(pagesRoot, "examples/index.astro"), "utf8");
+    expect(examplesIndex).toContain("LONG_TAIL_BATCH_3_SLUGS");
+    expect(examplesIndex).toContain("subjectJump");
     const maker = readFileSync(
       join(import.meta.dirname, "../components/maker/MakerApp.tsx"),
       "utf8",
@@ -193,6 +221,7 @@ describe("SEO shell hardening", () => {
     expect(maker).toContain("TEACHER_CLASSROOM_ENTRIES");
     expect(maker).toContain("Load classroom sample");
     expect(maker).toContain("/blog/how-to-make-a-crossword-from-a-word-list/");
-    expect(maker).toContain("/examples/states-of-matter/");
+    expect(maker).toContain("/examples/rock-cycle/");
+    expect(maker).toContain("/blog/how-to-make-a-science-vocabulary-crossword/");
   });
 });

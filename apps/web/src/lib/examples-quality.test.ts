@@ -5,6 +5,7 @@ import {
   EXAMPLES,
   HIGH_TRAFFIC_EXAMPLE_SLUGS,
   LONG_TAIL_BATCH_2_SLUGS,
+  LONG_TAIL_BATCH_3_SLUGS,
   LONG_TAIL_EXPANSION_SLUGS,
   SECOND_PASS_REVIEWED_SLUGS,
   getExample,
@@ -62,6 +63,17 @@ describe("examples quality", () => {
     }
   });
 
+  it("marks long-tail batch-3 seeds as human-reviewed with printable blurbs", () => {
+    expect(LONG_TAIL_BATCH_3_SLUGS.length).toBeGreaterThanOrEqual(5);
+    for (const slug of LONG_TAIL_BATCH_3_SLUGS) {
+      const ex = getExample(slug);
+      expect(ex, slug).toBeTruthy();
+      expect(ex!.reviewState).toBe("human_reviewed");
+      expect(ex!.blurb.toLowerCase()).toMatch(/print|crossword|vocabulary|answer/);
+      expect(ex!.entries.every((e) => e.clue.trim().length >= 12)).toBe(true);
+    }
+  });
+
   it("keeps a blog ↔ examples internal link mesh", () => {
     expect(BLOG_POSTS.length).toBeGreaterThanOrEqual(3);
     for (const post of BLOG_POSTS) {
@@ -73,7 +85,11 @@ describe("examples quality", () => {
       const related = relatedBlogPosts(post.slug);
       expect(related.every((p) => p.slug !== post.slug)).toBe(true);
     }
-    for (const slug of [...LONG_TAIL_EXPANSION_SLUGS, ...LONG_TAIL_BATCH_2_SLUGS]) {
+    for (const slug of [
+      ...LONG_TAIL_EXPANSION_SLUGS,
+      ...LONG_TAIL_BATCH_2_SLUGS,
+      ...LONG_TAIL_BATCH_3_SLUGS,
+    ]) {
       const posts = blogPostsForExample(slug, 2);
       expect(posts.length).toBeGreaterThanOrEqual(1);
     }

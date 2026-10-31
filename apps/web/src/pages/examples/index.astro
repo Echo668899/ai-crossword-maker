@@ -5,6 +5,7 @@ import {
   examplesBySubject,
   HIGH_TRAFFIC_EXAMPLE_SLUGS,
   LONG_TAIL_BATCH_2_SLUGS,
+  LONG_TAIL_BATCH_3_SLUGS,
   LONG_TAIL_EXPANSION_SLUGS,
   getExample,
 } from "../../lib/examples";
@@ -12,7 +13,11 @@ import {
 const featured = HIGH_TRAFFIC_EXAMPLE_SLUGS.map((slug) => getExample(slug)).filter(
   (ex): ex is NonNullable<typeof ex> => Boolean(ex),
 );
-const longTail = [...LONG_TAIL_BATCH_2_SLUGS, ...LONG_TAIL_EXPANSION_SLUGS]
+const longTail = [
+  ...LONG_TAIL_BATCH_3_SLUGS,
+  ...LONG_TAIL_BATCH_2_SLUGS,
+  ...LONG_TAIL_EXPANSION_SLUGS,
+]
   .map((slug) => getExample(slug))
   .filter((ex): ex is NonNullable<typeof ex> => Boolean(ex));
 
@@ -25,6 +30,10 @@ const labels: Record<string, string> = {
   classroom: "Classroom",
   arts: "Arts",
 };
+const subjectJump = [...grouped.keys()].map((subject) => ({
+  id: `subject-${subject}`,
+  label: labels[subject] ?? subject,
+}));
 const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
 const jsonLd = {
   "@context": "https://schema.org",
@@ -52,14 +61,26 @@ const jsonLd = {
     <p style="max-width:62ch;margin:0 0 0.75rem;">
       {EXAMPLES.length} free printable topic puzzles for classroom inspiration. Each page has an interlocking grid, clues, answer key, and print button. Marked Sample until human-reviewed — not doorway stubs.
     </p>
-    <p style="margin:0 0 1.5rem;">
+    <p style="margin:0 0 0.75rem;">
       <a href="/ai-crossword-maker/">Make your own with AI</a>
       · <a href="/crossword-maker-for-teachers/">Teacher workflows</a>
       · <a href="/printable-crossword-maker/">Printable presets</a>
       · <a href="/esl-crossword-generator/">ESL generator</a>
       · <a href="/cefr-crossword/">CEFR crossword</a>
+      · <a href="/blog/how-to-make-a-science-vocabulary-crossword/">Science how-to</a>
       · <a href="/blog/">How-to blog</a>
       · <a href="/pricing/">Pricing</a>
+    </p>
+    <p class="muted" style="margin:0 0 1.5rem;font-size:0.92rem;">
+      Jump by subject:{" "}
+      {
+        subjectJump.map((s, i) => (
+          <>
+            {i > 0 ? " · " : null}
+            <a href={`#${s.id}`}>{s.label}</a>
+          </>
+        ))
+      }
     </p>
     <div style="margin-bottom:2rem;">
       <h2 class="section-title">Popular classroom topics</h2>
@@ -100,7 +121,7 @@ const jsonLd = {
     </div>
     {
       [...grouped.entries()].map(([subject, list]) => (
-        <div style="margin-bottom:2rem;">
+        <div id={`subject-${subject}`} style="margin-bottom:2rem;">
           <h2 class="section-title">{labels[subject] ?? subject}</h2>
           <ul style="display:grid;gap:0.55rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));list-style:none;padding:0;margin:0.75rem 0 0;">
             {list.map((ex) => (
