@@ -1,0 +1,12 @@
+# Optional Workers Static Assets deploy for the Astro SSG output.
+# Preferred path in docs/DEPLOYMENT.md is Cloudflare Pages (`acm-web`) via:
+#   pnpm --filter @acm/api exec wrangler pages deploy apps/web/dist --project-name=acm-web
+# Use this file only if you intentionally serve dist from a Worker instead of Pages.
+name = "acm-web"
+compatibility_date = "2025-10-01"
+
+[assets]
+directory = "./dist"
+# Real 404s — do not SPA-fallback missing HTML routes.
+not_found_handling = "404-page"
+html_handling = "auto"

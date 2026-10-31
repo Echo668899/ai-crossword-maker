@@ -36,12 +36,40 @@ pnpm --filter @acm/web test
 pnpm test:engine
 ```
 
+## Automation scripts (preferred)
+
+Repo helpers (never print secret values):
+
+| Script | Purpose |
+| --- | --- |
+| `./scripts/cf-bootstrap.sh` | Create D1 `acm`, R2 `acm-private`, Queue `acm-jobs`, Pages project `acm-web`; write real `database_id` into both Workers' `wrangler.toml` |
+| `./scripts/cf-put-secrets.sh` | `wrangler secret put` for each present env var on `acm-api` |
+| `./scripts/cf-deploy.sh` | Remote D1 migrations → deploy `acm-api` → `acm-consumer` → build + `pages deploy` `acm-web` |
+| `./scripts/cf-smoke.sh [url]` | Health + examples HTML + play headers |
+
+Dry-run without credentials (prints exact wrangler commands + blockers):
+
+```bash
+./scripts/cf-bootstrap.sh --dry-run
+./scripts/cf-put-secrets.sh --dry-run
+./scripts/cf-deploy.sh --dry-run
+```
+
+**Required env for real deploy:** `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`.  
+Without them every create/deploy step is **BLOCKED** (Cloud Agent / CI cannot invent an account).
+
+Operator checklist: [`docs/DEPLOY_CHECKLIST.md`](./DEPLOY_CHECKLIST.md).  
+CI: `.github/workflows/deploy-cloudflare.yml` (`workflow_dispatch` / `main` push; needs the same repo secrets).
+
+Root aliases: `pnpm cf:bootstrap`, `pnpm cf:secrets`, `pnpm cf:deploy`, `pnpm cf:smoke`.
+
 ## One-time Cloudflare setup
 
-1. **Account + project**
-   - Create D1: `wrangler d1 create acm` → paste `database_id` into `apps/api/wrangler.toml`.
-   - Optional R2: `wrangler r2 bucket create acm-private` (keep **private**).
-   - Optional Queue: `wrangler queues create acm-jobs`.
+1. **Account + project** (or `./scripts/cf-bootstrap.sh`)
+   - Create D1: `pnpm --filter @acm/api exec wrangler d1 create acm` → paste `database_id` into `apps/api/wrangler.toml` **and** `apps/consumer/wrangler.toml`.
+   - R2: `pnpm --filter @acm/api exec wrangler r2 bucket create acm-private` (keep **private**).
+   - Queue: `pnpm --filter @acm/api exec wrangler queues create acm-jobs`.
+   - Pages: `pnpm --filter @acm/api exec wrangler pages project create acm-web --production-branch=main`.
 
 2. **Apply migrations (remote)**
 
@@ -51,31 +79,31 @@ pnpm --filter @acm/api exec wrangler d1 migrations apply acm --remote
 
 Migrations today: `0001_init` … `0007_admin_audit`.
 
-3. **Secrets** (never commit; never log)
+3. **Secrets** (never commit; never log) — or `./scripts/cf-put-secrets.sh`
 
 ```bash
 cd apps/api
-wrangler secret put OPENAI_API_KEY
+pnpm exec wrangler secret put OPENAI_API_KEY
 # Auth
-wrangler secret put GOOGLE_CLIENT_ID
-wrangler secret put GOOGLE_CLIENT_SECRET
+pnpm exec wrangler secret put GOOGLE_CLIENT_ID
+pnpm exec wrangler secret put GOOGLE_CLIENT_SECRET
 # Billing — Stripe preferred
-wrangler secret put STRIPE_SECRET_KEY
-wrangler secret put STRIPE_WEBHOOK_SECRET
-wrangler secret put STRIPE_PRICE_PRO_MONTHLY
-wrangler secret put STRIPE_PRICE_PRO_YEARLY
-wrangler secret put STRIPE_PRICE_CREDITS_50
-wrangler secret put STRIPE_PRICE_CREDITS_100
-wrangler secret put STRIPE_PRICE_ACTIVITY_PACK
+pnpm exec wrangler secret put STRIPE_SECRET_KEY
+pnpm exec wrangler secret put STRIPE_WEBHOOK_SECRET
+pnpm exec wrangler secret put STRIPE_PRICE_PRO_MONTHLY
+pnpm exec wrangler secret put STRIPE_PRICE_PRO_YEARLY
+pnpm exec wrangler secret put STRIPE_PRICE_CREDITS_50
+pnpm exec wrangler secret put STRIPE_PRICE_CREDITS_100
+pnpm exec wrangler secret put STRIPE_PRICE_ACTIVITY_PACK
 # Optional Creem fallback
-wrangler secret put CREEM_API_KEY
-wrangler secret put CREEM_WEBHOOK_SECRET
-wrangler secret put CREEM_PRODUCT_PRO_MONTHLY
+pnpm exec wrangler secret put CREEM_API_KEY
+pnpm exec wrangler secret put CREEM_WEBHOOK_SECRET
+pnpm exec wrangler secret put CREEM_PRODUCT_PRO_MONTHLY
 # … remaining CREEM_PRODUCT_* as needed
 # Turnstile (anon AI)
-wrangler secret put TURNSTILE_SECRET_KEY
+pnpm exec wrangler secret put TURNSTILE_SECRET_KEY
 # Admin allowlist (comma-separated emails) — treat as sensitive
-wrangler secret put ADMIN_EMAILS
+pnpm exec wrangler secret put ADMIN_EMAILS
 ```
 
 Set Worker `vars` in `wrangler.toml` (non-secret): `PUBLIC_SITE_URL`, `AI_ENABLED`, `AI_ANON_DEMO_ENABLED`, `PLAN_VERSION`, `BILLING_PROVIDER=auto`, model ids, `TURNSTILE_REQUIRED`, `TURNSTILE_HOSTNAMES`, `TURNSTILE_ACTION`.
@@ -99,20 +127,23 @@ Point Stripe/Creem webhooks to:
 - `https://aicrosswordmaker.com/api/v1/billing/webhooks/stripe`
 - `https://aicrosswordmaker.com/api/v1/billing/webhooks/creem`
 
-5. **Build + deploy web**
+5. **Build + deploy web** (or `./scripts/cf-deploy.sh`)
 
 ```bash
 PUBLIC_SITE_URL=https://aicrosswordmaker.com pnpm --filter @acm/web build
+pnpm --filter @acm/api exec wrangler pages deploy "$PWD/apps/web/dist" --project-name=acm-web
 ```
 
-Serve `apps/web/dist` via **Workers Static Assets** on the same host as the API, or Cloudflare Pages with:
+Preferred: **Cloudflare Pages** project `acm-web` with `_redirects` for `/p/*`, `/app/packs/*`, `/app/puzzles/*/edit/` 200 rewrites.  
+Alternative: Workers Static Assets (`apps/web/wrangler.toml`) on the same host.
 
-- Route `/api/*` → `acm-api` Worker
-- `_redirects` already includes `/p/*`, `/app/packs/*`, and `/app/puzzles/*/edit/` 200 rewrites
+Same-origin API:
+
+- Route `/api/*` → `acm-api` Worker on `aicrosswordmaker.com`
 
 6. **DNS**
 
-- Apex + `www` → Cloudflare proxy
+- Apex + `www` → Cloudflare proxy (Pages custom domains)
 - Set `PUBLIC_SITE_URL=https://aicrosswordmaker.com` on both web build and API vars
 - Enable HTTPS (orange-cloud)
 
