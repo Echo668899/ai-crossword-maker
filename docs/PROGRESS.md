@@ -15,14 +15,16 @@ Updated: 2026-10-31
 | 07 Packs / batch export | PARTIAL — A/B/C packs + ZIP/R2 export (queue + inline); consumer processes `pack_export` |
 | 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal APIs |
 | 09 Stripe / ledger / admin | PARTIAL — Hybrid Stripe/Creem + ledger; **admin skeleton** (`/admin`, `/api/v1/admin/*`, audit + ops flags) |
-| 10 SEO polish / deploy hardening | IN PROGRESS — examples long-tail quality + maker/pricing funnel polish |
+| 10 SEO polish / deploy hardening | IN PROGRESS — ESL/CEFR depth + how-to blog; examples long-tail ongoing |
 
 ## Latest slice (product iteration)
 
-- Examples: +5 topic seeds (25 total), `gradeBand`, print button + `@media print`, richer FAQ (5 Qs), `relatedExamples` internal links
-- Maker UX: Topic empty-start path, Enter-to-generate, live AI quota pill, quota/error alert → Pricing, cloud Load select + Save sign-in clarity
-- Pricing: Free→Pro funnel copy, yearly-first CTA, “Recommended for teachers”, demo/examples CTAs
-- Prior (PR #6): admin skeleton, cloud version reload, legal placeholders, deploy checklist
+- Merged prior examples/maker/pricing polish via PR #7 → `main`
+- ESL `/esl-crossword-generator/`: CEFR A1–C1 presets, FAQ/JSON-LD, ESL example cluster, maker deep links (`?topic=&difficulty=`)
+- CEFR `/cefr-crossword/`: independent A1–C1 page (no longer 301-only)
+- Examples: +2 ESL seeds (`esl-daily-routines`, `esl-jobs-and-work`) → 27 total
+- Blog: `/blog/` + how-to make a crossword + ESL vocabulary how-to (crawlable, internal links to maker/examples)
+- Maker: `initialDifficulty` + URL query preset wins over local draft
 
 ## Open decisions
 
@@ -32,8 +34,8 @@ Updated: 2026-10-31
 4. Pro yearly $72 / 100–150 ops confirm
 5. `/p/*` forever noindex?
 6. Examples CMS vs content collection
-7. ESL vs CEFR page split (currently 301 merge)
-8. Production mailer for magic links (dev returns link when flagged)
+7. Production mailer for magic links (dev returns link when flagged)
+8. Whether to keep separate ESL + CEFR URLs long-term vs consolidate after GSC data
 
 ## Blockers
 

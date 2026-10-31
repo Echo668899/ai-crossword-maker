@@ -68,4 +68,35 @@ describe("SEO shell hardening", () => {
     expect(globalCss).toContain("@media print");
     expect(EXAMPLES.length).toBeGreaterThanOrEqual(20);
   });
+
+  it("deepens ESL/CEFR landings and ships crawlable how-to blog posts", () => {
+    const esl = readFileSync(join(pagesRoot, "esl-crossword-generator/index.astro"), "utf8");
+    const cefr = readFileSync(join(pagesRoot, "cefr-crossword/index.astro"), "utf8");
+    const blogIndex = readFileSync(join(pagesRoot, "blog/index.astro"), "utf8");
+    const howto = readFileSync(join(pagesRoot, "blog/how-to-make-a-crossword-puzzle/index.astro"), "utf8");
+    const eslHowto = readFileSync(
+      join(pagesRoot, "blog/how-to-make-esl-vocabulary-crosswords/index.astro"),
+      "utf8",
+    );
+
+    expect(esl).toContain('canonicalPath="/esl-crossword-generator/"');
+    expect(esl).toContain("CEFR_PRESETS");
+    expect(esl).toContain("FAQPage");
+    expect(esl).toContain('id="maker"');
+    expect(esl).not.toMatch(/CEFR selectors deepen in v1\.1/);
+
+    expect(cefr).toContain('canonicalPath="/cefr-crossword/"');
+    expect(cefr).toContain("CEFR_PRESETS");
+    expect(cefr).toContain("FAQPage");
+    expect(cefr).not.toMatch(/Astro\.redirect/);
+
+    expect(blogIndex).toContain('canonicalPath="/blog/"');
+    expect(blogIndex).toContain("ItemList");
+    expect(howto).toContain("/ai-crossword-maker/");
+    expect(howto).toContain("@type\": \"Article\"");
+    expect(eslHowto).toContain("/esl-crossword-generator/");
+    expect(eslHowto).toContain("/examples/esl-daily-routines/");
+    expect(EXAMPLES.some((e) => e.slug === "esl-daily-routines")).toBe(true);
+    expect(EXAMPLES.some((e) => e.slug === "esl-jobs-and-work")).toBe(true);
+  });
 });

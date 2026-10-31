@@ -1,0 +1,64 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const posts = [
+  {
+    slug: "how-to-make-a-crossword-puzzle",
+    title: "How to Make a Crossword Puzzle",
+    description:
+      "Step-by-step: pick a topic or word list, edit clues, build a grid, and print with an answer key.",
+  },
+  {
+    slug: "how-to-make-esl-vocabulary-crosswords",
+    title: "How to Make ESL Vocabulary Crosswords",
+    description:
+      "Use CEFR levels and classroom themes to build printable ESL crosswords with editable clues.",
+  },
+];
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+---
+
+<BaseLayout
+  title="Blog — Crossword How-Tos for Teachers & Makers"
+  description="Short English how-to guides for making printable crosswords, ESL vocabulary worksheets, and AI topic puzzles."
+  canonicalPath="/blog/"
+  jsonLd={{
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: posts.map((p, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: p.title,
+      url: `${site}/blog/${p.slug}/`,
+    })),
+  }}
+>
+  <section class="container section prose" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / Blog
+    </nav>
+    <h1>Blog</h1>
+    <p>
+      Practical how-tos that link back to the maker. We keep this library small on purpose — no content farms.
+    </p>
+    <ul>
+      {
+        posts.map((p) => (
+          <li style="margin-bottom:0.85rem;">
+            <a href={`/blog/${p.slug}/`}>
+              <strong>{p.title}</strong>
+            </a>
+            <br />
+            <span class="muted">{p.description}</span>
+          </li>
+        ))
+      }
+    </ul>
+    <p>
+      Jump to the tool: <a href="/ai-crossword-maker/">AI crossword maker</a> ·
+      <a href="/esl-crossword-generator/">ESL generator</a> ·
+      <a href="/examples/">Examples</a>
+    </p>
+  </section>
+</BaseLayout>

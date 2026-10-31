@@ -24,6 +24,7 @@ export type MakerMode = "topic" | "words" | "manual" | "paste" | "import";
 export interface MakerAppProps {
   initialMode?: MakerMode;
   initialTopic?: string;
+  initialDifficulty?: "easy" | "medium" | "hard";
   initialEntries?: Array<{ answer: string; clue: string }>;
   heading?: string;
   showModeTabs?: boolean;
@@ -158,6 +159,7 @@ const modes: Array<{ id: MakerMode; label: string }> = [
 export default function MakerApp({
   initialMode = "topic",
   initialTopic = "",
+  initialDifficulty = "medium",
   initialEntries,
   heading = "Create your crossword",
   showModeTabs = true,
@@ -166,7 +168,7 @@ export default function MakerApp({
     mode: initialMode,
     topic: initialTopic,
     wordCount: 12,
-    difficulty: "medium",
+    difficulty: initialDifficulty,
     title: "Untitled crossword",
     rows: initialEntries?.length
       ? initialEntries
@@ -209,15 +211,32 @@ export default function MakerApp({
 
   useEffect(() => {
     let cancelled = false;
-    // Page-provided presets win over stale IndexedDB drafts.
-    if (initialEntries?.length) {
-      setDraftReady(true);
-      return;
-    }
-
     const params = new URLSearchParams(window.location.search);
     const projectId = params.get("project");
     const versionId = params.get("version");
+    const urlTopic = params.get("topic")?.trim() ?? "";
+    const urlDifficultyRaw = params.get("difficulty")?.trim().toLowerCase() ?? "";
+    const urlDifficulty =
+      urlDifficultyRaw === "easy" || urlDifficultyRaw === "medium" || urlDifficultyRaw === "hard"
+        ? urlDifficultyRaw
+        : null;
+
+    // Page presets and deep-link query params win over stale IndexedDB drafts.
+    if (initialEntries?.length || initialTopic || urlTopic || urlDifficulty) {
+      if (urlTopic || urlDifficulty) {
+        dispatch({
+          type: "hydrate",
+          payload: {
+            mode: "topic",
+            ...(urlTopic ? { topic: urlTopic } : {}),
+            ...(urlDifficulty ? { difficulty: urlDifficulty } : {}),
+            statusMessage: "Loaded level preset from this page — review clues before you print.",
+          },
+        });
+      }
+      setDraftReady(true);
+      return;
+    }
 
     async function hydrateCloud() {
       if (!projectId) return false;
@@ -309,7 +328,7 @@ export default function MakerApp({
     return () => {
       cancelled = true;
     };
-  }, [initialEntries]);
+  }, [initialEntries, initialTopic]);
 
   useEffect(() => {
     if (!draftReady) return;

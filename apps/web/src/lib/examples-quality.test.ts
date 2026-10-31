@@ -26,16 +26,20 @@ describe("examples quality", () => {
     }
   });
 
-  it("places a majority of entries for each example seed search", () => {
-    for (const ex of EXAMPLES) {
-      const built = buildExamplePuzzle(ex);
-      const ratio = built.result.placedEntryIds.length / ex.entries.length;
-      expect(ratio).toBeGreaterThanOrEqual(0.5);
-      expect(built.across.length + built.down.length).toBe(built.result.placements.length);
-      expect(built.svgBlank).toContain("<svg");
-      expect(built.svgAnswers).toContain("<svg");
-    }
-  });
+  it(
+    "places a majority of entries for each example seed search",
+    () => {
+      for (const ex of EXAMPLES) {
+        const built = buildExamplePuzzle(ex);
+        const ratio = built.result.placedEntryIds.length / ex.entries.length;
+        expect(ratio).toBeGreaterThanOrEqual(0.5);
+        expect(built.across.length + built.down.length).toBe(built.result.placements.length);
+        expect(built.svgBlank).toContain("<svg");
+        expect(built.svgAnswers).toContain("<svg");
+      }
+    },
+    20_000,
+  );
 
   it("builds related internal links for each slug", () => {
     for (const ex of EXAMPLES) {

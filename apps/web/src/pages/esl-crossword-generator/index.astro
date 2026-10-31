@@ -1,20 +1,208 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import MakerApp from "../../components/maker/MakerApp";
+import { CEFR_PRESETS, cefrMakerHref } from "../../lib/cefr-presets";
+import { EXAMPLES, getExample } from "../../lib/examples";
+
+const eslExamples = EXAMPLES.filter(
+  (e) => e.subject === "esl" || e.slug === "classroom-objects" || e.slug === "seasons",
+);
+
+const faqs = [
+  {
+    q: "What is an ESL crossword generator?",
+    a: "A tool that builds interlocking vocabulary puzzles for English learners. You start from a topic or CEFR level preset; AI can draft words and clues, then you edit and print a student sheet with an answer key.",
+  },
+  {
+    q: "How do CEFR levels map to difficulty here?",
+    a: "A1–A2 presets use Easy difficulty and concrete everyday themes. B1–B2 use Medium. C1 uses Hard with denser academic themes. Difficulty guides clue style — always review AI text before class.",
+  },
+  {
+    q: "Can I print worksheets with an answer key?",
+    a: "Yes. Export a student PDF and a separate answer-key PDF. Free exports may include a light brand footer; Pro removes watermarks.",
+  },
+  {
+    q: "Is this the same as a CEFR crossword page?",
+    a: "They share the same maker. /cefr-crossword/ focuses on A1–C1 level pickers; this ESL page emphasizes classroom vocabulary practice and printable examples.",
+  },
+  {
+    q: "Are sample puzzles human-reviewed?",
+    a: "Example pages are labeled Sample unless marked Human-reviewed. Grid structure is program-validated; clue wording still needs your teacher review.",
+  },
+];
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
 ---
 
 <BaseLayout
-  title="ESL Crossword Generator — Vocabulary Practice"
-  description="ESL crossword generator for vocabulary practice. Pick a topic and difficulty, edit clues, and print worksheets with answer keys."
+  title="ESL Crossword Generator — CEFR Vocabulary Worksheets"
+  description="ESL crossword generator with CEFR A1–C1 presets, printable vocabulary worksheets, editable clues, and answer keys. Free demo — no signup wall for first preview."
   canonicalPath="/esl-crossword-generator/"
+  jsonLd={[
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "ESL crossword generator",
+          item: `${site}/esl-crossword-generator/`,
+        },
+      ],
+    },
+  ]}
 >
   <section class="container section" style="padding-top:1.5rem;">
-    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;"><a href="/">Home</a> / ESL</nav>
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / ESL crossword generator
+    </nav>
     <h1 style="margin:0 0 0.5rem;">ESL Crossword Generator</h1>
-    <p style="max-width:60ch;margin:0 0 1rem;">
-      Build level-friendly vocabulary crosswords. CEFR selectors deepen in v1.1 — for now choose Easy/Medium/Hard with Topic mode, or start from our
-      <a href="/examples/esl-food-vocabulary/">ESL food</a> and <a href="/examples/esl-travel-phrases/">travel</a> examples.
+    <p style="max-width:62ch;margin:0 0 0.75rem;">
+      Build level-friendly vocabulary crosswords for English learners. Pick a CEFR band, start from a printable example, or type your own topic — AI drafts clues, you edit, then print a student sheet and answer key.
     </p>
-    <MakerApp client:load initialMode="topic" initialTopic="ESL food vocabulary for beginners" heading="ESL topic preset" />
+    <p class="muted" style="margin:0 0 1.25rem;max-width:62ch;">
+      Also see the <a href="/cefr-crossword/">CEFR crossword</a> level picker,
+      <a href="/crossword-maker-for-teachers/">teacher worksheets</a>, and
+      <a href="/blog/how-to-make-esl-vocabulary-crosswords/">how to make ESL vocabulary crosswords</a>.
+    </p>
+
+    <h2 class="section-title" id="cefr-levels">CEFR level presets</h2>
+    <p style="max-width:60ch;margin:0 0 1rem;">
+      Each preset opens Topic mode with a level-matched theme and difficulty. Edit every clue before you print — AI text is not fact-verified.
+    </p>
+    <div class="cefr-grid" role="list">
+      {
+        CEFR_PRESETS.map((preset) => (
+          <article class="cefr-card" role="listitem">
+            <h3 style="margin:0 0 0.35rem;">{preset.label}</h3>
+            <p class="muted" style="margin:0 0 0.75rem;font-size:0.95rem;">{preset.blurb}</p>
+            <p style="margin:0 0 0.75rem;font-size:0.9rem;">
+              Hint: {preset.wordCountHint} · Difficulty: {preset.difficulty}
+            </p>
+            <p style="margin:0 0 0.75rem;font-size:0.9rem;">
+              Examples:{" "}
+              {preset.exampleSlugs.map((slug, i) => {
+                const ex = getExample(slug);
+                if (!ex) return null;
+                return (
+                  <>
+                    {i > 0 ? " · " : ""}
+                    <a href={`/examples/${slug}/`}>{ex.title}</a>
+                  </>
+                );
+              })}
+            </p>
+            <a class="button-link" href={cefrMakerHref("/esl-crossword-generator/", preset)}>
+              Open {preset.level} maker
+            </a>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="container section" id="maker">
+    <h2 class="section-title">Make an ESL crossword</h2>
+    <p style="max-width:60ch;margin:0 0 1rem;">
+      Default preset: beginner food vocabulary. Change the topic, pick Easy/Medium/Hard, then Generate. Manual and word-list modes stay available for your own lists.
+    </p>
+    <MakerApp
+      client:load
+      initialMode="topic"
+      initialTopic="A1 ESL beginner vocabulary: food, classroom objects, and seasons"
+      initialDifficulty="easy"
+      heading="ESL / CEFR topic preset"
+    />
+  </section>
+
+  <section class="container section">
+    <h2 class="section-title">Printable ESL examples</h2>
+    <p style="max-width:60ch;margin:0 0 1rem;">
+      Crawlable sample puzzles with grids and answer keys. Use “Make a variant with AI” on any page to remix the topic.
+    </p>
+    <ul class="example-link-list">
+      {
+        eslExamples.map((ex) => (
+          <li>
+            <a href={`/examples/${ex.slug}/`}>{ex.title}</a>
+            <span class="muted"> — {ex.gradeBand}. {ex.blurb}</span>
+          </li>
+        ))
+      }
+    </ul>
+    <p style="margin-top:1rem;">
+      Full library: <a href="/examples/">all examples</a> ·
+      <a href="/printable-crossword-maker/">printable maker</a> ·
+      <a href="/ai-crossword-maker/">AI crossword maker</a>
+    </p>
+  </section>
+
+  <section class="container section">
+    <h2 class="section-title">Classroom workflow</h2>
+    <ol style="max-width:60ch;padding-left:1.2rem;">
+      <li>Choose a CEFR preset or paste your vocabulary list.</li>
+      <li>Review and simplify clues for your learners.</li>
+      <li>Build the grid, then print student + answer-key PDFs.</li>
+      <li>Optional: share a practice link (noindex) after you sign in.</li>
+    </ol>
+    <p style="margin-top:1rem;">
+      Guides: <a href="/blog/how-to-make-a-crossword-puzzle/">How to make a crossword puzzle</a> ·
+      <a href="/blog/how-to-make-esl-vocabulary-crosswords/">ESL vocabulary crossword how-to</a>
+    </p>
+  </section>
+
+  <section class="container section faq">
+    <h2 class="section-title">FAQ</h2>
+    {
+      faqs.map((f) => (
+        <details>
+          <summary>{f.q}</summary>
+          <p style="margin:0.6rem 0 0;">{f.a}</p>
+        </details>
+      ))
+    }
   </section>
 </BaseLayout>
+
+<style>
+  .cefr-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    margin-bottom: 0.5rem;
+  }
+  .cefr-card {
+    border: 1px solid var(--border, #d5d0c6);
+    border-radius: 10px;
+    padding: 1rem 1.05rem;
+    background: color-mix(in srgb, var(--surface, #fff) 92%, var(--accent, #2f6f5e) 8%);
+  }
+  .button-link {
+    display: inline-block;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--accent-ink, #184e3e);
+  }
+  .button-link:hover {
+    text-decoration: underline;
+  }
+  .example-link-list {
+    margin: 0;
+    padding-left: 1.2rem;
+    max-width: 70ch;
+  }
+  .example-link-list li {
+    margin-bottom: 0.55rem;
+  }
+</style>

@@ -11,10 +11,11 @@
 | `/crossword-maker-for-teachers/` | teachers |
 | `/printable-crossword-maker/` | printable / answer key |
 | `/crossword-maker-from-word-list/` | vocabulary list |
-| `/examples/` + `/examples/[slug]/` | topic long-tail (≥20 seeds) |
+| `/examples/` + `/examples/[slug]/` | topic long-tail (≥20 seeds; ESL cluster expanded) |
+| `/esl-crossword-generator/` | ESL vocabulary + CEFR presets |
+| `/cefr-crossword/` | A1–C1 level picker (independent page) |
+| `/blog/` + how-to posts | crawlable guides → maker / examples |
 | `/pricing/`, `/how-it-works/` | conversion / trust |
-
-`/cefr-crossword/` → 301 to `/esl-crossword-generator/` until independent depth exists.
 
 ## Technical baseline
 
@@ -30,5 +31,5 @@
 ## 90-day
 
 - **A:** P0 shells + maker demo + FAQ + sitemap (done)
-- **B:** examples≥25 + print/FAQ/related links polish (in progress); ESL depth still light
-- **C:** GSC-driven long-tail; 1–2 how-tos; honest comparison pages
+- **B:** examples≥25 + print/FAQ/related links polish (done); ESL/CEFR depth + how-tos (this slice)
+- **C:** GSC-driven long-tail; honest comparison pages; human-review top seeds
