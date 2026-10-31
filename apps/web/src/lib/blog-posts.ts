@@ -82,6 +82,26 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "synonyms",
     ],
   },
+  {
+    slug: "how-to-make-a-science-vocabulary-crossword",
+    title: "How to Make a Science Vocabulary Crossword",
+    description:
+      "Turn a science unit word bank into a printable crossword with definition clues, interlocking grid, and answer key.",
+    toolPaths: [
+      "/ai-crossword-maker/",
+      "/crossword-maker-from-word-list/",
+      "/printable-crossword-maker/",
+      "/crossword-maker-for-teachers/",
+    ],
+    exampleSlugs: [
+      "rock-cycle",
+      "types-of-clouds",
+      "states-of-matter",
+      "food-chains",
+      "photosynthesis",
+      "water-cycle",
+    ],
+  },
 ];
 
 export function getBlogPost(slug: string) {

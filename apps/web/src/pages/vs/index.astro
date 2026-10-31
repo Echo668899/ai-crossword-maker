@@ -1,0 +1,85 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const title = "Crossword Maker Comparisons — Honest Alternatives";
+const description =
+  "Fact-based comparisons of AI Crossword Maker versus Crossword Labs, My Crossword Maker, and other classroom tools. No invented ratings.";
+const comparisons = [
+  {
+    href: "/vs/crossword-labs/",
+    name: "vs Crossword Labs",
+    blurb: "Quick web share puzzles vs AI topic drafts and dual-page classroom PDFs.",
+  },
+  {
+    href: "/vs/my-crossword-maker/",
+    name: "vs My Crossword Maker",
+    blurb: "Familiar classroom maker + community library vs AI topic → printable answer-key path.",
+  },
+];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath="/vs/"
+  jsonLd={[
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: title,
+      description,
+      url: `${site}/vs/`,
+      inLanguage: "en",
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      itemListElement: comparisons.map((c, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        name: c.name,
+        url: `${site}${c.href}`,
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
+        { "@type": "ListItem", position: 2, name: "Comparisons", item: `${site}/vs/` },
+      ],
+    },
+  ]}
+>
+  <section class="container section prose" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / Comparisons
+    </nav>
+    <h1>Crossword maker comparisons</h1>
+    <p>
+      Honest, capability-based alternatives pages for teachers shopping free crossword makers.
+      We list what we ship today — no AggregateRating fiction, no invented review counts.
+    </p>
+    <ul style="list-style:none;padding:0;margin:1.25rem 0 0;display:grid;gap:0.75rem;">
+      {
+        comparisons.map((c) => (
+          <li style="padding:1rem 1.1rem;border:1px solid var(--color-border);border-radius:8px;background:#fff;">
+            <a href={c.href}>
+              <strong>{c.name}</strong>
+            </a>
+            <div class="muted" style="margin-top:0.35rem;">
+              {c.blurb}
+            </div>
+          </li>
+        ))
+      }
+    </ul>
+    <p style="margin-top:1.5rem;">
+      Prefer to try first?
+      <a href="/ai-crossword-maker/">Open the AI maker</a>
+      · <a href="/examples/">Browse examples</a>
+      · <a href="/pricing/">Pricing</a>
+    </p>
+  </section>
+</BaseLayout>

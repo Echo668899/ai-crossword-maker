@@ -1,0 +1,129 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getBlogPost, relatedBlogPosts } from "../../../lib/blog-posts";
+import { getExample } from "../../../lib/examples";
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const meta = getBlogPost("how-to-make-a-science-vocabulary-crossword")!;
+const relatedGuides = relatedBlogPosts(meta.slug);
+const featuredExamples = meta.exampleSlugs.map((s) => getExample(s)).filter(Boolean);
+const title = "How to Make a Science Vocabulary Crossword — Printable Worksheet";
+const description =
+  "Turn a science unit word bank into a printable crossword: pick a topic or paste terms, edit clues, build the grid, and export a student sheet plus answer key.";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath="/blog/how-to-make-a-science-vocabulary-crossword/"
+  jsonLd={[
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: "How to Make a Science Vocabulary Crossword",
+      description,
+      inLanguage: "en",
+      mainEntityOfPage: `${site}/blog/how-to-make-a-science-vocabulary-crossword/`,
+      author: { "@type": "Organization", name: "AI Crossword Maker" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
+        { "@type": "ListItem", position: 2, name: "Blog", item: `${site}/blog/` },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: "How to make a science vocabulary crossword",
+          item: `${site}/blog/how-to-make-a-science-vocabulary-crossword/`,
+        },
+      ],
+    },
+  ]}
+>
+  <article class="container section prose" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / <a href="/blog/">Blog</a> / Science vocabulary crossword
+    </nav>
+    <h1>How to Make a Science Vocabulary Crossword</h1>
+    <p>
+      Science units are packed with precise terms — rock cycle stages, cloud types, food-chain roles — that students forget after a lecture.
+      A short printable crossword turns that list into retrieval practice with an answer key you can grade quickly.
+    </p>
+    <p>
+      <a href="/ai-crossword-maker/"><strong>Generate from a science topic</strong></a>
+      or
+      <a href="/crossword-maker-from-word-list/">paste your unit word list</a>
+      · teacher presets on
+      <a href="/crossword-maker-for-teachers/">Teachers</a>.
+    </p>
+
+    <h2>1. Start from the unit word bank (or a topic)</h2>
+    <p>
+      Collect 8–16 A–Z answers from your lesson: textbook glossary, lab handout, or standards checklist.
+      Prefer concrete nouns and process verbs students must spell correctly.
+      If you do not have a list yet, open Topic mode and try a classroom chip like “Rock Cycle for grade 5” or “Types of Clouds for grade 4”.
+    </p>
+
+    <h2>2. Prefer definition clues over trivia</h2>
+    <p>
+      Science clues work best as short definitions (“Molten rock beneath Earth’s surface”) rather than riddles.
+      AI drafts are a starting point — edit any clue that feels too vague or that repeats the answer word.
+      Keep one idea per clue so early readers and ESL students can succeed without guessing slang.
+    </p>
+
+    <h2>3. Build the grid, then skim placements</h2>
+    <p>
+      Click <strong>Build grid</strong>. If a long term like METAMORPHIC will not place, shorten the list or swap a near-synonym for a shorter classroom synonym.
+      You can also <strong>Load example seed</strong> from a reviewed science printable and edit in place — no AI credit spent for layout.
+    </p>
+
+    <h2>4. Print puzzle + answer key</h2>
+    <p>
+      Use
+      <a href="/printable-crossword-maker/">Printable</a>
+      or the Teachers landing for Letter/A4, optional name/class/date lines, and a matching answer key.
+      Free exports may include a light site footer; Pro removes branding. Step-by-step print tips:
+      <a href="/blog/how-to-print-crossword-worksheets/">How to print crossword worksheets</a>.
+    </p>
+
+    <h2>Ready science examples</h2>
+    <p>
+      Start from a reviewed printable:
+      <a href="/examples/rock-cycle/">rock cycle</a>,
+      <a href="/examples/types-of-clouds/">types of clouds</a>,
+      <a href="/examples/states-of-matter/">states of matter</a>,
+      or <a href="/examples/food-chains/">food chains</a>.
+    </p>
+    <ul>
+      {
+        featuredExamples.map((ex) =>
+          ex ? (
+            <li>
+              <a href={`/examples/${ex.slug}/`}>{ex.title}</a>
+              <span class="muted"> — {ex.gradeBand}</span>
+            </li>
+          ) : null,
+        )
+      }
+    </ul>
+
+    <h2>Related guides</h2>
+    <ul>
+      {
+        relatedGuides.map((g) => (
+          <li>
+            <a href={`/blog/${g.slug}/`}>{g.title}</a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="muted" style="font-size:0.92rem;">
+      Comparing tools?
+      <a href="/vs/">Honest comparisons</a>
+      · <a href="/vs/my-crossword-maker/">vs My Crossword Maker</a>
+      · <a href="/vs/crossword-labs/">vs Crossword Labs</a>
+    </p>
+  </article>
+</BaseLayout>

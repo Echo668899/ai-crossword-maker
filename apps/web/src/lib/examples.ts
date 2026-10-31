@@ -733,6 +733,106 @@ export const EXAMPLES: ExamplePuzzle[] = [
       { answer: "SECOND", clue: "Smallest common unit on most classroom clocks" },
     ],
   },
+  {
+    slug: "rock-cycle",
+    title: "Rock Cycle",
+    topic: "Rock Cycle",
+    subject: "science",
+    gradeBand: "Grades 4–7 earth science",
+    blurb:
+      "Free printable rock cycle crossword — igneous, sedimentary, metamorphic, and weathering vocabulary with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "IGNEOUS", clue: "Rock formed when molten material cools and hardens" },
+      { answer: "SEDIMENT", clue: "Bits of rock and sand that settle in layers" },
+      { answer: "METAMORPHIC", clue: "Rock changed by heat and pressure inside Earth" },
+      { answer: "MAGMA", clue: "Molten rock beneath Earth's surface" },
+      { answer: "LAVA", clue: "Molten rock that erupts onto Earth's surface" },
+      { answer: "WEATHERING", clue: "Process that breaks rocks into smaller pieces" },
+      { answer: "EROSION", clue: "Movement of weathered rock by wind, water, or ice" },
+      { answer: "MINERAL", clue: "Natural solid with a definite chemical makeup" },
+    ],
+  },
+  {
+    slug: "types-of-clouds",
+    title: "Types of Clouds",
+    topic: "Types of Clouds",
+    subject: "science",
+    gradeBand: "Grades 3–6 earth science",
+    blurb:
+      "Free printable types of clouds crossword for weather units — cirrus, cumulus, stratus, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "CIRRUS", clue: "Thin, wispy high cloud that often looks like feathers" },
+      { answer: "CUMULUS", clue: "Puffy white cloud that looks like cotton balls" },
+      { answer: "STRATUS", clue: "Low, flat cloud layer that can look like a gray blanket" },
+      { answer: "NIMBUS", clue: "Latin-rooted word often used for rain-bearing clouds" },
+      { answer: "FOG", clue: "Cloud that forms near the ground and reduces visibility" },
+      { answer: "ALTITUDE", clue: "Height of a cloud above Earth's surface" },
+      { answer: "VAPOR", clue: "Water in gas form that can condense into cloud droplets" },
+      { answer: "STORM", clue: "Weather event with strong wind, rain, or thunder" },
+    ],
+  },
+  {
+    slug: "map-skills",
+    title: "Map Skills",
+    topic: "Map Skills",
+    subject: "social",
+    gradeBand: "Grades 2–5 geography",
+    blurb:
+      "Free printable map skills crossword for geography — compass, legend, scale, and direction vocabulary with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "COMPASS", clue: "Tool with a needle that points toward magnetic north" },
+      { answer: "LEGEND", clue: "Map key that explains symbols" },
+      { answer: "SCALE", clue: "Map feature that shows distance compared to real life" },
+      { answer: "NORTH", clue: "Compass direction usually drawn at the top of classroom maps" },
+      { answer: "SOUTH", clue: "Compass direction opposite the top of most classroom maps" },
+      { answer: "EAST", clue: "Direction where the sun appears to rise" },
+      { answer: "WEST", clue: "Direction where the sun appears to set" },
+      { answer: "BORDER", clue: "Line that marks the edge of a country or region on a map" },
+    ],
+  },
+  {
+    slug: "antonyms",
+    title: "Antonyms",
+    topic: "Antonyms",
+    subject: "language",
+    gradeBand: "Grades 3–6 language arts / ESL",
+    blurb:
+      "Free printable antonyms crossword for language arts — opposite-meaning pairs to build vocabulary with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "HOT", clue: "Antonym of cold" },
+      { answer: "HIGH", clue: "Antonym of low" },
+      { answer: "OPEN", clue: "Antonym of closed" },
+      { answer: "EARLY", clue: "Antonym of late" },
+      { answer: "LOUD", clue: "Antonym of quiet" },
+      { answer: "EMPTY", clue: "Antonym of full" },
+      { answer: "STRONG", clue: "Antonym of weak" },
+      { answer: "BEFORE", clue: "Antonym of after" },
+    ],
+  },
+  {
+    slug: "geometry-shapes",
+    title: "Geometry Shapes",
+    topic: "Geometry Shapes",
+    subject: "classroom",
+    gradeBand: "Grades 2–5 math",
+    blurb:
+      "Free printable geometry shapes crossword for early math — triangle, angle, perimeter, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "TRIANGLE", clue: "Polygon with three sides and three angles" },
+      { answer: "SQUARE", clue: "Four-sided shape with equal sides and right angles" },
+      { answer: "CIRCLE", clue: "Round shape where every point is the same distance from the center" },
+      { answer: "ANGLE", clue: "Figure formed by two rays that share an endpoint" },
+      { answer: "SIDE", clue: "Straight edge of a polygon" },
+      { answer: "VERTEX", clue: "Corner point where two sides of a shape meet" },
+      { answer: "PERIMETER", clue: "Distance around the outside of a shape" },
+      { answer: "HEXAGON", clue: "Polygon with six sides" },
+    ],
+  },
 ];
 
 /** High-intent classroom / ESL long-tail seeds prioritized for quality review. */
@@ -777,6 +877,15 @@ export const LONG_TAIL_BATCH_2_SLUGS = [
   "continents-and-oceans",
   "synonyms",
   "telling-time",
+] as const;
+
+/** Third long-tail classroom batch (earth science / geography / language / geometry). */
+export const LONG_TAIL_BATCH_3_SLUGS = [
+  "rock-cycle",
+  "types-of-clouds",
+  "map-skills",
+  "antonyms",
+  "geometry-shapes",
 ] as const;
 
 export function getExample(slug: string) {
