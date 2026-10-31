@@ -1,0 +1,105 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const title = "How to Make a Crossword Puzzle — Topic, Clues, Print";
+const description =
+  "Learn how to make a crossword puzzle from a topic or word list: draft clues, build an interlocking grid, edit answers, and print with an answer key.";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath="/blog/how-to-make-a-crossword-puzzle/"
+  jsonLd={[
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: "How to Make a Crossword Puzzle",
+      description,
+      inLanguage: "en",
+      mainEntityOfPage: `${site}/blog/how-to-make-a-crossword-puzzle/`,
+      author: { "@type": "Organization", name: "AI Crossword Maker" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
+        { "@type": "ListItem", position: 2, name: "Blog", item: `${site}/blog/` },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: "How to make a crossword puzzle",
+          item: `${site}/blog/how-to-make-a-crossword-puzzle/`,
+        },
+      ],
+    },
+  ]}
+>
+  <article class="container section prose" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / <a href="/blog/">Blog</a> / How to make a crossword puzzle
+    </nav>
+    <h1>How to Make a Crossword Puzzle</h1>
+    <p>
+      You do not need specialty constructor software to make a classroom crossword. Start with a topic or vocabulary list, keep clues editable, let a program build the interlocking grid, then print a student sheet and answer key.
+    </p>
+    <p>
+      <a href="/ai-crossword-maker/"><strong>Open the AI crossword maker</strong></a>
+      — free demo preview without a signup wall — or browse
+      <a href="/examples/">ready printable examples</a>.
+    </p>
+
+    <h2>1. Choose a topic or paste a word list</h2>
+    <p>
+      Topic mode asks AI for candidate answers and clues. Word-list mode keeps your answers and can fill missing clues only.
+      Teachers often start from spelling lists; see
+      <a href="/crossword-maker-from-word-list/">crossword maker from a word list</a>.
+    </p>
+
+    <h2>2. Review every clue</h2>
+    <p>
+      AI drafts are not labeled fact-verified. Shorten definitions for younger students, remove answer leaks, and swap any word that does not fit your lesson.
+      Grid rebuilds do not spend another AI credit.
+    </p>
+
+    <h2>3. Build and validate the grid</h2>
+    <p>
+      A deterministic engine places interlocking words, numbers the clues, and runs structural checks (ghost words, mismatches).
+      “Grid checks passed” means structure only — not that the clues are classroom-perfect.
+    </p>
+
+    <h2>4. Print with an answer key</h2>
+    <p>
+      Export a student PDF (optional name/date lines) and a separate answer-key PDF.
+      Details on <a href="/printable-crossword-maker/">printable crossword maker</a> and
+      <a href="/crossword-maker-for-teachers/">crossword maker for teachers</a>.
+    </p>
+
+    <h2>5. Optional: share a practice link</h2>
+    <p>
+      Signed-in users can publish an unlisted play link. Share pages are <code>noindex</code> — they are for students, not SEO.
+    </p>
+
+    <h2>Quick checklist</h2>
+    <ul>
+      <li>Answers are English A–Z only (no digits or punctuation in the grid).</li>
+      <li>Clues do not contain the answer string.</li>
+      <li>You reviewed AI text before printing.</li>
+      <li>Answer key version matches the student sheet.</li>
+    </ul>
+
+    <h2>Related guides &amp; tools</h2>
+    <ul>
+      <li><a href="/blog/how-to-make-esl-vocabulary-crosswords/">How to make ESL vocabulary crosswords</a></li>
+      <li><a href="/esl-crossword-generator/">ESL crossword generator</a> · <a href="/cefr-crossword/">CEFR crossword</a></li>
+      <li><a href="/how-it-works/">How it works</a> · <a href="/pricing/">Pricing</a></li>
+    </ul>
+
+    <p style="margin-top:1.5rem;">
+      <a href="/#maker">Start on the homepage maker</a> or go straight to
+      <a href="/ai-crossword-maker/">Create (AI)</a>.
+    </p>
+  </article>
+</BaseLayout>

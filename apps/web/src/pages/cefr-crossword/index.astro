@@ -1,3 +1,167 @@
 ---
-return Astro.redirect("/esl-crossword-generator/", 301);
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import MakerApp from "../../components/maker/MakerApp";
+import { CEFR_PRESETS, cefrMakerHref } from "../../lib/cefr-presets";
+import { getExample } from "../../lib/examples";
+
+const faqs = [
+  {
+    q: "What is a CEFR crossword?",
+    a: "A vocabulary crossword aimed at a Common European Framework level (A1–C1). You pick a band, generate or load words, edit clues, and print practice sheets with an answer key.",
+  },
+  {
+    q: "How is this different from the ESL generator?",
+    a: "Same maker engine. This page leads with A1–C1 selectors and academic-progress framing; the ESL page leads with classroom vocabulary themes and printable ESL examples.",
+  },
+  {
+    q: "Does Easy/Medium/Hard equal CEFR?",
+    a: "Not exactly. Presets pair CEFR themes with a difficulty that steers clue length and abstraction. Teachers should still check that answers match their syllabus.",
+  },
+  {
+    q: "Can I start from my own word list?",
+    a: "Yes. Switch to Word list or Words + clues mode, or open the word-list maker. AI clue fill (when enabled) counts toward your free demo quota.",
+  },
+];
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
 ---
+
+<BaseLayout
+  title="CEFR Crossword — A1 to C1 Vocabulary Practice"
+  description="CEFR crossword maker with A1–C1 level presets for ESL vocabulary practice. Editable clues, interlocking grid, printable PDF and answer key."
+  canonicalPath="/cefr-crossword/"
+  jsonLd={[
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "CEFR crossword",
+          item: `${site}/cefr-crossword/`,
+        },
+      ],
+    },
+  ]}
+>
+  <section class="container section" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / CEFR crossword
+    </nav>
+    <h1 style="margin:0 0 0.5rem;">CEFR Crossword</h1>
+    <p style="max-width:62ch;margin:0 0 0.75rem;">
+      Choose A1 through C1, open a level-matched Topic preset, then edit clues and print. Built for English vocabulary practice — not a daily puzzle portal.
+    </p>
+    <p class="muted" style="margin:0 0 1.25rem;max-width:62ch;">
+      Prefer classroom themes? Use the <a href="/esl-crossword-generator/">ESL crossword generator</a>.
+      Need a step-by-step guide? Read
+      <a href="/blog/how-to-make-esl-vocabulary-crosswords/">how to make ESL vocabulary crosswords</a>.
+    </p>
+
+    <h2 class="section-title" id="levels">A1–C1 level picker</h2>
+    <div class="cefr-grid" role="list">
+      {
+        CEFR_PRESETS.map((preset) => (
+          <article class="cefr-card" id={preset.level.toLowerCase()} role="listitem">
+            <h3 style="margin:0 0 0.35rem;">{preset.label}</h3>
+            <p class="muted" style="margin:0 0 0.75rem;font-size:0.95rem;">{preset.blurb}</p>
+            <p style="margin:0 0 0.75rem;font-size:0.9rem;">
+              Suggested: {preset.wordCountHint} · Maker difficulty: {preset.difficulty}
+            </p>
+            <p style="margin:0 0 0.75rem;font-size:0.9rem;">
+              Sample pages:{" "}
+              {preset.exampleSlugs.map((slug, i) => {
+                const ex = getExample(slug);
+                if (!ex) return null;
+                return (
+                  <>
+                    {i > 0 ? " · " : ""}
+                    <a href={`/examples/${slug}/`}>{ex.title}</a>
+                  </>
+                );
+              })}
+            </p>
+            <a class="button-link" href={cefrMakerHref("/cefr-crossword/", preset)}>
+              Start {preset.level} puzzle
+            </a>
+          </article>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="container section" id="maker">
+    <h2 class="section-title">Generate from a CEFR topic</h2>
+    <p style="max-width:60ch;margin:0 0 1rem;">
+      Deep links from the cards above prefill Topic and difficulty via the URL. You can also type any CEFR-tagged theme below.
+    </p>
+    <MakerApp
+      client:load
+      initialMode="topic"
+      initialTopic="A2 ESL elementary vocabulary: travel, daily routines, and jobs"
+      initialDifficulty="easy"
+      heading="CEFR Topic (AI) preset"
+    />
+  </section>
+
+  <section class="container section">
+    <h2 class="section-title">What stays human</h2>
+    <ul style="max-width:60ch;">
+      <li>You choose the CEFR band and syllabus match.</li>
+      <li>AI may draft answers and clues — it does not build the grid.</li>
+      <li>A program engine places words, numbers clues, and validates structure.</li>
+      <li>Clues are never labeled “fact verified” or “Human-reviewed” without a real review pass.</li>
+    </ul>
+    <p style="margin-top:1rem;">
+      Related: <a href="/ai-crossword-maker/">AI crossword maker</a> ·
+      <a href="/examples/">Examples</a> ·
+      <a href="/pricing/">Pricing</a> ·
+      <a href="/blog/how-to-make-a-crossword-puzzle/">How to make a crossword</a>
+    </p>
+  </section>
+
+  <section class="container section faq">
+    <h2 class="section-title">FAQ</h2>
+    {
+      faqs.map((f) => (
+        <details>
+          <summary>{f.q}</summary>
+          <p style="margin:0.6rem 0 0;">{f.a}</p>
+        </details>
+      ))
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .cefr-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  .cefr-card {
+    border: 1px solid var(--border, #d5d0c6);
+    border-radius: 10px;
+    padding: 1rem 1.05rem;
+    background: color-mix(in srgb, var(--surface, #fff) 92%, var(--ink, #1c1917) 4%);
+  }
+  .button-link {
+    display: inline-block;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .button-link:hover {
+    text-decoration: underline;
+  }
+</style>

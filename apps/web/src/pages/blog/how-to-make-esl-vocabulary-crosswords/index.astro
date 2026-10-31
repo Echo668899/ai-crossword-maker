@@ -1,0 +1,104 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const title = "How to Make ESL Vocabulary Crosswords (CEFR A1–C1)";
+const description =
+  "Build printable ESL vocabulary crosswords by CEFR level: pick A1–C1 themes, edit learner-friendly clues, and export worksheets with answer keys.";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath="/blog/how-to-make-esl-vocabulary-crosswords/"
+  jsonLd={[
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: "How to Make ESL Vocabulary Crosswords",
+      description,
+      inLanguage: "en",
+      mainEntityOfPage: `${site}/blog/how-to-make-esl-vocabulary-crosswords/`,
+      author: { "@type": "Organization", name: "AI Crossword Maker" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
+        { "@type": "ListItem", position: 2, name: "Blog", item: `${site}/blog/` },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: "How to make ESL vocabulary crosswords",
+          item: `${site}/blog/how-to-make-esl-vocabulary-crosswords/`,
+        },
+      ],
+    },
+  ]}
+>
+  <article class="container section prose" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / <a href="/blog/">Blog</a> / ESL vocabulary crosswords
+    </nav>
+    <h1>How to Make ESL Vocabulary Crosswords</h1>
+    <p>
+      Crosswords work well for spaced vocabulary review: learners retrieve meaning while letter interlocking reduces random guessing.
+      This guide shows a CEFR-aware path using our free ESL tools — then links you into the live maker.
+    </p>
+    <p>
+      <a href="/esl-crossword-generator/"><strong>Open the ESL crossword generator</strong></a>
+      or jump to the <a href="/cefr-crossword/">CEFR A1–C1 picker</a>.
+    </p>
+
+    <h2>1. Match the CEFR band to the theme</h2>
+    <p>
+      Start with concrete nouns at A1–A2 (food, classroom, travel, daily routines). Move to school subjects and science themes at B1–B2.
+      C1 can use denser academic sets — still avoid cryptic newspaper clues.
+      Level cards live on <a href="/esl-crossword-generator/#cefr-levels">ESL CEFR presets</a> and
+      <a href="/cefr-crossword/#levels">CEFR crossword</a>.
+    </p>
+
+    <h2>2. Prefer short, high-frequency answers</h2>
+    <p>
+      Three to twelve letters, A–Z only. Skip multi-word phrases unless you can encode them as single tokens.
+      Try sample pages like
+      <a href="/examples/esl-food-vocabulary/">ESL food vocabulary</a>,
+      <a href="/examples/esl-daily-routines/">daily routines</a>, and
+      <a href="/examples/esl-jobs-and-work/">jobs and work</a>.
+    </p>
+
+    <h2>3. Write (or edit) learner-friendly clues</h2>
+    <p>
+      Definition clues beat trivia. Check that the clue does not contain the answer, and that the reading level fits your group.
+      AI Topic mode can draft a first pass; you remain responsible for accuracy and appropriateness.
+    </p>
+
+    <h2>4. Build, print, and keep the answer key separate</h2>
+    <p>
+      Generate the interlocking grid, skim placements, then export student + answer-key PDFs.
+      Name/date lines help classroom packets — see
+      <a href="/crossword-maker-for-teachers/">crossword maker for teachers</a> and
+      <a href="/printable-crossword-maker/">printable crossword maker</a>.
+    </p>
+
+    <h2>5. Remix instead of starting from zero</h2>
+    <p>
+      On any example page, use “Make a variant with AI” to prefill the topic. Combine with word-list import when you already have a unit list.
+    </p>
+
+    <h2>Suggested starter paths</h2>
+    <ul>
+      <li>A1: <a href="/esl-crossword-generator/?topic=A1+ESL+beginner+vocabulary%3A+food%2C+classroom+objects%2C+and+seasons&difficulty=easy#maker">Open A1 maker preset</a></li>
+      <li>A2: <a href="/cefr-crossword/?topic=A2+ESL+elementary+vocabulary%3A+travel%2C+daily+routines%2C+and+jobs&difficulty=easy#maker">Open A2 CEFR preset</a></li>
+      <li>General AI topic: <a href="/ai-crossword-maker/">AI crossword maker</a></li>
+    </ul>
+
+    <h2>Related</h2>
+    <ul>
+      <li><a href="/blog/how-to-make-a-crossword-puzzle/">How to make a crossword puzzle</a></li>
+      <li><a href="/examples/">Examples library</a> · <a href="/pricing/">Free vs Pro</a></li>
+      <li><a href="/how-it-works/">How AI vs the grid engine works</a></li>
+    </ul>
+  </article>
+</BaseLayout>
