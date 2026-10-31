@@ -10,8 +10,10 @@
 - API: pack layout variants + export manifest (student files omit grids)
 - API: Turnstile siteverify + burst rate limit
 - API: project CRUD schema / expectedRevision contract
+- API: admin `ADMIN_EMAILS` allowlist gate
+- Web: snapshot hydrate (cloud reload without re-solve)
 - Web: examples ≥20 quality (A–Z answers, placement ratio, SVG)
-- Web: SEO shell (robots, redirects, no zh routes, example JSON-LD hooks)
+- Web: SEO shell (robots incl. `/admin/`, redirects, no zh routes, legal TO-BE-FILLED placeholders)
 - Playwright smoke (`pnpm test:e2e`): home maker sample → PDF; examples HTML
 
 ## Required before launch (track in PROGRESS)
@@ -23,3 +25,5 @@
 - curl SEO assertions on deployed P0 pages
 - Pack entitlement gating against live D1
 - Production Turnstile widget + `TURNSTILE_REQUIRED=true`
+- Operator legal entity filled on Privacy/Terms/Refund/Contact
+- Admin allowlist + incident flag drill

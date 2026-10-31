@@ -2,6 +2,15 @@ import { useEffect, useState } from "react";
 import { Button } from "@acm/ui";
 import { apiFetch } from "../../lib/api";
 
+type VersionRow = {
+  id: string;
+  parent_version_id: string | null;
+  seed: number | null;
+  engine_version: string | null;
+  review_state: string;
+  created_at: string;
+};
+
 function projectIdFromPath(): string {
   const parts = window.location.pathname.split("/").filter(Boolean);
   const idx = parts.indexOf("puzzles");
@@ -13,9 +22,46 @@ export default function PuzzleEditor({ initialId = "" }: { initialId?: string })
   const [projectId, setProjectId] = useState(initialId);
   const [title, setTitle] = useState("");
   const [revision, setRevision] = useState(1);
+  const [headVersionId, setHeadVersionId] = useState<string | null>(null);
   const [status, setStatus] = useState("Loading puzzle…");
   const [meta, setMeta] = useState("");
+  const [versions, setVersions] = useState<VersionRow[]>([]);
+  const [maxVersions, setMaxVersions] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
+
+  async function load(id: string) {
+    setBusy(true);
+    try {
+      const [projRes, verRes] = await Promise.all([
+        apiFetch(`/api/v1/projects/${id}`),
+        apiFetch(`/api/v1/projects/${id}/versions`),
+      ]);
+      const data = await projRes.json();
+      const verData = await verRes.json();
+      if (!projRes.ok) {
+        setStatus(data?.error?.message ?? "Could not load puzzle.");
+        return;
+      }
+      setTitle(data.title ?? "Puzzle");
+      setRevision(data.revision ?? 1);
+      setHeadVersionId(data.headVersion?.id ?? null);
+      const snap = data.headVersion?.snapshot;
+      setMeta(
+        snap
+          ? `${snap.placements?.length ?? 0} words · ${snap.size?.rows}×${snap.size?.cols} · seed ${snap.seed}`
+          : "No versions yet",
+      );
+      if (verRes.ok) {
+        setVersions(verData.versions ?? []);
+        setMaxVersions(verData.maxVersions ?? null);
+      }
+      setStatus("");
+    } catch {
+      setStatus("API unreachable. Start the Worker on :8787.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   useEffect(() => {
     const id = initialId || projectIdFromPath();
@@ -24,32 +70,7 @@ export default function PuzzleEditor({ initialId = "" }: { initialId?: string })
       setStatus("Missing puzzle id.");
       return;
     }
-    let cancelled = false;
-    void (async () => {
-      try {
-        const res = await apiFetch(`/api/v1/projects/${id}`);
-        const data = await res.json();
-        if (cancelled) return;
-        if (!res.ok) {
-          setStatus(data?.error?.message ?? "Could not load puzzle.");
-          return;
-        }
-        setTitle(data.title ?? "Puzzle");
-        setRevision(data.revision ?? 1);
-        const snap = data.headVersion?.snapshot;
-        setMeta(
-          snap
-            ? `${snap.placements?.length ?? 0} words · ${snap.size?.rows}×${snap.size?.cols} · seed ${snap.seed}`
-            : "No versions yet",
-        );
-        setStatus("");
-      } catch {
-        if (!cancelled) setStatus("API unreachable. Start the Worker on :8787.");
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
+    void load(id);
   }, [initialId]);
 
   async function rename() {
@@ -83,6 +104,12 @@ export default function PuzzleEditor({ initialId = "" }: { initialId?: string })
     }
   }
 
+  const makerHref = projectId
+    ? `/app/new/?project=${encodeURIComponent(projectId)}${
+        headVersionId ? `&version=${encodeURIComponent(headVersionId)}` : ""
+      }`
+    : "/app/new/";
+
   return (
     <div style={{ display: "grid", gap: "1rem" }}>
       <nav className="muted" style={{ fontSize: "0.9rem" }}>
@@ -95,12 +122,60 @@ export default function PuzzleEditor({ initialId = "" }: { initialId?: string })
         <Button variant="secondary" disabled={!projectId || busy} onClick={() => void rename()}>
           Rename
         </Button>
-        <a href="/app/new/">Open maker to create a new version</a>
+        <Button variant="ghost" disabled={!projectId || busy} onClick={() => void load(projectId)}>
+          Reload
+        </Button>
+        <a href={makerHref}>Open in maker</a>
+        <a href="/app/new/">Create new puzzle</a>
       </div>
-      <p className="muted" style={{ fontSize: "0.9rem" }}>
-        Version history and in-maker reload land next; conflict-safe PATCH is live (
-        <code>expectedRevision</code> → 409).
-      </p>
+
+      <section>
+        <h2 style={{ fontSize: "1.1rem", margin: "0.5rem 0" }}>
+          Version history
+          {maxVersions != null ? (
+            <span className="muted" style={{ fontWeight: 400, fontSize: "0.9rem" }}>
+              {" "}
+              (plan cap {maxVersions})
+            </span>
+          ) : null}
+        </h2>
+        {versions.length === 0 ? (
+          <p className="muted">No immutable versions yet.</p>
+        ) : (
+          <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: "0.5rem" }}>
+            {versions.map((v) => {
+              const isHead = v.id === headVersionId;
+              const openHref = `/app/new/?project=${encodeURIComponent(projectId)}&version=${encodeURIComponent(v.id)}`;
+              return (
+                <li
+                  key={v.id}
+                  style={{
+                    display: "flex",
+                    gap: "0.75rem",
+                    flexWrap: "wrap",
+                    alignItems: "baseline",
+                    borderBottom: "1px solid var(--border, #d5dbe3)",
+                    paddingBottom: "0.4rem",
+                  }}
+                >
+                  <code style={{ fontSize: "0.85rem" }}>{v.id.slice(0, 8)}…</code>
+                  <span className="muted" style={{ fontSize: "0.85rem" }}>
+                    {v.created_at}
+                    {v.seed != null ? ` · seed ${v.seed}` : ""}
+                    {` · ${v.review_state}`}
+                    {isHead ? " · head" : ""}
+                  </span>
+                  <a href={openHref}>Load in maker</a>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        <p className="muted" style={{ fontSize: "0.9rem" }}>
+          Loading a version hydrates the maker grid from the immutable snapshot (no silent overwrite).
+          Saving from the maker creates a new version with optimistic <code>expectedRevision</code>.
+        </p>
+      </section>
     </div>
   );
 }

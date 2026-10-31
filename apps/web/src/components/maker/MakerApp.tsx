@@ -15,6 +15,7 @@ import { StatusPill } from "@acm/ui";
 import { loadDraft, saveDraft } from "../../lib/maker-storage";
 import { SAMPLE_MANUAL_ENTRIES } from "../../lib/sample-entries";
 import { apiFetch } from "../../lib/api";
+import { hydrateFromSnapshot, type CloudSnapshot } from "../../lib/snapshot-hydrate";
 import TurnstileField, { turnstileConfigured } from "../security/TurnstileField";
 import { GridView } from "./GridView";
 
@@ -187,6 +188,9 @@ export default function MakerApp({
   const [packUrl, setPackUrl] = useState<string | null>(null);
   const [cloudBusy, setCloudBusy] = useState(false);
   const [cloudPath, setCloudPath] = useState<string | null>(null);
+  const [cloudProjectId, setCloudProjectId] = useState<string | null>(null);
+  const [cloudRevision, setCloudRevision] = useState<number | null>(null);
+  const [cloudVersionId, setCloudVersionId] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   useEffect(() => {
@@ -196,28 +200,98 @@ export default function MakerApp({
       setDraftReady(true);
       return;
     }
-    loadDraft()
-      .then((draft) => {
-        if (!draft || cancelled) return;
-        const usable = (draft.rawEntries ?? []).filter((r) => r.answer?.trim());
-        if (usable.length < 2 && !draft.topic.trim()) return;
-        dispatch({
-          type: "hydrate",
-          payload: {
-            mode: draft.mode,
-            topic: draft.topic,
-            wordCount: draft.wordCount,
-            difficulty: draft.difficulty,
-            title: draft.title,
-            rows: usable.length >= 2 ? draft.rawEntries : undefined,
-            seed: draft.seed,
-            statusMessage: "Restored local draft from this browser.",
-          },
+
+    const params = new URLSearchParams(window.location.search);
+    const projectId = params.get("project");
+    const versionId = params.get("version");
+
+    async function hydrateCloud() {
+      if (!projectId) return false;
+      try {
+        if (versionId) {
+          const res = await apiFetch(`/api/v1/projects/${projectId}/versions/${versionId}`);
+          const data = await res.json();
+          if (!res.ok || !data.snapshot) return false;
+          applyCloudSnapshot(data.snapshot as CloudSnapshot, {
+            projectId,
+            versionId: data.id ?? versionId,
+            revision: null,
+          });
+          return true;
+        }
+        const res = await apiFetch(`/api/v1/projects/${projectId}`);
+        const data = await res.json();
+        if (!res.ok || !data.headVersion?.snapshot) return false;
+        applyCloudSnapshot(data.headVersion.snapshot as CloudSnapshot, {
+          projectId,
+          versionId: data.headVersion.id,
+          revision: data.revision ?? 1,
         });
-      })
-      .finally(() => {
-        if (!cancelled) setDraftReady(true);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    function applyCloudSnapshot(
+      snapshot: CloudSnapshot,
+      meta: { projectId: string; versionId: string; revision: number | null },
+    ) {
+      if (cancelled) return;
+      const hydrated = hydrateFromSnapshot(snapshot);
+      setCloudProjectId(meta.projectId);
+      setCloudVersionId(meta.versionId);
+      setCloudRevision(meta.revision);
+      setCloudPath(`/app/puzzles/${meta.projectId}/edit/`);
+      dispatch({
+        type: "hydrate",
+        payload: {
+          mode: "manual",
+          title: hydrated.title,
+          seed: hydrated.seed,
+          rows: hydrated.rows,
+          statusMessage: `Loaded cloud version ${meta.versionId.slice(0, 8)}…`,
+        },
       });
+      dispatch({
+        type: "setBuild",
+        result: hydrated.result,
+        entries: hydrated.entries,
+        statusMessage: `Loaded cloud puzzle “${hydrated.title}” (edit & Save new version).`,
+      });
+    }
+
+    void (async () => {
+      const fromCloud = await hydrateCloud();
+      if (cancelled) return;
+      if (fromCloud) {
+        setDraftReady(true);
+        return;
+      }
+      loadDraft()
+        .then((draft) => {
+          if (!draft || cancelled) return;
+          const usable = (draft.rawEntries ?? []).filter((r) => r.answer?.trim());
+          if (usable.length < 2 && !draft.topic.trim()) return;
+          dispatch({
+            type: "hydrate",
+            payload: {
+              mode: draft.mode,
+              topic: draft.topic,
+              wordCount: draft.wordCount,
+              difficulty: draft.difficulty,
+              title: draft.title,
+              rows: usable.length >= 2 ? draft.rawEntries : undefined,
+              seed: draft.seed,
+              statusMessage: "Restored local draft from this browser.",
+            },
+          });
+        })
+        .finally(() => {
+          if (!cancelled) setDraftReady(true);
+        });
+    })();
+
     return () => {
       cancelled = true;
     };
@@ -582,7 +656,6 @@ export default function MakerApp({
     const snapshot = currentSnapshot();
     if (!snapshot) return;
     setCloudBusy(true);
-    setCloudPath(null);
     try {
       const me = await apiFetch("/api/v1/auth/me");
       const meData = await me.json();
@@ -594,6 +667,42 @@ export default function MakerApp({
         window.location.href = "/login/";
         return;
       }
+
+      if (cloudProjectId && cloudRevision != null) {
+        const res = await apiFetch(`/api/v1/projects/${cloudProjectId}`, {
+          method: "PATCH",
+          body: JSON.stringify({
+            title: state.title,
+            expectedRevision: cloudRevision,
+            snapshot,
+          }),
+        });
+        const data = await res.json();
+        if (res.status === 409) {
+          dispatch({
+            type: "setStatus",
+            statusMessage: `Conflict (server revision ${data?.currentRevision ?? "?"}). Reload from cloud and retry.`,
+          });
+          return;
+        }
+        if (!res.ok) {
+          dispatch({
+            type: "setStatus",
+            statusMessage: data?.error?.message ?? "Cloud version save failed.",
+          });
+          return;
+        }
+        setCloudRevision(data.revision);
+        if (data.versionId) setCloudVersionId(data.versionId);
+        const path = `/app/puzzles/${cloudProjectId}/edit/`;
+        setCloudPath(path);
+        dispatch({
+          type: "setStatus",
+          statusMessage: `Saved new cloud version (revision ${data.revision}).`,
+        });
+        return;
+      }
+
       const res = await apiFetch("/api/v1/projects", {
         method: "POST",
         body: JSON.stringify({ title: state.title, snapshot }),
@@ -607,7 +716,13 @@ export default function MakerApp({
         return;
       }
       const path = typeof data.path === "string" ? data.path : `/app/puzzles/${data.id}/edit/`;
+      setCloudProjectId(data.id);
+      setCloudRevision(data.revision ?? 1);
+      setCloudVersionId(data.versionId ?? null);
       setCloudPath(path);
+      const url = new URL(window.location.href);
+      url.searchParams.set("project", data.id);
+      window.history.replaceState({}, "", url.toString());
       dispatch({
         type: "setStatus",
         statusMessage: `Saved to cloud (revision ${data.revision ?? 1}).`,
@@ -1083,7 +1198,11 @@ export default function MakerApp({
                 disabled={!state.result || cloudBusy}
                 onClick={() => void saveToCloud()}
               >
-                {cloudBusy ? "Saving…" : "Save to cloud"}
+                {cloudBusy
+                  ? "Saving…"
+                  : cloudProjectId
+                    ? "Save new cloud version"
+                    : "Save to cloud"}
               </Button>
             </div>
           </div>
@@ -1100,6 +1219,8 @@ export default function MakerApp({
           {cloudPath ? (
             <p style={{ margin: "0.65rem 0 0", fontSize: "0.92rem" }}>
               Cloud puzzle: <a href={cloudPath}>{cloudPath}</a>
+              {cloudRevision != null ? ` · revision ${cloudRevision}` : ""}
+              {cloudVersionId ? ` · version ${cloudVersionId.slice(0, 8)}…` : ""}
             </p>
           ) : null}
 

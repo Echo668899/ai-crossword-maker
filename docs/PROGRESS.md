@@ -11,20 +11,20 @@ Updated: 2026-10-31
 | 03 Manual maker + P0 SEO shell + examples≥20 | DONE |
 | 04 Print layout + PDF | DONE (basic pdf-lib) |
 | 05 AI provider + jobs + anon demo | DONE (sync Topic + anon quota; Turnstile wired) |
-| 06 Auth + cloud save | PARTIAL — magic link + Google OAuth + D1 sessions; project CRUD + revision conflict; share publish |
+| 06 Auth + cloud save | PARTIAL — magic link + Google OAuth; project CRUD + revision; **in-maker cloud reload + version picker** |
 | 07 Packs / batch export | PARTIAL — A/B/C packs + ZIP/R2 export (queue + inline); consumer processes `pack_export` |
 | 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal APIs |
-| 09 Stripe / ledger / admin | PARTIAL — Hybrid Stripe/Creem checkout + ledger; admin UI not started |
-| 10 SEO polish / deploy hardening | IN PROGRESS (shells + Playwright smoke + deploy docs) |
+| 09 Stripe / ledger / admin | PARTIAL — Hybrid Stripe/Creem + ledger; **admin skeleton** (`/admin`, `/api/v1/admin/*`, audit + ops flags) |
+| 10 SEO polish / deploy hardening | IN PROGRESS (shells + Playwright smoke + deploy/secrets checklist + legal placeholders) |
 
-## Latest slice (post PR #4)
+## Latest slice (post PR #5)
 
-- Merged Activity packs / examples SEO / deploy docs (PR #4)
-- Pack ZIP → private R2 (`FILES`) via queue (`JOBS`) or inline `?sync=1`
-- Consumer Worker processes pack export jobs
-- Turnstile Siteverify + burst rate limit on `/ai/topic`
-- Cloud projects: `POST/GET/PATCH` with `expectedRevision` → 409
-- Playwright smoke: maker sample → PDF; examples HTML
+- Merged pack ZIP/R2 export, Turnstile, project CRUD, Playwright (PR #5) → `main`
+- Admin skeleton: `ADMIN_EMAILS` gate, overview/orders/jobs/audit/flags APIs, noindex `/admin/`
+- Migration `0007_admin_audit` (`audit_logs`, `ops_flags`)
+- Deeper cloud reload: maker hydrates from `?project=&version=`; PuzzleEditor version list + open-in-maker; conflict-safe Save new version
+- Legal placeholders (Privacy / Terms / Refund / Contact) with `[TO BE FILLED]` — **no invented operator entity**
+- Deployment secrets / pre-launch checklist expanded in `DEPLOYMENT.md`
 
 ## Open decisions
 
@@ -39,7 +39,8 @@ Updated: 2026-10-31
 
 ## Blockers
 
-- Operator legal entity missing on privacy/terms/contact
+- Operator legal entity missing on privacy/terms/refund/contact (**publish blocker**)
 - Production Google OAuth + mail provider not wired
 - Production Turnstile widget sitekey/secret not minted (code ready; env-gated)
-- Live Stripe webhook soak / admin console still open
+- Live Stripe webhook soak
+- Admin AI cost/funnel analytics still shallow (skeleton only)

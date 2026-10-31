@@ -45,6 +45,8 @@ export type ApiEnv = {
   CREEM_PRODUCT_CREDITS_50?: string;
   CREEM_PRODUCT_CREDITS_100?: string;
   CREEM_PRODUCT_ACTIVITY_PACK?: string;
+  /** Comma-separated admin emails for /admin + /api/v1/admin/*. Empty denies all. */
+  ADMIN_EMAILS?: string;
 };
 
 export function isAiEnabled(env: ApiEnv): boolean {

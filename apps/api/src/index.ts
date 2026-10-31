@@ -18,10 +18,12 @@ import { playRoutes } from "./routes/play";
 import { projectRoutes } from "./routes/projects";
 import { shareRoutes } from "./routes/shares";
 import { versionRoutes } from "./routes/versions";
+import { adminRoutes } from "./routes/admin";
 import { googleEnabled } from "./auth/google";
 import { getBillingStatus } from "./billing/provider";
 import { clientIp, verifyTurnstile } from "./security/turnstile";
 import { consumeRateLimit } from "./security/rate-limit";
+import { adminConfigured } from "./admin/access";
 
 const app = new Hono<{ Bindings: ApiEnv }>();
 
@@ -30,7 +32,7 @@ app.use(
   cors({
     // Reflect request origin (required when credentials: true). Same-origin Vite proxy needs no CORS.
     origin: (origin) => origin || "http://127.0.0.1:4321",
-    allowMethods: ["GET", "POST", "PATCH", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PATCH", "PUT", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   }),
@@ -61,6 +63,9 @@ app.get("/api/v1/health", (c) => {
       configured: Boolean(c.env.TURNSTILE_SECRET_KEY?.trim()),
       required: c.env.TURNSTILE_REQUIRED === "true",
     },
+    admin: {
+      configured: adminConfigured(c.env),
+    },
   });
 });
 
@@ -79,6 +84,7 @@ app.route("/", playRoutes);
 app.route("/", packRoutes);
 app.route("/", versionRoutes);
 app.route("/", jobRoutes);
+app.route("/", adminRoutes);
 
 app.get("/api/v1/ai/quota", async (c) => {
   if (!isAnonDemoEnabled(c.env)) {
