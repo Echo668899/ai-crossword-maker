@@ -104,6 +104,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "phases-of-the-moon",
       "force-and-motion",
       "life-cycles",
+      "ecosystems",
+      "magnets",
     ],
   },
   {
@@ -125,6 +127,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "parts-of-speech",
       "place-value",
       "prefixes-and-suffixes",
+      "figurative-language",
     ],
   },
   {
@@ -145,6 +148,27 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "fractions",
       "money-math",
       "telling-time",
+      "decimals",
+    ],
+  },
+  {
+    slug: "how-to-make-a-social-studies-vocabulary-crossword",
+    title: "How to Make a Social Studies Vocabulary Crossword",
+    description:
+      "Turn a civics, geography, or history word bank into a printable crossword with definition clues, interlocking grid, and answer key.",
+    toolPaths: [
+      "/ai-crossword-maker/",
+      "/crossword-maker-from-word-list/",
+      "/printable-crossword-maker/",
+      "/crossword-maker-for-teachers/",
+    ],
+    exampleSlugs: [
+      "branches-of-government",
+      "natural-resources",
+      "map-skills",
+      "landforms",
+      "continents-and-oceans",
+      "world-capitals",
     ],
   },
 ];

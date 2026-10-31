@@ -1033,6 +1033,106 @@ export const EXAMPLES: ExamplePuzzle[] = [
       { answer: "GROWTH", clue: "Increase in size as an organism moves through its stages" },
     ],
   },
+  {
+    slug: "ecosystems",
+    title: "Ecosystems",
+    topic: "Ecosystems",
+    subject: "science",
+    gradeBand: "Grades 3–6 life science",
+    blurb:
+      "Free printable ecosystems crossword for ecology units — habitat, producer, consumer, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "HABITAT", clue: "Place where an organism naturally lives and grows" },
+      { answer: "PRODUCER", clue: "Organism that makes its own food, often a green plant" },
+      { answer: "CONSUMER", clue: "Organism that must eat other living things for energy" },
+      { answer: "DECOMPOSER", clue: "Organism that breaks down dead plants and animals" },
+      { answer: "BIOME", clue: "Large region with similar climate, plants, and animals" },
+      { answer: "PREDATOR", clue: "Animal that hunts and eats other animals" },
+      { answer: "PREY", clue: "Animal that is hunted by another animal for food" },
+      { answer: "NICHE", clue: "Role an organism fills within its community" },
+    ],
+  },
+  {
+    slug: "magnets",
+    title: "Magnets",
+    topic: "Magnets",
+    subject: "science",
+    gradeBand: "Grades 2–5 physical science",
+    blurb:
+      "Free printable magnets crossword for physical science — pole, attract, repel, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "POLE", clue: "North or south end of a magnet where force is strongest" },
+      { answer: "ATTRACT", clue: "Pull toward each other, as opposite poles do" },
+      { answer: "REPEL", clue: "Push apart, as like poles of a magnet do" },
+      { answer: "METAL", clue: "Material such as iron that a magnet can pull" },
+      { answer: "FORCE", clue: "Push or pull a magnet exerts on nearby objects" },
+      { answer: "COMPASS", clue: "Tool with a magnetic needle that points toward north" },
+      { answer: "FIELD", clue: "Invisible area around a magnet where its pull acts" },
+      { answer: "IRON", clue: "Common metal strongly pulled by most classroom magnets" },
+    ],
+  },
+  {
+    slug: "figurative-language",
+    title: "Figurative Language",
+    topic: "Figurative Language",
+    subject: "language",
+    gradeBand: "Grades 4–8 language arts",
+    blurb:
+      "Free printable figurative language crossword for ELA — metaphor, simile, idiom, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "METAPHOR", clue: "Comparison that says one thing is another without using like" },
+      { answer: "SIMILE", clue: "Comparison that uses the words like or as" },
+      { answer: "IDIOM", clue: "Phrase whose meaning differs from the literal words" },
+      { answer: "HYPERBOLE", clue: "Extreme exaggeration used for emphasis or humor" },
+      { answer: "PERSONIFICATION", clue: "Giving human traits to an animal or object in writing" },
+      { answer: "ALLUSION", clue: "Brief reference to a well-known person, place, or story" },
+      { answer: "IMAGERY", clue: "Language that helps readers picture sights, sounds, or feelings" },
+      { answer: "LITERAL", clue: "Meaning that sticks to the exact dictionary sense of words" },
+    ],
+  },
+  {
+    slug: "decimals",
+    title: "Decimals",
+    topic: "Decimals",
+    subject: "classroom",
+    gradeBand: "Grades 4–6 math",
+    blurb:
+      "Free printable decimals crossword for upper-elementary math — tenths, hundredths, place, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "TENTHS", clue: "First place to the right of the decimal point" },
+      { answer: "HUNDREDTHS", clue: "Second place to the right of the decimal point" },
+      { answer: "POINT", clue: "Dot that separates whole numbers from fractional parts" },
+      { answer: "PLACE", clue: "Position of a digit that decides its value in a number" },
+      { answer: "ROUND", clue: "Adjust a decimal to a nearby value based on place rules" },
+      { answer: "COMPARE", clue: "Decide which of two decimals is greater or smaller" },
+      { answer: "WHOLE", clue: "Part of a number to the left of the decimal point" },
+      { answer: "EXPAND", clue: "Write a decimal as a sum of its place amounts" },
+    ],
+  },
+  {
+    slug: "natural-resources",
+    title: "Natural Resources",
+    topic: "Natural Resources",
+    subject: "social",
+    gradeBand: "Grades 3–6 social studies / science",
+    blurb:
+      "Free printable natural resources crossword for earth science and civics — renewable, fossil, conserve, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "RENEWABLE", clue: "Resource that can be replaced naturally within a human lifetime" },
+      { answer: "FOSSIL", clue: "Fuel formed from ancient plants and animals, such as coal" },
+      { answer: "CONSERVE", clue: "Use carefully so a resource lasts longer" },
+      { answer: "MINERAL", clue: "Natural solid from Earth used in building or industry" },
+      { answer: "TIMBER", clue: "Wood harvested from forests for building and paper" },
+      { answer: "WATER", clue: "Liquid resource essential for drinking, farming, and industry" },
+      { answer: "SOIL", clue: "Top layer of Earth that supports plant growth" },
+      { answer: "ENERGY", clue: "Power obtained from resources such as sun, wind, or fuel" },
+    ],
+  },
 ];
 
 /** High-intent classroom / ESL long-tail seeds prioritized for quality review. */
@@ -1104,6 +1204,15 @@ export const LONG_TAIL_BATCH_5_SLUGS = [
   "prefixes-and-suffixes",
   "measurement",
   "life-cycles",
+] as const;
+
+/** Sixth long-tail classroom batch (ecology / magnets / ELA / decimals / resources). */
+export const LONG_TAIL_BATCH_6_SLUGS = [
+  "ecosystems",
+  "magnets",
+  "figurative-language",
+  "decimals",
+  "natural-resources",
 ] as const;
 
 export function getExample(slug: string) {

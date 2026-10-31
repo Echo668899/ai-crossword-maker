@@ -45,19 +45,19 @@ const NAME_LINE_OPTIONS: Array<{ id: NameLinePresetId; label: string }> = [
 
 /** Classroom long-tail chips — fill Topic without spending AI until Generate. */
 const TOPIC_QUICK_PICKS = [
-  "Force and Motion for grade 4",
-  "Branches of Government for grade 5",
-  "Prefixes and Suffixes for grade 4",
-  "Measurement for grade 3",
-  "Life Cycles for grade 3",
+  "Ecosystems for grade 4",
+  "Magnets for grade 3",
+  "Figurative Language for grade 5",
+  "Decimals for grade 5",
+  "Natural Resources for grade 4",
 ] as const;
 
 const EXAMPLE_SEED_SLUGS = [
-  "force-and-motion",
-  "branches-of-government",
-  "prefixes-and-suffixes",
-  "measurement",
-  "life-cycles",
+  "ecosystems",
+  "magnets",
+  "figurative-language",
+  "decimals",
+  "natural-resources",
 ] as const;
 
 interface EntryRow {
@@ -1205,13 +1205,13 @@ export default function MakerApp({
               <p className="muted" style={{ margin: 0, fontSize: "0.88rem" }}>
                 Prefer a ready printable?
                 {" "}
-                <a href="/examples/force-and-motion/">Force and motion</a>
+                <a href="/examples/ecosystems/">Ecosystems</a>
                 {" · "}
-                <a href="/examples/measurement/">Measurement</a>
+                <a href="/examples/natural-resources/">Natural resources</a>
                 {" · "}
                 <a href="/examples/">All examples</a>
                 {" · "}
-                <a href="/blog/how-to-make-a-math-vocabulary-crossword/">Math how-to</a>
+                <a href="/blog/how-to-make-a-social-studies-vocabulary-crossword/">Social studies how-to</a>
               </p>
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
                 <label style={{ display: "grid", gap: "0.35rem" }}>
