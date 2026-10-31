@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Button } from "@acm/ui";
+import { Button, ContentEnter } from "@acm/ui";
 import { apiFetch } from "../../lib/api";
+import { PackDetailSkeleton } from "../ui/AsyncSkeletons";
 
 type PackItem = {
   id: string;
@@ -24,6 +25,7 @@ export default function PackApp({ initialPackId = "" }: { initialPackId?: string
   const [packId, setPackId] = useState(initialPackId);
   const [title, setTitle] = useState("");
   const [items, setItems] = useState<PackItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("Loading pack…");
   const [exportJson, setExportJson] = useState<string | null>(null);
   const [downloadPath, setDownloadPath] = useState<string | null>(null);
@@ -35,6 +37,7 @@ export default function PackApp({ initialPackId = "" }: { initialPackId?: string
     setPackId(id);
     if (!id) {
       setStatus("Missing pack id in URL.");
+      setLoading(false);
       return;
     }
     let cancelled = false;
@@ -45,13 +48,18 @@ export default function PackApp({ initialPackId = "" }: { initialPackId?: string
         if (cancelled) return;
         if (!res.ok) {
           setStatus(data?.error?.message ?? "Could not load pack.");
+          setLoading(false);
           return;
         }
         setTitle(data.pack?.title ?? "Activity pack");
         setItems(data.items ?? []);
         setStatus("");
+        setLoading(false);
       } catch {
-        if (!cancelled) setStatus("API unreachable. Start the Worker on :8787.");
+        if (!cancelled) {
+          setStatus("API unreachable. Start the Worker on :8787.");
+          setLoading(false);
+        }
       }
     })();
     return () => {
@@ -86,7 +94,6 @@ export default function PackApp({ initialPackId = "" }: { initialPackId?: string
     setDownloadPath(null);
     setJobId(null);
     try {
-      // Prefer inline ZIP when queue consumer isn't running locally.
       const res = await apiFetch(`/api/v1/packs/${packId}/export?sync=1`, {
         method: "POST",
         body: "{}",
@@ -150,61 +157,67 @@ export default function PackApp({ initialPackId = "" }: { initialPackId?: string
     }
   }
 
+  if (loading) {
+    return <PackDetailSkeleton />;
+  }
+
   return (
-    <div style={{ display: "grid", gap: "1rem" }}>
-      <nav className="muted" style={{ fontSize: "0.9rem" }}>
-        <a href="/app/">My puzzles</a> / <a href="/app/packs/">Packs</a> / {title || "Pack"}
-      </nav>
-      <h1 style={{ margin: 0 }}>{title || "Activity pack"}</h1>
-      {status ? <p className="muted">{status}</p> : null}
-      {items.length ? (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "0.65rem" }}>
-          {items.map((item) => (
-            <li
-              key={item.id}
-              style={{
-                padding: "0.85rem 1rem",
-                border: "1px solid var(--color-border)",
-                borderRadius: 8,
-                background: "#fff",
-              }}
-            >
-              <strong>Version {item.label}</strong>
-              <div className="muted" style={{ fontSize: "0.9rem", marginTop: "0.25rem" }}>
-                {item.placementCount} words · {item.size.rows}×{item.size.cols} · seed {item.seed} ·{" "}
-                {item.reviewState}
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-        <Button variant="secondary" disabled={!packId || busy} onClick={() => void runExport()}>
-          {busy ? "Exporting…" : "Batch export ZIP"}
-        </Button>
-        {downloadPath ? (
-          <Button disabled={busy} onClick={() => void downloadZip()}>
-            Download ZIP
-          </Button>
+    <ContentEnter>
+      <div style={{ display: "grid", gap: "1rem" }}>
+        <nav className="muted" style={{ fontSize: "0.9rem" }}>
+          <a href="/app/">My puzzles</a> / <a href="/app/packs/">Packs</a> / {title || "Pack"}
+        </nav>
+        <h1 style={{ margin: 0 }}>{title || "Activity pack"}</h1>
+        {status ? <p className="muted">{status}</p> : null}
+        {items.length ? (
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "0.65rem" }}>
+            {items.map((item) => (
+              <li
+                key={item.id}
+                style={{
+                  padding: "0.85rem 1rem",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: 8,
+                  background: "#fff",
+                }}
+              >
+                <strong>Version {item.label}</strong>
+                <div className="muted" style={{ fontSize: "0.9rem", marginTop: "0.25rem" }}>
+                  {item.placementCount} words · {item.size.rows}×{item.size.cols} · seed {item.seed} ·{" "}
+                  {item.reviewState}
+                </div>
+              </li>
+            ))}
+          </ul>
         ) : null}
-        <a href="/pricing/">Entitlements</a>
+        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+          <Button variant="secondary" disabled={!packId || busy} onClick={() => void runExport()}>
+            {busy ? "Exporting…" : "Batch export ZIP"}
+          </Button>
+          {downloadPath ? (
+            <Button disabled={busy} onClick={() => void downloadZip()}>
+              Download ZIP
+            </Button>
+          ) : null}
+          <a href="/pricing/">Entitlements</a>
+        </div>
+        {exportJson ? (
+          <pre
+            style={{
+              margin: 0,
+              padding: "0.85rem 1rem",
+              overflow: "auto",
+              maxHeight: 360,
+              background: "#F5F7FA",
+              border: "1px solid var(--color-border)",
+              borderRadius: 8,
+              fontSize: "0.82rem",
+            }}
+          >
+            {exportJson}
+          </pre>
+        ) : null}
       </div>
-      {exportJson ? (
-        <pre
-          style={{
-            margin: 0,
-            padding: "0.85rem 1rem",
-            overflow: "auto",
-            maxHeight: 360,
-            background: "#F5F7FA",
-            border: "1px solid var(--color-border)",
-            borderRadius: 8,
-            fontSize: "0.82rem",
-          }}
-        >
-          {exportJson}
-        </pre>
-      ) : null}
-    </div>
+    </ContentEnter>
   );
 }

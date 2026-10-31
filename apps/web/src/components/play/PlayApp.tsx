@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Button } from "@acm/ui";
+import { Button, ContentEnter } from "@acm/ui";
+import { PlayPageSkeleton } from "../ui/AsyncSkeletons";
 import { apiFetch } from "../../lib/api";
 
 type PlayCell = { row: number; col: number; isBlock: boolean; number?: number };
@@ -256,12 +257,7 @@ export default function PlayApp({ initialToken = "" }: { initialToken?: string }
   }
 
   if (!payload) {
-    return (
-      <section className="container section" style={{ paddingTop: "1.5rem" }}>
-        <h1>Shared crossword</h1>
-        <p className="muted">Loading puzzle…</p>
-      </section>
-    );
+    return <PlayPageSkeleton />;
   }
 
   const cellPx = Math.min(36, Math.floor(420 / Math.max(payload.size.cols, payload.size.rows)));
@@ -269,7 +265,8 @@ export default function PlayApp({ initialToken = "" }: { initialToken?: string }
   const down = payload.clues.filter((c) => c.direction === "down");
 
   return (
-    <section className="container section" style={{ paddingTop: "1.25rem" }}>
+    <ContentEnter>
+      <section className="container section" style={{ paddingTop: "1.25rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
         <div>
           <p className="muted" style={{ margin: 0, fontSize: "0.85rem" }}>
@@ -446,7 +443,8 @@ export default function PlayApp({ initialToken = "" }: { initialToken?: string }
           .play-layout { grid-template-columns: 1fr !important; }
         }
       `}</style>
-    </section>
+      </section>
+    </ContentEnter>
   );
 }
 

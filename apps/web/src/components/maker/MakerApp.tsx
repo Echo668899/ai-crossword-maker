@@ -10,14 +10,14 @@ import {
   type BuildResult,
   type WordEntry,
 } from "@acm/crossword-engine";
-import { Button } from "@acm/ui";
-import { StatusPill } from "@acm/ui";
+import { Button, ContentEnter, StatusPill } from "@acm/ui";
 import { loadDraft, saveDraft } from "../../lib/maker-storage";
 import { SAMPLE_MANUAL_ENTRIES, TEACHER_CLASSROOM_ENTRIES } from "../../lib/sample-entries";
 import { getExample } from "../../lib/examples";
 import { apiFetch } from "../../lib/api";
 import { hydrateFromSnapshot, type CloudSnapshot } from "../../lib/snapshot-hydrate";
 import TurnstileField, { turnstileConfigured } from "../security/TurnstileField";
+import { MakerGridSkeleton } from "../ui/AsyncSkeletons";
 import { GridView } from "./GridView";
 
 export type MakerMode = "topic" | "words" | "manual" | "paste" | "import";
@@ -1005,6 +1005,11 @@ export default function MakerApp({
     }
   }
 
+  const gridBusy =
+    aiLoading ||
+    cloudLoadBusy ||
+    state.statusMessage === "Building grid…" ||
+    state.statusMessage.includes("Building preview grid");
   const across = state.result?.placements.filter((p) => p.direction === "across") ?? [];
   const down = state.result?.placements.filter((p) => p.direction === "down") ?? [];
   const entryMap = new Map(state.entries.map((e) => [e.id, e]));
@@ -1729,20 +1734,34 @@ export default function MakerApp({
           ) : null}
 
           <div style={{ marginTop: "0.85rem" }}>
-            <GridView
-              result={state.result}
-              selectedEntryId={state.selectedEntryId}
-              onSelectEntry={(id) => dispatch({ type: "selectEntry", id })}
-              emptyHint={
-                state.mode === "topic" && !state.rows.length
-                  ? "Pick a topic chip (or type one), Generate with AI, then preview here — or Load sample words."
-                  : state.mode === "words" && !state.rows.length
-                    ? "Load a classroom sample or Paste a list, then Build grid — layout never spends AI credits."
-                    : state.rows.some((r) => r.answer.trim())
-                      ? "Click Build grid to place your entries. Shuffle layout is free and never spends AI credits."
-                      : "Add answers and clues, then Build grid — or switch to Topic (AI) for a free demo."
-              }
-            />
+            {gridBusy && !state.result ? (
+              <MakerGridSkeleton
+                label={aiLoading ? "Generating crossword preview" : "Building crossword preview"}
+              />
+            ) : state.result ? (
+              <ContentEnter key={`${state.result.seed}-${placedCount}`}>
+                <GridView
+                  result={state.result}
+                  selectedEntryId={state.selectedEntryId}
+                  onSelectEntry={(id) => dispatch({ type: "selectEntry", id })}
+                />
+              </ContentEnter>
+            ) : (
+              <GridView
+                result={state.result}
+                selectedEntryId={state.selectedEntryId}
+                onSelectEntry={(id) => dispatch({ type: "selectEntry", id })}
+                emptyHint={
+                  state.mode === "topic" && !state.rows.length
+                    ? "Pick a topic chip (or type one), Generate with AI, then preview here — or Load sample words."
+                    : state.mode === "words" && !state.rows.length
+                      ? "Load a classroom sample or Paste a list, then Build grid — layout never spends AI credits."
+                      : state.rows.some((r) => r.answer.trim())
+                        ? "Click Build grid to place your entries. Shuffle layout is free and never spends AI credits."
+                        : "Add answers and clues, then Build grid — or switch to Topic (AI) for a free demo."
+                }
+              />
+            )}
           </div>
           {state.result && emptyClueCount > 0 ? (
             <p
@@ -1759,29 +1778,31 @@ export default function MakerApp({
           ) : null}
 
           {state.result ? (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "1rem",
-                marginTop: "1rem",
-              }}
-            >
-              <ClueColumn
-                title="Across"
-                items={across}
-                entryMap={entryMap}
-                selectedEntryId={state.selectedEntryId}
-                onSelect={(id) => dispatch({ type: "selectEntry", id })}
-              />
-              <ClueColumn
-                title="Down"
-                items={down}
-                entryMap={entryMap}
-                selectedEntryId={state.selectedEntryId}
-                onSelect={(id) => dispatch({ type: "selectEntry", id })}
-              />
-            </div>
+            <ContentEnter>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "1rem",
+                  marginTop: "1rem",
+                }}
+              >
+                <ClueColumn
+                  title="Across"
+                  items={across}
+                  entryMap={entryMap}
+                  selectedEntryId={state.selectedEntryId}
+                  onSelect={(id) => dispatch({ type: "selectEntry", id })}
+                />
+                <ClueColumn
+                  title="Down"
+                  items={down}
+                  entryMap={entryMap}
+                  selectedEntryId={state.selectedEntryId}
+                  onSelect={(id) => dispatch({ type: "selectEntry", id })}
+                />
+              </div>
+            </ContentEnter>
           ) : null}
 
           {state.result?.unplacedEntryIds.length ? (

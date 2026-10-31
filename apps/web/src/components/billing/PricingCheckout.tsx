@@ -1,6 +1,8 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { pricing } from "@acm/config/pricing";
+import { ContentEnter } from "@acm/ui";
 import { apiFetch } from "../../lib/api";
+import { CheckoutCtaSkeleton } from "../ui/AsyncSkeletons";
 
 type BillingStatus = {
   checkoutEnabled: boolean;
@@ -47,6 +49,7 @@ function CheckoutButton({
   label,
   enabled,
   signedIn,
+  ready,
   busySku,
   onCheckout,
 }: {
@@ -54,10 +57,14 @@ function CheckoutButton({
   label: string;
   enabled: boolean;
   signedIn: boolean;
+  ready: boolean;
   busySku: Sku | null;
   onCheckout: (sku: Sku) => void;
 }) {
   const busy = busySku === sku;
+  if (!ready) {
+    return <CheckoutCtaSkeleton />;
+  }
   if (!enabled) {
     return (
       <button type="button" disabled style={btnStyle(true)}>
@@ -147,6 +154,7 @@ export default function PricingCheckout() {
             planVersion: pricing.planVersion,
             skus: [],
           });
+          setAuth({ authenticated: false, user: null });
         }
       }
     })();
@@ -179,6 +187,7 @@ export default function PricingCheckout() {
     }
   }
 
+  const ready = status !== null && auth !== null;
   const enabled = Boolean(status?.checkoutEnabled);
   const signedIn = Boolean(auth?.authenticated);
   const providerLabel =
@@ -190,6 +199,7 @@ export default function PricingCheckout() {
   const yearlyPerMonth = (pricing.proYearly.priceUsd / 12).toFixed(0);
 
   return (
+    <ContentEnter>
     <div>
       <p style={{ maxWidth: "62ch", margin: "0 0 0.5rem", fontSize: "1.05rem" }}>
         Start free with a daily AI Topic demo. Upgrade to Pro when you need more generations,
@@ -307,6 +317,7 @@ export default function PricingCheckout() {
               label={`Go Pro yearly (save $${pricing.proMonthly.priceUsd * 12 - pricing.proYearly.priceUsd})`}
               enabled={enabled}
               signedIn={signedIn}
+              ready={ready}
               busySku={busySku}
               onCheckout={startCheckout}
             />
@@ -315,6 +326,7 @@ export default function PricingCheckout() {
               label="Go Pro monthly"
               enabled={enabled}
               signedIn={signedIn}
+              ready={ready}
               busySku={busySku}
               onCheckout={startCheckout}
             />
@@ -338,6 +350,7 @@ export default function PricingCheckout() {
               label={`Buy ${pricing.creditPacks[0].aiOps} credits`}
               enabled={enabled}
               signedIn={signedIn}
+              ready={ready}
               busySku={busySku}
               onCheckout={startCheckout}
             />
@@ -346,6 +359,7 @@ export default function PricingCheckout() {
               label={`Buy ${pricing.creditPacks[1].aiOps} credits`}
               enabled={enabled}
               signedIn={signedIn}
+              ready={ready}
               busySku={busySku}
               onCheckout={startCheckout}
             />
@@ -368,6 +382,7 @@ export default function PricingCheckout() {
               label="Buy Activity Pack"
               enabled={enabled}
               signedIn={signedIn}
+              ready={ready}
               busySku={busySku}
               onCheckout={startCheckout}
             />
@@ -387,5 +402,6 @@ export default function PricingCheckout() {
         </ol>
       </section>
     </div>
+    </ContentEnter>
   );
 }

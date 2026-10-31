@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Button } from "@acm/ui";
+import { Button, ContentEnter } from "@acm/ui";
 import { apiFetch } from "../../lib/api";
+import { AdminOverviewSkeleton } from "../ui/AsyncSkeletons";
 
 type Overview = {
   counts: Record<string, number>;
@@ -45,6 +46,7 @@ export default function AdminConsole() {
   const [jobs, setJobs] = useState<JobRow[]>([]);
   const [audit, setAudit] = useState<AuditRow[]>([]);
   const [busy, setBusy] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   async function load() {
     setBusy(true);
@@ -56,6 +58,7 @@ export default function AdminConsole() {
           meData?.error?.message ??
             "Admin is unconfigured. Set ADMIN_EMAILS on the API Worker.",
         );
+        setLoaded(true);
         return;
       }
       if (me.status === 401) {
@@ -65,10 +68,12 @@ export default function AdminConsole() {
       }
       if (me.status === 403) {
         setStatus("Forbidden — your account is not on ADMIN_EMAILS.");
+        setLoaded(true);
         return;
       }
       if (!me.ok) {
         setStatus(meData?.error?.message ?? "Admin check failed.");
+        setLoaded(true);
         return;
       }
 
@@ -84,6 +89,7 @@ export default function AdminConsole() {
       const audData = await aud.json();
       if (!ov.ok) {
         setStatus(ovData?.error?.message ?? "Could not load overview.");
+        setLoaded(true);
         return;
       }
       setOverview(ovData);
@@ -91,8 +97,10 @@ export default function AdminConsole() {
       setJobs(jobData.jobs ?? []);
       setAudit(audData.events ?? []);
       setStatus(`Signed in as ${meData.email}`);
+      setLoaded(true);
     } catch {
       setStatus("API unreachable. Start the Worker on :8787.");
+      setLoaded(true);
     } finally {
       setBusy(false);
     }
@@ -128,7 +136,7 @@ export default function AdminConsole() {
       <div>
         <h1 style={{ margin: "0 0 0.35rem" }}>Admin</h1>
         <p className="muted" style={{ margin: 0 }}>
-          Ops skeleton — aggregates and kill switches only. Raw puzzle content is never listed.
+          Ops console — aggregates and kill switches only. Raw puzzle content is never listed.
         </p>
         <p className="muted" style={{ marginTop: "0.5rem" }}>
           {status}
@@ -138,8 +146,10 @@ export default function AdminConsole() {
         </Button>
       </div>
 
-      {overview ? (
-        <>
+      {!loaded ? <AdminOverviewSkeleton /> : null}
+
+      {loaded && overview ? (
+        <ContentEnter>
           <section>
             <h2>Counts</h2>
             <ul style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(11rem,1fr))", gap: "0.5rem", padding: 0, listStyle: "none" }}>
@@ -196,72 +206,76 @@ export default function AdminConsole() {
               ))}
             </ul>
           </section>
-        </>
+        </ContentEnter>
       ) : null}
 
-      <section>
-        <h2>Recent orders</h2>
-        {orders.length === 0 ? (
-          <p className="muted">No orders yet.</p>
-        ) : (
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
-              <thead>
-                <tr>
-                  <th align="left">Created</th>
-                  <th align="left">SKU</th>
-                  <th align="left">Status</th>
-                  <th align="left">Provider</th>
-                  <th align="left">User</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((o) => (
-                  <tr key={o.id}>
-                    <td>{o.createdAt}</td>
-                    <td>{o.sku}</td>
-                    <td>{o.status}</td>
-                    <td>{o.provider}</td>
-                    <td>{o.userEmail ?? "—"}</td>
-                  </tr>
+      {loaded ? (
+        <ContentEnter>
+          <section>
+            <h2>Recent orders</h2>
+            {orders.length === 0 ? (
+              <p className="muted">No orders yet.</p>
+            ) : (
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.9rem" }}>
+                  <thead>
+                    <tr>
+                      <th align="left">Created</th>
+                      <th align="left">SKU</th>
+                      <th align="left">Status</th>
+                      <th align="left">Provider</th>
+                      <th align="left">User</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map((o) => (
+                      <tr key={o.id}>
+                        <td>{o.createdAt}</td>
+                        <td>{o.sku}</td>
+                        <td>{o.status}</td>
+                        <td>{o.provider}</td>
+                        <td>{o.userEmail ?? "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          <section>
+            <h2>Recent jobs</h2>
+            {jobs.length === 0 ? (
+              <p className="muted">No jobs yet.</p>
+            ) : (
+              <ul style={{ fontSize: "0.9rem" }}>
+                {jobs.map((j) => (
+                  <li key={j.id}>
+                    <code>{j.type}</code> · {j.status}
+                    {j.errorCode ? ` · ${j.errorCode}` : ""} · {j.createdAt}
+                  </li>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
+              </ul>
+            )}
+          </section>
 
-      <section>
-        <h2>Recent jobs</h2>
-        {jobs.length === 0 ? (
-          <p className="muted">No jobs yet.</p>
-        ) : (
-          <ul style={{ fontSize: "0.9rem" }}>
-            {jobs.map((j) => (
-              <li key={j.id}>
-                <code>{j.type}</code> · {j.status}
-                {j.errorCode ? ` · ${j.errorCode}` : ""} · {j.createdAt}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section>
-        <h2>Audit</h2>
-        {audit.length === 0 ? (
-          <p className="muted">No admin audit events yet.</p>
-        ) : (
-          <ul style={{ fontSize: "0.9rem" }}>
-            {audit.map((a) => (
-              <li key={a.id}>
-                {a.createdAt} · <code>{a.action}</code>
-                {a.targetId ? ` · ${a.targetType}:${a.targetId}` : ""}
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+          <section>
+            <h2>Audit</h2>
+            {audit.length === 0 ? (
+              <p className="muted">No admin audit events yet.</p>
+            ) : (
+              <ul style={{ fontSize: "0.9rem" }}>
+                {audit.map((a) => (
+                  <li key={a.id}>
+                    {a.createdAt} · <code>{a.action}</code>
+                    {a.targetId ? ` · ${a.targetType}:${a.targetId}` : ""}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </ContentEnter>
+      ) : null}
     </div>
   );
 }
