@@ -15,14 +15,14 @@ Updated: 2026-10-31
 | 07 Packs / batch export | PARTIAL — A/B/C packs + ZIP/R2 export (queue + inline); consumer processes `pack_export` |
 | 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal APIs |
 | 09 Stripe / ledger / admin | PARTIAL — Hybrid Stripe/Creem + ledger; **admin skeleton** (`/admin`, `/api/v1/admin/*`, audit + ops flags) |
-| 10 SEO polish / deploy hardening | IN PROGRESS — long-tail examples expansion + blog link mesh + maker UX polish |
+| 10 SEO polish / deploy hardening | IN PROGRESS — word-list how-to + word-list landing FAQ/CTAs + Words-mode UX |
 
 ## Latest slice (product iteration)
 
-- Merged second-pass examples + print how-to + teachers↔printable CTAs via PR #10 → `main` @ `12fbf4f`
-- Examples: +5 long-tail human-reviewed seeds (Greek mythology, world capitals, irregular verbs, animal habitats, renewable energy) → library ≥30
-- Blog: shared `blog-posts` catalog; guides ↔ examples mesh; example detail “Related how-tos”
-- Maker UX: topic quick-picks, empty-clue/duplicate highlights, placed count pill, contextual empty-grid hint
+- Merged long-tail examples + blog mesh + maker UX via PR #11 → `main` @ `772dc1c`
+- Blog: new how-to `/blog/how-to-make-a-crossword-from-a-word-list/` (catalog + Article/Breadcrumb JSON-LD)
+- Word-list landing: FAQPage schema, how-to CTA, starter example links
+- Maker UX (Words mode): classroom/solar sample loaders, paste shortcut, contextual empty-grid hint; paste import stays in Words when started from list
 
 ## Open decisions
 

@@ -109,6 +109,11 @@ describe("SEO shell hardening", () => {
       join(pagesRoot, "blog/how-to-print-crossword-worksheets/index.astro"),
       "utf8",
     );
+    const wordListHowto = readFileSync(
+      join(pagesRoot, "blog/how-to-make-a-crossword-from-a-word-list/index.astro"),
+      "utf8",
+    );
+    const wordList = readFileSync(join(pagesRoot, "crossword-maker-from-word-list/index.astro"), "utf8");
 
     expect(esl).toContain('canonicalPath="/esl-crossword-generator/"');
     expect(esl).toContain("CEFR_PRESETS");
@@ -125,10 +130,12 @@ describe("SEO shell hardening", () => {
     expect(blogIndex).toContain("ItemList");
     expect(blogIndex).toContain("BLOG_POSTS");
     expect(blogIndex).toContain("/examples/irregular-verbs/");
+    expect(blogIndex).toContain("/crossword-maker-from-word-list/");
     const blogCatalog = readFileSync(join(import.meta.dirname, "blog-posts.ts"), "utf8");
     expect(blogCatalog).toContain("how-to-print-crossword-worksheets");
     expect(blogCatalog).toContain("how-to-make-a-crossword-puzzle");
     expect(blogCatalog).toContain("how-to-make-esl-vocabulary-crosswords");
+    expect(blogCatalog).toContain("how-to-make-a-crossword-from-a-word-list");
     expect(howto).toContain("/ai-crossword-maker/");
     expect(howto).toContain("@type\": \"Article\"");
     expect(howto).toContain("blog-posts");
@@ -139,6 +146,14 @@ describe("SEO shell hardening", () => {
     expect(printHowto).toContain("/crossword-maker-for-teachers/");
     expect(printHowto).toContain("@type\": \"Article\"");
     expect(printHowto).toContain("/examples/animal-habitats/");
+    expect(wordListHowto).toContain("/crossword-maker-from-word-list/");
+    expect(wordListHowto).toContain("@type\": \"Article\"");
+    expect(wordListHowto).toContain("/examples/classroom-objects/");
+    expect(wordListHowto).toContain("/examples/irregular-verbs/");
+    expect(wordList).toContain("FAQPage");
+    expect(wordList).toContain('initialMode="words"');
+    expect(wordList).toContain("/blog/how-to-make-a-crossword-from-a-word-list/");
+    expect(wordList).toContain("wordlist-howto-cta");
     expect(EXAMPLES.some((e) => e.slug === "esl-daily-routines")).toBe(true);
     expect(EXAMPLES.some((e) => e.slug === "esl-jobs-and-work")).toBe(true);
     expect(EXAMPLES.some((e) => e.slug === "greek-mythology")).toBe(true);
@@ -156,5 +171,8 @@ describe("SEO shell hardening", () => {
     expect(maker).toContain("TOPIC_QUICK_PICKS");
     expect(maker).toContain("Quick classroom topics");
     expect(maker).toContain("emptyHint");
+    expect(maker).toContain("TEACHER_CLASSROOM_ENTRIES");
+    expect(maker).toContain("Load classroom sample");
+    expect(maker).toContain("/blog/how-to-make-a-crossword-from-a-word-list/");
   });
 });
