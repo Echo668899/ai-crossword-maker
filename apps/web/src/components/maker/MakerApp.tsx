@@ -42,6 +42,15 @@ const NAME_LINE_OPTIONS: Array<{ id: NameLinePresetId; label: string }> = [
   { id: "none", label: "No name line" },
 ];
 
+/** Classroom long-tail chips — fill Topic without spending AI until Generate. */
+const TOPIC_QUICK_PICKS = [
+  "Greek Mythology for grade 6",
+  "World Capitals geography",
+  "Irregular verbs for ESL A2",
+  "Animal Habitats for grade 3",
+  "Renewable Energy for grade 7",
+] as const;
+
 interface EntryRow {
   answer: string;
   clue: string;
@@ -989,6 +998,18 @@ export default function MakerApp({
   const across = state.result?.placements.filter((p) => p.direction === "across") ?? [];
   const down = state.result?.placements.filter((p) => p.direction === "down") ?? [];
   const entryMap = new Map(state.entries.map((e) => [e.id, e]));
+  const emptyClueCount = state.rows.filter((r) => r.answer.trim() && !r.clue.trim()).length;
+  const duplicateAnswers = (() => {
+    const counts = new Map<string, number>();
+    for (const row of state.rows) {
+      const key = row.answer.trim().toUpperCase().replace(/[^A-Z]/g, "");
+      if (key.length < 3) continue;
+      counts.set(key, (counts.get(key) ?? 0) + 1);
+    }
+    return [...counts.entries()].filter(([, n]) => n > 1).map(([k]) => k);
+  })();
+  const placedCount = state.result?.placedEntryIds.length ?? 0;
+  const totalForResult = state.result ? state.entries.length : 0;
 
   return (
     <section
@@ -1136,6 +1157,41 @@ export default function MakerApp({
                   }}
                 />
               </label>
+              <div
+                role="group"
+                aria-label="Quick classroom topics"
+                style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}
+              >
+                {TOPIC_QUICK_PICKS.map((topic) => {
+                  const active = state.topic === topic;
+                  return (
+                    <button
+                      key={topic}
+                      type="button"
+                      onClick={() => {
+                        dispatch({ type: "setTopic", topic });
+                        dispatch({
+                          type: "setStatus",
+                          statusMessage: `Topic set to “${topic}”. Press Generate with AI (or Enter).`,
+                        });
+                      }}
+                      style={{
+                        border: "1px solid var(--color-border)",
+                        background: active ? "rgba(47,92,143,0.12)" : "#fff",
+                        color: "var(--color-ink)",
+                        borderRadius: "var(--radius-sm)",
+                        padding: "0.28rem 0.55rem",
+                        fontSize: "0.82rem",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                        fontFamily: "var(--font-body)",
+                      }}
+                    >
+                      {topic.replace(/ for (grade|ESL).*$/i, "").replace(/ geography$/i, "")}
+                    </button>
+                  );
+                })}
+              </div>
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
                 <label style={{ display: "grid", gap: "0.35rem" }}>
                   <span style={{ fontWeight: 650 }}>Words</span>
@@ -1285,47 +1341,84 @@ export default function MakerApp({
                   Entries appear here after Generate with AI — or Add row to draft manually.
                 </p>
               ) : null}
+              {duplicateAnswers.length ? (
+                <p
+                  role="status"
+                  style={{
+                    margin: "0 0 0.55rem",
+                    fontSize: "0.88rem",
+                    color: "var(--color-warn)",
+                  }}
+                >
+                  Duplicate answers: {duplicateAnswers.join(", ")}. Keep one of each before you print.
+                </p>
+              ) : null}
+              {emptyClueCount > 0 ? (
+                <p className="muted" style={{ margin: "0 0 0.55rem", fontSize: "0.88rem" }}>
+                  {emptyClueCount} entr{emptyClueCount === 1 ? "y needs" : "ies need"} a clue — highlighted
+                  below. Layout still works; fill clues before classroom handouts.
+                </p>
+              ) : null}
               <div style={{ display: "grid", gap: "0.45rem", maxHeight: 320, overflow: "auto" }}>
-                {state.rows.map((row, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "0.9fr 1.3fr auto",
-                      gap: "0.35rem",
-                    }}
-                  >
-                    <input
-                      aria-label={`Answer ${index + 1}`}
-                      value={row.answer}
-                      onChange={(e) =>
-                        pushHistory(
-                          state.rows.map((r, i) => (i === index ? { ...r, answer: e.target.value } : r)),
-                        )
-                      }
-                      placeholder="ANSWER"
-                      style={inputStyle}
-                    />
-                    <input
-                      aria-label={`Clue ${index + 1}`}
-                      value={row.clue}
-                      onChange={(e) =>
-                        pushHistory(
-                          state.rows.map((r, i) => (i === index ? { ...r, clue: e.target.value } : r)),
-                        )
-                      }
-                      placeholder={state.mode === "words" ? "Clue (optional — AI can fill later)" : "Clue"}
-                      style={inputStyle}
-                    />
-                    <Button
-                      variant="ghost"
-                      aria-label={`Remove row ${index + 1}`}
-                      onClick={() => pushHistory(state.rows.filter((_, i) => i !== index))}
+                {state.rows.map((row, index) => {
+                  const normalized = row.answer.trim().toUpperCase().replace(/[^A-Z]/g, "");
+                  const isDup = normalized.length >= 3 && duplicateAnswers.includes(normalized);
+                  const needsClue = Boolean(row.answer.trim() && !row.clue.trim());
+                  return (
+                    <div
+                      key={index}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "0.9fr 1.3fr auto",
+                        gap: "0.35rem",
+                      }}
                     >
-                      ×
-                    </Button>
-                  </div>
-                ))}
+                      <input
+                        aria-label={`Answer ${index + 1}`}
+                        value={row.answer}
+                        onChange={(e) =>
+                          pushHistory(
+                            state.rows.map((r, i) =>
+                              i === index ? { ...r, answer: e.target.value } : r,
+                            ),
+                          )
+                        }
+                        placeholder="ANSWER"
+                        style={{
+                          ...inputStyle,
+                          borderColor: isDup ? "var(--color-warn)" : undefined,
+                          background: isDup ? "#fff8e8" : undefined,
+                        }}
+                      />
+                      <input
+                        aria-label={`Clue ${index + 1}`}
+                        value={row.clue}
+                        onChange={(e) =>
+                          pushHistory(
+                            state.rows.map((r, i) =>
+                              i === index ? { ...r, clue: e.target.value } : r,
+                            ),
+                          )
+                        }
+                        placeholder={
+                          state.mode === "words" ? "Clue (optional — AI can fill later)" : "Clue"
+                        }
+                        style={{
+                          ...inputStyle,
+                          borderColor: needsClue ? "#c4a574" : undefined,
+                          background: needsClue ? "#fffaf0" : undefined,
+                        }}
+                      />
+                      <Button
+                        variant="ghost"
+                        aria-label={`Remove row ${index + 1}`}
+                        onClick={() => pushHistory(state.rows.filter((_, i) => i !== index))}
+                      >
+                        ×
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ) : null}
@@ -1364,7 +1457,21 @@ export default function MakerApp({
           style={{ padding: "1rem 1.1rem", background: "rgba(245,247,250,0.65)" }}
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
-            <strong>Grid & print preview</strong>
+            <div style={{ display: "flex", gap: "0.45rem", alignItems: "center", flexWrap: "wrap" }}>
+              <strong>Grid & print preview</strong>
+              {state.result ? (
+                <StatusPill
+                  label={`Placed ${placedCount}/${totalForResult}`}
+                  tone={
+                    placedCount === totalForResult && totalForResult > 0
+                      ? "ok"
+                      : placedCount > 0
+                        ? "warn"
+                        : "neutral"
+                  }
+                />
+              ) : null}
+            </div>
             <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
               <label style={{ display: "flex", gap: "0.35rem", alignItems: "center", fontSize: "0.9rem" }}>
                 <span className="muted">Name line</span>
@@ -1492,8 +1599,28 @@ export default function MakerApp({
               result={state.result}
               selectedEntryId={state.selectedEntryId}
               onSelectEntry={(id) => dispatch({ type: "selectEntry", id })}
+              emptyHint={
+                state.mode === "topic" && !state.rows.length
+                  ? "Pick a topic chip (or type one), Generate with AI, then preview here — or Load sample words."
+                  : state.rows.some((r) => r.answer.trim())
+                    ? "Click Build grid to place your entries. Shuffle layout is free and never spends AI credits."
+                    : "Add answers and clues, then Build grid — or switch to Topic (AI) for a free demo."
+              }
             />
           </div>
+          {state.result && emptyClueCount > 0 ? (
+            <p
+              role="status"
+              style={{
+                margin: "0.75rem 0 0",
+                fontSize: "0.9rem",
+                color: "var(--color-warn)",
+              }}
+            >
+              Preview is ready, but {emptyClueCount} clue
+              {emptyClueCount === 1 ? " is" : "s are"} still empty — edit before printing for class.
+            </p>
+          ) : null}
 
           {state.result ? (
             <div

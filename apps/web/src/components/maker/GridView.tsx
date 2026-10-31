@@ -5,11 +5,14 @@ export function GridView({
   selectedEntryId,
   onSelectEntry,
   showAnswers = false,
+  emptyHint = "Build a grid to preview the puzzle here.",
 }: {
   result: BuildResult | null;
   selectedEntryId?: string | null;
   onSelectEntry?: (entryId: string) => void;
   showAnswers?: boolean;
+  /** Context-aware next step when no grid is ready yet. */
+  emptyHint?: string;
 }) {
   if (!result || result.placedEntryIds.length === 0) {
     return (
@@ -21,9 +24,13 @@ export function GridView({
           textAlign: "center",
           color: "var(--color-muted)",
           background: "rgba(255,255,255,0.7)",
+          maxWidth: 420,
+          margin: "0 auto",
+          lineHeight: 1.45,
+          fontSize: "0.95rem",
         }}
       >
-        Build a grid to preview the puzzle here.
+        {emptyHint}
       </div>
     );
   }

@@ -533,6 +533,106 @@ export const EXAMPLES: ExamplePuzzle[] = [
       { answer: "GARDEN", clue: "Outdoor place where people grow plants" },
     ],
   },
+  {
+    slug: "greek-mythology",
+    title: "Greek Mythology",
+    topic: "Greek Mythology",
+    subject: "social",
+    gradeBand: "Grades 5–9 literature / social studies",
+    blurb:
+      "Free printable Greek mythology crossword — gods, heroes, and classic myths for middle-school literature with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "ZEUS", clue: "King of the Olympian gods who ruled from Mount Olympus" },
+      { answer: "HERA", clue: "Queen of the gods and goddess of marriage" },
+      { answer: "ATHENA", clue: "Goddess of wisdom often shown with an owl" },
+      { answer: "HADES", clue: "God who ruled the underworld" },
+      { answer: "HERMES", clue: "Messenger god known for winged sandals" },
+      { answer: "APOLLO", clue: "God of music, poetry, and the sun" },
+      { answer: "TITAN", clue: "Member of the older race of gods before Olympians" },
+      { answer: "MYTH", clue: "Traditional story explaining gods, heroes, or nature" },
+    ],
+  },
+  {
+    slug: "world-capitals",
+    title: "World Capitals",
+    topic: "World Capitals",
+    subject: "social",
+    gradeBand: "Grades 4–8 geography",
+    blurb:
+      "Free printable world capitals crossword for geography class — city names tied to countries, with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "PARIS", clue: "Capital city of France" },
+      { answer: "TOKYO", clue: "Capital city of Japan" },
+      { answer: "CAIRO", clue: "Capital city of Egypt on the Nile" },
+      { answer: "ROME", clue: "Capital city of Italy" },
+      { answer: "BERLIN", clue: "Capital city of Germany" },
+      { answer: "OTTAWA", clue: "Capital city of Canada" },
+      { answer: "MADRID", clue: "Capital city of Spain" },
+      { answer: "SEOUL", clue: "Capital city of South Korea" },
+    ],
+  },
+  {
+    slug: "irregular-verbs",
+    title: "Irregular Verbs",
+    topic: "Irregular Verbs",
+    subject: "esl",
+    gradeBand: "ESL A2–B1 / Grades 4–8 language",
+    blurb:
+      "Free printable irregular verbs crossword for ESL — past forms and base verbs for classroom practice with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "WENT", clue: "Past tense of go" },
+      { answer: "SAW", clue: "Past tense of see" },
+      { answer: "ATE", clue: "Past tense of eat" },
+      { answer: "TOOK", clue: "Past tense of take" },
+      { answer: "GAVE", clue: "Past tense of give" },
+      { answer: "CAME", clue: "Past tense of come" },
+      { answer: "MADE", clue: "Past tense of make" },
+      { answer: "WROTE", clue: "Past tense of write" },
+    ],
+  },
+  {
+    slug: "animal-habitats",
+    title: "Animal Habitats",
+    topic: "Animal Habitats",
+    subject: "science",
+    gradeBand: "Grades 2–5 science",
+    blurb:
+      "Free printable animal habitats crossword — forest, desert, ocean, and shelter words for elementary science with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "FOREST", clue: "Habitat with many trees growing close together" },
+      { answer: "DESERT", clue: "Dry habitat that receives very little rain" },
+      { answer: "OCEAN", clue: "Large saltwater habitat covering most of Earth" },
+      { answer: "WETLAND", clue: "Habitat where land is soaked with water much of the year" },
+      { answer: "TUNDRA", clue: "Cold, treeless habitat found near the Arctic" },
+      { answer: "NEST", clue: "Home birds build for eggs and chicks" },
+      { answer: "CAVE", clue: "Natural underground space some animals use for shelter" },
+      { answer: "REEF", clue: "Underwater ridge of coral that shelters many fish" },
+    ],
+  },
+  {
+    slug: "renewable-energy",
+    title: "Renewable Energy",
+    topic: "Renewable Energy",
+    subject: "science",
+    gradeBand: "Grades 5–9 earth science",
+    blurb:
+      "Free printable renewable energy crossword — solar, wind, and clean-power vocabulary for science class with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "SOLAR", clue: "Energy that comes from sunlight" },
+      { answer: "WIND", clue: "Moving air used to spin turbine blades" },
+      { answer: "TURBINE", clue: "Machine with blades that turns to make electricity" },
+      { answer: "PANEL", clue: "Flat device that collects sunlight for power" },
+      { answer: "HYDRO", clue: "Prefix for power made from flowing water" },
+      { answer: "GREEN", clue: "Word often used for clean, low-pollution energy" },
+      { answer: "BATTERY", clue: "Device that stores electricity for later use" },
+      { answer: "FOSSIL", clue: "Type of fuel formed from ancient plants and animals" },
+    ],
+  },
 ];
 
 /** High-intent classroom / ESL long-tail seeds prioritized for quality review. */
@@ -559,6 +659,15 @@ export const SECOND_PASS_REVIEWED_SLUGS = [
   "earth-day",
   "money-math",
   "plants-and-seeds",
+] as const;
+
+/** Fresh long-tail classroom seeds added after the teacher/print CTA slice. */
+export const LONG_TAIL_EXPANSION_SLUGS = [
+  "greek-mythology",
+  "world-capitals",
+  "irregular-verbs",
+  "animal-habitats",
+  "renewable-energy",
 ] as const;
 
 export function getExample(slug: string) {

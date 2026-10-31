@@ -4,10 +4,12 @@ import { describe, expect, it } from "vitest";
 import {
   EXAMPLES,
   HIGH_TRAFFIC_EXAMPLE_SLUGS,
+  LONG_TAIL_EXPANSION_SLUGS,
   SECOND_PASS_REVIEWED_SLUGS,
   getExample,
   relatedExamples,
 } from "./examples";
+import { BLOG_POSTS, blogPostsForExample, relatedBlogPosts } from "./blog-posts";
 import { buildExamplePuzzle } from "./build-example";
 
 describe("examples quality", () => {
@@ -34,6 +36,34 @@ describe("examples quality", () => {
       expect(ex!.reviewState).toBe("human_reviewed");
       expect(ex!.blurb.toLowerCase()).toMatch(/print|crossword|vocabulary|answer/);
       expect(ex!.entries.every((e) => e.clue.trim().length >= 12)).toBe(true);
+    }
+  });
+
+  it("marks long-tail expansion seeds as human-reviewed with printable blurbs", () => {
+    expect(LONG_TAIL_EXPANSION_SLUGS.length).toBeGreaterThanOrEqual(3);
+    for (const slug of LONG_TAIL_EXPANSION_SLUGS) {
+      const ex = getExample(slug);
+      expect(ex, slug).toBeTruthy();
+      expect(ex!.reviewState).toBe("human_reviewed");
+      expect(ex!.blurb.toLowerCase()).toMatch(/print|crossword|vocabulary|answer/);
+      expect(ex!.entries.every((e) => e.clue.trim().length >= 12)).toBe(true);
+    }
+  });
+
+  it("keeps a blog ↔ examples internal link mesh", () => {
+    expect(BLOG_POSTS.length).toBeGreaterThanOrEqual(3);
+    for (const post of BLOG_POSTS) {
+      expect(post.toolPaths.length).toBeGreaterThanOrEqual(2);
+      expect(post.exampleSlugs.length).toBeGreaterThanOrEqual(2);
+      for (const slug of post.exampleSlugs) {
+        expect(getExample(slug), `${post.slug} → ${slug}`).toBeTruthy();
+      }
+      const related = relatedBlogPosts(post.slug);
+      expect(related.every((p) => p.slug !== post.slug)).toBe(true);
+    }
+    for (const slug of LONG_TAIL_EXPANSION_SLUGS) {
+      const posts = blogPostsForExample(slug, 2);
+      expect(posts.length).toBeGreaterThanOrEqual(1);
     }
   });
 
@@ -84,6 +114,8 @@ describe("examples quality", () => {
     expect(detail).toContain("/crossword-maker-for-teachers/");
     expect(detail).toContain("/pricing/");
     expect(detail).toContain("relatedExamples");
+    expect(detail).toContain("blogPostsForExample");
+    expect(detail).toContain("Related how-tos");
     expect(detail).toMatch(/How do I print/);
   });
 });

@@ -15,14 +15,14 @@ Updated: 2026-10-31
 | 07 Packs / batch export | PARTIAL — A/B/C packs + ZIP/R2 export (queue + inline); consumer processes `pack_export` |
 | 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal APIs |
 | 09 Stripe / ledger / admin | PARTIAL — Hybrid Stripe/Creem + ledger; **admin skeleton** (`/admin`, `/api/v1/admin/*`, audit + ops flags) |
-| 10 SEO polish / deploy hardening | IN PROGRESS — second-pass examples review + print how-to + teachers↔printable CTAs |
+| 10 SEO polish / deploy hardening | IN PROGRESS — long-tail examples expansion + blog link mesh + maker UX polish |
 
 ## Latest slice (product iteration)
 
-- Merged teacher name-line presets + first-pass example QA via PR #9 → `main` @ `83ce8cd`
-- Examples second-pass human review (8): human body, fractions, ESL travel/routines/jobs, Earth Day, money math, plants & seeds
-- Blog: `/blog/how-to-print-crossword-worksheets/` (Article + Breadcrumb JSON-LD; links teachers + printable)
-- Teachers ↔ printable dedicated cross CTAs + printable FAQPage; print how-to linked from both landings
+- Merged second-pass examples + print how-to + teachers↔printable CTAs via PR #10 → `main` @ `12fbf4f`
+- Examples: +5 long-tail human-reviewed seeds (Greek mythology, world capitals, irregular verbs, animal habitats, renewable energy) → library ≥30
+- Blog: shared `blog-posts` catalog; guides ↔ examples mesh; example detail “Related how-tos”
+- Maker UX: topic quick-picks, empty-clue/duplicate highlights, placed count pill, contextual empty-grid hint
 
 ## Open decisions
 

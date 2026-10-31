@@ -123,15 +123,38 @@ describe("SEO shell hardening", () => {
 
     expect(blogIndex).toContain('canonicalPath="/blog/"');
     expect(blogIndex).toContain("ItemList");
-    expect(blogIndex).toContain("how-to-print-crossword-worksheets");
+    expect(blogIndex).toContain("BLOG_POSTS");
+    expect(blogIndex).toContain("/examples/irregular-verbs/");
+    const blogCatalog = readFileSync(join(import.meta.dirname, "blog-posts.ts"), "utf8");
+    expect(blogCatalog).toContain("how-to-print-crossword-worksheets");
+    expect(blogCatalog).toContain("how-to-make-a-crossword-puzzle");
+    expect(blogCatalog).toContain("how-to-make-esl-vocabulary-crosswords");
     expect(howto).toContain("/ai-crossword-maker/");
     expect(howto).toContain("@type\": \"Article\"");
+    expect(howto).toContain("blog-posts");
     expect(eslHowto).toContain("/esl-crossword-generator/");
     expect(eslHowto).toContain("/examples/esl-daily-routines/");
+    expect(eslHowto).toContain("/examples/irregular-verbs/");
     expect(printHowto).toContain("/printable-crossword-maker/");
     expect(printHowto).toContain("/crossword-maker-for-teachers/");
     expect(printHowto).toContain("@type\": \"Article\"");
+    expect(printHowto).toContain("/examples/animal-habitats/");
     expect(EXAMPLES.some((e) => e.slug === "esl-daily-routines")).toBe(true);
     expect(EXAMPLES.some((e) => e.slug === "esl-jobs-and-work")).toBe(true);
+    expect(EXAMPLES.some((e) => e.slug === "greek-mythology")).toBe(true);
+    expect(EXAMPLES.some((e) => e.slug === "renewable-energy")).toBe(true);
+  });
+
+  it("wires example detail pages into the blog how-to mesh", () => {
+    const detailSrc = readFileSync(join(pagesRoot, "examples/[slug].astro"), "utf8");
+    expect(detailSrc).toContain("blogPostsForExample");
+    expect(detailSrc).toContain("Related how-tos");
+    const maker = readFileSync(
+      join(import.meta.dirname, "../components/maker/MakerApp.tsx"),
+      "utf8",
+    );
+    expect(maker).toContain("TOPIC_QUICK_PICKS");
+    expect(maker).toContain("Quick classroom topics");
+    expect(maker).toContain("emptyHint");
   });
 });

@@ -1,7 +1,10 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getBlogPost, relatedBlogPosts } from "../../../lib/blog-posts";
 
 const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const meta = getBlogPost("how-to-print-crossword-worksheets")!;
+const relatedGuides = relatedBlogPosts(meta.slug);
 const title = "How to Print Crossword Worksheets with Answer Keys";
 const description =
   "Print classroom crossword worksheets: choose Letter or A4, add name/class/date lines, export a student PDF, and keep a matching answer key separate.";
@@ -56,9 +59,10 @@ const description =
     <h2>1. Build or load the puzzle first</h2>
     <p>
       Use AI Topic, paste a word list, or open a ready example such as
-      <a href="/examples/classroom-objects/">classroom objects</a>
-      or
-      <a href="/examples/parts-of-speech/">parts of speech</a>.
+      <a href="/examples/classroom-objects/">classroom objects</a>,
+      <a href="/examples/parts-of-speech/">parts of speech</a>,
+      <a href="/examples/animal-habitats/">animal habitats</a>, or
+      <a href="/examples/renewable-energy/">renewable energy</a>.
       Edit clues before you print — PDF export locks the grid you see on screen.
     </p>
 
@@ -100,9 +104,19 @@ const description =
 
     <h2>Related guides &amp; tools</h2>
     <ul>
-      <li><a href="/blog/how-to-make-a-crossword-puzzle/">How to make a crossword puzzle</a></li>
-      <li><a href="/blog/how-to-make-esl-vocabulary-crosswords/">How to make ESL vocabulary crosswords</a></li>
+      {
+        relatedGuides.map((g) => (
+          <li>
+            <a href={`/blog/${g.slug}/`}>{g.title}</a>
+          </li>
+        ))
+      }
       <li><a href="/examples/">Examples library</a> · <a href="/pricing/">Free vs Pro</a></li>
+      <li>
+        Long-tail printables:
+        <a href="/examples/greek-mythology/">Greek mythology</a> ·
+        <a href="/examples/world-capitals/">world capitals</a>
+      </li>
     </ul>
   </article>
 </BaseLayout>
