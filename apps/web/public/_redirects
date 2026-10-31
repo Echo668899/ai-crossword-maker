@@ -1,0 +1,3 @@
+# Pretty share URLs on Cloudflare Pages (200 rewrite, not a redirect).
+# PlayApp reads the real pathname; answers never ship in HTML.
+/p/*  /p/_/index.html  200

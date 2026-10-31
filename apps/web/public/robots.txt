@@ -4,5 +4,7 @@ Allow: /
 Disallow: /app/
 Disallow: /admin/
 Disallow: /api/
+Disallow: /p/
+Disallow: /login/
 
 Sitemap: https://aicrosswordmaker.com/sitemap-index.xml

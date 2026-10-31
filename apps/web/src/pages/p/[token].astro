@@ -1,0 +1,24 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PlayApp from "../../components/play/PlayApp";
+
+/**
+ * Share play pages are unlisted + noindex.
+ * Build emits a rewrite shell (`_`); CF Pages `_redirects` maps `/p/*` → `/p/_/` (200).
+ * `astro dev` serves any `/p/:token/` dynamically; PlayApp always reads the real pathname.
+ */
+export function getStaticPaths() {
+  return [{ params: { token: "_" } }];
+}
+
+const paramToken = Astro.params.token ?? "";
+const initialToken = paramToken === "_" ? "" : paramToken;
+---
+<BaseLayout
+  title="Shared crossword — AI Crossword Maker"
+  description="Play a shared crossword. This page is not indexed."
+  canonicalPath={`/p/${paramToken}/`}
+  noindex={true}
+>
+  <PlayApp client:load initialToken={initialToken} />
+</BaseLayout>

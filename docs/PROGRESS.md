@@ -6,15 +6,15 @@ Updated: 2026-10-31
 
 | Phase | Status |
 | --- | --- |
-| 01 Specs / monorepo / tokens / contracts | DONE (this commit) |
+| 01 Specs / monorepo / tokens / contracts | DONE |
 | 02 Engine + validator + tests | DONE |
-| 03 Manual maker + P0 SEO shell + examples≥20 | DONE (local) |
+| 03 Manual maker + P0 SEO shell + examples≥20 | DONE |
 | 04 Print layout + PDF | DONE (basic pdf-lib) |
-| 05 AI provider + jobs + anon demo | DONE (sync Topic path) — OpenAI Responses + Structured Outputs + anon daily quota; queues/jobs still later |
-| 06 Auth + cloud save | NOT STARTED |
+| 05 AI provider + jobs + anon demo | DONE (sync Topic + anon quota; queues later) |
+| 06 Auth + cloud save | PARTIAL — magic link + Google OAuth + D1 sessions; share publish as cloud snapshot |
 | 07 Packs / batch export | NOT STARTED |
-| 08 Share play | NOT STARTED |
-| 09 Stripe / ledger / admin | NOT STARTED (pricing config only) |
+| 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal APIs |
+| 09 Stripe / ledger / admin | NOT STARTED (pricing config only; Stripe deferred) |
 | 10 SEO polish / deploy hardening | IN PROGRESS (shells live locally) |
 
 ## Open decisions
@@ -26,17 +26,9 @@ Updated: 2026-10-31
 5. `/p/*` forever noindex?
 6. Examples CMS vs content collection
 7. ESL vs CEFR page split (currently 301 merge)
+8. Production mailer for magic links (dev returns link when flagged)
 
 ## Blockers
 
-- Stripe / CF production account secrets still pending for Phase 09 deploy
 - Operator legal entity missing on privacy/terms/contact
-- Turnstile not required yet for anon AI (open decision #2)
-- Async AI jobs / Queues still stub (consumer Worker) — Topic path is synchronous for Demo
-
-## Phase 05 notes
-
-- `POST /api/v1/ai/topic` uses official OpenAI SDK `responses.parse` + Zod Structured Outputs (`store: false`)
-- Anon quota table `ai_anon_quota` (migration `0002`); memory fallback without D1
-- Web: Topic CTA calls real API; 503/429/failure degrade to manual + examples; Vite proxies `/api` in `astro dev`
-- Local secrets: `apps/api/.dev.vars` (gitignored)
+- Production Google OAuth + mail provider not wired

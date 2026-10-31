@@ -20,4 +20,4 @@
 
 ## Routing
 
-Astro owns HTML routes. API Worker owns `/api/*`. Missing pages are real 404s (`apps/web/src/pages/404.astro`). Share play `/p/*` will be noindex (Phase 08).
+Astro owns HTML routes. API Worker owns `/api/*`. Missing pages are real 404s (`apps/web/src/pages/404.astro`). Share play `/p/[token]/` is **noindex**, excluded from sitemap/robots; CF Pages `_redirects` rewrites unknown tokens to the play shell (200) while the play API returns 404 for bad tokens. Auth uses D1 sessions + magic link / optional Google OAuth (Stripe still Phase 09).

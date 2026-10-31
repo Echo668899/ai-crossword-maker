@@ -10,15 +10,21 @@ import {
   type ApiEnv,
 } from "./env";
 import { consumeAnonQuota, getAnonQuota } from "./quota/anon";
+import { authRoutes } from "./routes/auth";
+import { playRoutes } from "./routes/play";
+import { shareRoutes } from "./routes/shares";
+import { googleEnabled } from "./auth/google";
 
 const app = new Hono<{ Bindings: ApiEnv }>();
 
 app.use(
   "*",
   cors({
-    origin: (origin) => origin || "*",
+    // Reflect request origin (required when credentials: true). Same-origin Vite proxy needs no CORS.
+    origin: (origin) => origin || "http://127.0.0.1:4321",
     allowMethods: ["GET", "POST", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   }),
 );
 
@@ -30,10 +36,18 @@ app.get("/api/v1/health", (c) =>
     aiEnabled: isAiEnabled(c.env),
     anonDemoEnabled: isAnonDemoEnabled(c.env),
     generateModel: generateModel(c.env),
+    auth: {
+      db: Boolean(c.env.DB),
+      googleEnabled: googleEnabled(c.env),
+    },
   }),
 );
 
 app.get("/api/v1/pricing", (c) => c.json(pricing));
+
+app.route("/", authRoutes);
+app.route("/", shareRoutes);
+app.route("/", playRoutes);
 
 app.get("/api/v1/ai/quota", async (c) => {
   if (!isAnonDemoEnabled(c.env)) {
@@ -132,7 +146,6 @@ app.post("/api/v1/ai/topic", async (c) => {
 
   const result = await generateTopicEntries(c.env, parsed.data);
   if (!result.ok) {
-    // Structured log — no topic text, no API key, no model prompt dump.
     console.error(
       JSON.stringify({
         event: "ai_topic_failed",
