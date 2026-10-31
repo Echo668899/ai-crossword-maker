@@ -14,7 +14,7 @@ Updated: 2026-10-31
 | 06 Auth + cloud save | PARTIAL — magic link + Google OAuth + D1 sessions; share publish as cloud snapshot |
 | 07 Packs / batch export | NOT STARTED |
 | 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal APIs |
-| 09 Stripe / ledger / admin | NOT STARTED (pricing config only; Stripe deferred) |
+| 09 Stripe / ledger / admin | PARTIAL — Hybrid Stripe+Creem checkout, webhooks, entitlements ledger; admin later |
 | 10 SEO polish / deploy hardening | IN PROGRESS (shells live locally) |
 
 ## Open decisions

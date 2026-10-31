@@ -11,9 +11,11 @@ import {
 } from "./env";
 import { consumeAnonQuota, getAnonQuota } from "./quota/anon";
 import { authRoutes } from "./routes/auth";
+import { billingRoutes } from "./routes/billing";
 import { playRoutes } from "./routes/play";
 import { shareRoutes } from "./routes/shares";
 import { googleEnabled } from "./auth/google";
+import { getBillingStatus } from "./billing/provider";
 
 const app = new Hono<{ Bindings: ApiEnv }>();
 
@@ -28,8 +30,9 @@ app.use(
   }),
 );
 
-app.get("/api/v1/health", (c) =>
-  c.json({
+app.get("/api/v1/health", (c) => {
+  const billing = getBillingStatus(c.env);
+  return c.json({
     ok: true,
     service: "acm-api",
     planVersion: c.env.PLAN_VERSION ?? pricing.planVersion,
@@ -40,12 +43,22 @@ app.get("/api/v1/health", (c) =>
       db: Boolean(c.env.DB),
       googleEnabled: googleEnabled(c.env),
     },
+    billing: {
+      checkoutEnabled: billing.checkoutEnabled,
+      activeProvider: billing.activeProvider,
+    },
+  });
+});
+
+app.get("/api/v1/pricing", (c) =>
+  c.json({
+    ...pricing,
+    billing: getBillingStatus(c.env),
   }),
 );
 
-app.get("/api/v1/pricing", (c) => c.json(pricing));
-
 app.route("/", authRoutes);
+app.route("/", billingRoutes);
 app.route("/", shareRoutes);
 app.route("/", playRoutes);
 

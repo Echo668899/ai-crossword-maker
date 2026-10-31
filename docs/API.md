@@ -5,7 +5,7 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 | Method | Path | Status |
 | --- | --- | --- |
 | GET | `/health` | Live |
-| GET | `/pricing` | Live (config dump) |
+| GET | `/pricing` | Live (config + billing status) |
 | GET | `/ai/quota` | Live — anonymous demo remaining for today |
 | POST | `/ai/topic` | Live — OpenAI Responses + Structured Outputs when `AI_ENABLED=true` + `OPENAI_API_KEY`; `503` if not configured; `429` quota; `?mock=1` local mock only |
 | GET | `/auth/me` | Live — session cookie → user |
@@ -19,6 +19,12 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 | GET | `/play/:token` | Live — play payload **without answers** |
 | POST | `/play/:token/check` | Live — server-side letter check |
 | POST | `/play/:token/reveal` | Live only if share `allowReveal` |
+| GET | `/billing/status` | Live — checkout enabled? active provider (Stripe/Creem) |
+| GET | `/billing/entitlements` | Live — signed-in ledger summary |
+| POST | `/billing/checkout` | Live — `{ sku }` → provider Checkout URL; `503` if unconfigured; `401` if anonymous |
+| POST | `/billing/portal` | Live — Stripe Customer Portal when Stripe active + customer exists |
+| POST | `/billing/webhooks/stripe` | Live — signed Stripe webhooks → entitlement ledger |
+| POST | `/billing/webhooks/creem` | Live — signed Creem webhooks → entitlement ledger |
 
 ## Topic AI
 
@@ -35,6 +41,13 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 - Magic links: single-use, ~20 min TTL, hashed at rest, email/IP rate limits.
 - Share play HTML `/p/[token]/` is **noindex** and excluded from sitemap/robots; GET play never embeds answer letters.
 
-Planned next: fuller project CRUD, packs, billing webhooks, admin.
+## Billing (Hybrid)
+
+- SKUs (server whitelist): `pro_monthly`, `pro_yearly`, `credits_50`, `credits_100`, `activity_pack`.
+- Provider abstraction: Stripe primary, Creem fallback; `BILLING_PROVIDER=auto|stripe|creem`.
+- Checkout creates a pending `orders` row, then redirects to provider Checkout; entitlements are granted only after verified webhooks (`payment_events` unique on provider+event id).
+- Secrets: `STRIPE_*` / `CREEM_*` from env only; missing keys → graceful `503` / Pricing UI disabled checkout (Free demo still works).
+
+Planned next: fuller project CRUD, packs/batch, admin.
 
 Errors: `{ error: { code, message } }` — no stacks/secrets.

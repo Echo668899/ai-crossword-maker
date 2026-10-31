@@ -10,7 +10,7 @@ export type ApiEnv = {
   /** Browser origin for auth redirects (local: http://127.0.0.1:4321). Falls back to PUBLIC_SITE_URL. */
   AUTH_PUBLIC_ORIGIN?: string;
   PLAN_VERSION?: string;
-  /** Optional D1 for durable anon quota, auth sessions, shares. */
+  /** Optional D1 for durable anon quota, auth sessions, shares, billing ledger. */
   DB?: D1Database;
   /** Session / cookie hardening */
   AUTH_COOKIE_SECURE?: string;
@@ -18,6 +18,24 @@ export type ApiEnv = {
   AUTH_DEV_RETURN_LINK?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
+  /** Billing: `auto` (Stripe if ready else Creem), `stripe`, or `creem`. */
+  BILLING_PROVIDER?: string;
+  STRIPE_SECRET_KEY?: string;
+  STRIPE_WEBHOOK_SECRET?: string;
+  STRIPE_PRICE_PRO_MONTHLY?: string;
+  STRIPE_PRICE_PRO_YEARLY?: string;
+  STRIPE_PRICE_CREDITS_50?: string;
+  STRIPE_PRICE_CREDITS_100?: string;
+  STRIPE_PRICE_ACTIVITY_PACK?: string;
+  CREEM_API_KEY?: string;
+  CREEM_WEBHOOK_SECRET?: string;
+  /** Default test: https://test-api.creem.io — live: https://api.creem.io */
+  CREEM_API_BASE?: string;
+  CREEM_PRODUCT_PRO_MONTHLY?: string;
+  CREEM_PRODUCT_PRO_YEARLY?: string;
+  CREEM_PRODUCT_CREDITS_50?: string;
+  CREEM_PRODUCT_CREDITS_100?: string;
+  CREEM_PRODUCT_ACTIVITY_PACK?: string;
 };
 
 export function isAiEnabled(env: ApiEnv): boolean {
