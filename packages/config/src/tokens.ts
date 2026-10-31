@@ -21,7 +21,7 @@ export const tokens = {
     sm: "4px",
     md: "8px",
   },
-  siteUrl: "https://aicrosswordmaker.com",
+  siteUrl: "https://crosswordmaker.app",
   brandName: "AI Crossword Maker",
   tagline: "From a topic to a printable crossword — AI writes the clues, you edit and print.",
 } as const;

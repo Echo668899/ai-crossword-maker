@@ -2,7 +2,7 @@
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { getBlogPost, relatedBlogPosts } from "../../../lib/blog-posts";
 
-const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const site = import.meta.env.PUBLIC_SITE_URL || "https://crosswordmaker.app";
 const meta = getBlogPost("how-to-make-esl-vocabulary-crosswords")!;
 const relatedGuides = relatedBlogPosts(meta.slug);
 const title = "How to Make ESL Vocabulary Crosswords (CEFR A1–C1)";

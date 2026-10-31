@@ -3,6 +3,15 @@ main = "src/index.ts"
 compatibility_date = "2025-10-01"
 compatibility_flags = ["nodejs_compat"]
 
+# Same-origin API on the production host (zone must live in this account).
+[[routes]]
+pattern = "crosswordmaker.app/api/*"
+zone_name = "crosswordmaker.app"
+
+[[routes]]
+pattern = "www.crosswordmaker.app/api/*"
+zone_name = "crosswordmaker.app"
+
 # Local D1 for durable anon AI quota. Production: replace database_id after `wrangler d1 create acm`.
 [[d1_databases]]
 binding = "DB"
@@ -20,7 +29,7 @@ binding = "JOBS"
 queue = "acm-jobs"
 
 [vars]
-PUBLIC_SITE_URL = "https://aicrosswordmaker.com"
+PUBLIC_SITE_URL = "https://crosswordmaker.app"
 AI_ENABLED = "true"
 AI_ANON_DEMO_ENABLED = "true"
 AI_MAX_RETRIES = "2"
@@ -30,7 +39,7 @@ OPENAI_MODEL_GENERATE = "gpt-4.1-mini"
 OPENAI_MODEL_REWRITE = "gpt-4.1-mini"
 # Turnstile: set TURNSTILE_SECRET_KEY in secrets; hostnames for siteverify checks.
 TURNSTILE_REQUIRED = "false"
-TURNSTILE_HOSTNAMES = "aicrosswordmaker.com,localhost,127.0.0.1"
+TURNSTILE_HOSTNAMES = "crosswordmaker.app,localhost,127.0.0.1"
 TURNSTILE_ACTION = "ai-topic"
 # Comma-separated admin emails (prefer secret/var in production). Empty denies /admin API.
 # ADMIN_EMAILS = "ops@example.com"

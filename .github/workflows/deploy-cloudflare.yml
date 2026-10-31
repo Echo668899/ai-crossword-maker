@@ -57,7 +57,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          PUBLIC_SITE_URL: https://aicrosswordmaker.com
+          PUBLIC_SITE_URL: https://crosswordmaker.app
         run: |
           chmod +x scripts/cf-*.sh
           # Bootstrap is idempotent-ish; safe if resources already exist.

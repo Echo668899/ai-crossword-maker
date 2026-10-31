@@ -2,7 +2,7 @@
 import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { getBlogPost, relatedBlogPosts } from "../../../lib/blog-posts";
 
-const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const site = import.meta.env.PUBLIC_SITE_URL || "https://crosswordmaker.app";
 const meta = getBlogPost("how-to-print-crossword-worksheets")!;
 const relatedGuides = relatedBlogPosts(meta.slug);
 const title = "How to Print Crossword Worksheets with Answer Keys";

@@ -106,7 +106,7 @@ shareRoutes.post("/api/v1/shares", async (c) => {
   return c.json({
     token,
     path,
-    url: new URL(path, c.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com").toString(),
+    url: new URL(path, c.env.PUBLIC_SITE_URL || "https://crosswordmaker.app").toString(),
     projectId,
     versionId,
     allowCheck: parsed.data.allowCheck,

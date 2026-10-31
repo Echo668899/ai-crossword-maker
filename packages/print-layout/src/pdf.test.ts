@@ -16,7 +16,7 @@ describe("pdf export", () => {
     const student = await buildStudentPdf({
       result,
       entries,
-      settings: { title: "Sample", watermark: "aicrosswordmaker.com" },
+      settings: { title: "Sample", watermark: "crosswordmaker.app" },
     });
     const answers = await buildAnswerKeyPdf({ result, entries, settings: { title: "Sample" } });
 

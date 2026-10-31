@@ -2,7 +2,7 @@ export type TurnstileEnv = {
   TURNSTILE_SECRET_KEY?: string;
   /** When "true", require a valid token even if secret is unset → fail closed only if secret present. */
   TURNSTILE_REQUIRED?: string;
-  /** Comma-separated approved hostnames from siteverify (e.g. aicrosswordmaker.com,localhost). */
+  /** Comma-separated approved hostnames from siteverify (e.g. crosswordmaker.app,localhost). */
   TURNSTILE_HOSTNAMES?: string;
   /** Optional expected action string (default: ai-topic). */
   TURNSTILE_ACTION?: string;

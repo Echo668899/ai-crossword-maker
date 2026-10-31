@@ -2,7 +2,7 @@ import { defineConfig } from "astro/config";
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 
-const site = process.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const site = process.env.PUBLIC_SITE_URL || "https://crosswordmaker.app";
 
 export default defineConfig({
   site,

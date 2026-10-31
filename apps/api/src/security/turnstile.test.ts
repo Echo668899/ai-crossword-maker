@@ -62,7 +62,7 @@ describe("verifyTurnstile", () => {
     const result = await verifyTurnstile(
       {
         TURNSTILE_SECRET_KEY: "secret",
-        TURNSTILE_HOSTNAMES: "aicrosswordmaker.com",
+        TURNSTILE_HOSTNAMES: "crosswordmaker.app",
       },
       "token-ok",
     );

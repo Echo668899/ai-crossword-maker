@@ -1,6 +1,6 @@
 # Cloudflare deploy checklist (operator)
 
-Production default: **https://aicrosswordmaker.com**
+Production default: **https://crosswordmaker.app**
 
 Use with `docs/DEPLOYMENT.md` and `scripts/cf-*.sh`. **Never commit or paste secrets into chat/PRs.**
 
@@ -71,7 +71,7 @@ Web build / Pages env (non-secret): `PUBLIC_TURNSTILE_SITE_KEY`, `PUBLIC_SITE_UR
 #   pnpm --filter @acm/api exec wrangler d1 migrations apply acm --remote
 #   pnpm --filter @acm/api exec wrangler deploy
 #   pnpm --filter @acm/consumer exec wrangler deploy
-#   PUBLIC_SITE_URL=https://aicrosswordmaker.com pnpm --filter @acm/web build
+#   PUBLIC_SITE_URL=https://crosswordmaker.app pnpm --filter @acm/web build
 #   pnpm --filter @acm/api exec wrangler pages deploy "$PWD/apps/web/dist" --project-name=acm-web
 ```
 
@@ -80,14 +80,14 @@ Dry-run: `./scripts/cf-deploy.sh --dry-run`
 ### 4) DNS + API route (dashboard; needs zone in account)
 
 - [ ] Apex + `www` → Pages `acm-web` (proxied)
-- [ ] Worker route: `aicrosswordmaker.com/api/*` → `acm-api` (same host as SSG)
-- [ ] Confirm `PUBLIC_SITE_URL=https://aicrosswordmaker.com` on API `[vars]` and web build
+- [ ] Worker route: `crosswordmaker.app/api/*` → `acm-api` (same host as SSG)
+- [ ] Confirm `PUBLIC_SITE_URL=https://crosswordmaker.app` on API `[vars]` and web build
 - [ ] Stripe/Creem webhooks → `/api/v1/billing/webhooks/stripe` (and creem)
 
 ### 5) Smoke
 
 ```bash
-./scripts/cf-smoke.sh https://aicrosswordmaker.com
+./scripts/cf-smoke.sh https://crosswordmaker.app
 ```
 
 ## CI
