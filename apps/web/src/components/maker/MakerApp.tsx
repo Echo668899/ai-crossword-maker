@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useReducer, useState, type CSSProperties } from "react";
 import {
   buildGrid,
+  cellsToAscii,
   clueLeaksAnswer,
   normalizeEntries,
   numberBuildResult,
@@ -13,6 +14,7 @@ import { Button } from "@acm/ui";
 import { StatusPill } from "@acm/ui";
 import { loadDraft, saveDraft } from "../../lib/maker-storage";
 import { SAMPLE_MANUAL_ENTRIES } from "../../lib/sample-entries";
+import { apiFetch } from "../../lib/api";
 import { GridView } from "./GridView";
 
 export type MakerMode = "topic" | "words" | "manual" | "paste" | "import";
@@ -178,6 +180,8 @@ export default function MakerApp({
   const [future, setFuture] = useState<EntryRow[][]>([]);
   const [draftReady, setDraftReady] = useState(Boolean(initialEntries?.length));
   const [aiLoading, setAiLoading] = useState(false);
+  const [shareBusy, setShareBusy] = useState(false);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -374,6 +378,70 @@ export default function MakerApp({
   function apiUrl(path: string): string {
     const base = (import.meta.env.PUBLIC_API_BASE_URL as string | undefined)?.replace(/\/$/, "") || "";
     return `${base}${path}`;
+  }
+
+  async function createShareLink() {
+    if (!state.result || !state.entries.length) return;
+    setShareBusy(true);
+    setShareUrl(null);
+    try {
+      const me = await apiFetch("/api/v1/auth/me");
+      const meData = await me.json();
+      if (!meData.authenticated) {
+        dispatch({
+          type: "setStatus",
+          statusMessage: "Sign in to create a share link (share pages are noindex).",
+        });
+        window.location.href = "/login/";
+        return;
+      }
+      const placed = new Set(state.result.placedEntryIds);
+      const snapshot = {
+        title: state.title,
+        seed: state.result.seed,
+        engineVersion: state.result.engineVersion,
+        reviewState: "needs_review",
+        size: state.result.size,
+        grid: cellsToAscii(state.result.cells),
+        placements: state.result.placements,
+        entries: state.entries
+          .filter((e) => placed.has(e.id))
+          .map((e) => ({
+            id: e.id,
+            answerNormalized: e.answerNormalized,
+            clue: e.clue,
+            displayAnswer: e.displayAnswer,
+          })),
+      };
+      const res = await apiFetch("/api/v1/shares", {
+        method: "POST",
+        body: JSON.stringify({
+          title: state.title,
+          allowCheck: true,
+          allowReveal: false,
+          snapshot,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        dispatch({
+          type: "setStatus",
+          statusMessage: data?.error?.message ?? "Could not create share link.",
+        });
+        return;
+      }
+      const path = typeof data.path === "string" ? data.path : `/p/${data.token}/`;
+      const absolute = `${window.location.origin}${path}`;
+      setShareUrl(absolute);
+      dispatch({
+        type: "setStatus",
+        statusMessage: `Share link ready (noindex): ${path}`,
+      });
+    } catch {
+      dispatch({ type: "setStatus", statusMessage: "Share failed — is the API running?" });
+    } finally {
+      setShareBusy(false);
+    }
   }
 
   function buildFromRows(rows: EntryRow[], titleHint?: string) {
@@ -840,8 +908,20 @@ export default function MakerApp({
               <Button variant="ghost" disabled={!state.result} onClick={() => exportSvg(false)}>
                 SVG
               </Button>
+              <Button
+                variant="secondary"
+                disabled={!state.result || shareBusy}
+                onClick={() => void createShareLink()}
+              >
+                {shareBusy ? "Sharing…" : "Share play link"}
+              </Button>
             </div>
           </div>
+          {shareUrl ? (
+            <p style={{ margin: "0.65rem 0 0", fontSize: "0.92rem" }}>
+              Share (noindex): <a href={shareUrl}>{shareUrl}</a>
+            </p>
+          ) : null}
 
           <div style={{ marginTop: "0.85rem" }}>
             <GridView

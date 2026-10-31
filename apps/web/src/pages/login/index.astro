@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import LoginForm from "../../components/auth/LoginForm";
+---
+<BaseLayout
+  title="Sign in — AI Crossword Maker"
+  description="Sign in with email magic link or Google to save puzzles and create share links."
+  canonicalPath="/login/"
+  noindex={true}
+>
+  <section class="container section" style="padding-top:1.75rem;max-width:40rem;">
+    <h1>Sign in</h1>
+    <p class="muted">
+      Cloud library, share links, and higher limits after you sign in. The free AI Topic demo on the homepage
+      still works without an account.
+    </p>
+    <div style="margin-top:1.25rem;">
+      <LoginForm client:load />
+    </div>
+  </section>
+</BaseLayout>
