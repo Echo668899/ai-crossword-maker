@@ -6,7 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "acm"
-database_id = "00000000-0000-0000-0000-000000000001"
+database_id = "a6f3ee2d-b883-4995-b1cc-e7afe0e9bb27"
 migrations_dir = "../../db/migrations"
 
 [[r2_buckets]]
