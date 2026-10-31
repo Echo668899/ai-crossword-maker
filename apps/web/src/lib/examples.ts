@@ -833,6 +833,106 @@ export const EXAMPLES: ExamplePuzzle[] = [
       { answer: "HEXAGON", clue: "Polygon with six sides" },
     ],
   },
+  {
+    slug: "simple-machines",
+    title: "Simple Machines",
+    topic: "Simple Machines",
+    subject: "science",
+    gradeBand: "Grades 3–6 physical science",
+    blurb:
+      "Free printable simple machines crossword for STEM units — lever, pulley, wedge, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "LEVER", clue: "Rigid bar that pivots on a fulcrum to move a load" },
+      { answer: "PULLEY", clue: "Wheel with a groove that changes the direction of a pull" },
+      { answer: "WEDGE", clue: "Triangular tool that splits or lifts materials apart" },
+      { answer: "SCREW", clue: "Inclined plane wrapped around a cylinder" },
+      { answer: "WHEEL", clue: "Round disk that turns on an axle to reduce friction" },
+      { answer: "AXLE", clue: "Rod that a wheel turns around" },
+      { answer: "INCLINE", clue: "Sloped surface that makes lifting a load easier" },
+      { answer: "FORCE", clue: "Push or pull that can change an object's motion" },
+    ],
+  },
+  {
+    slug: "landforms",
+    title: "Landforms",
+    topic: "Landforms",
+    subject: "social",
+    gradeBand: "Grades 2–5 geography",
+    blurb:
+      "Free printable landforms crossword for geography — mountain, valley, peninsula, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "MOUNTAIN", clue: "Tall landform that rises high above the surrounding land" },
+      { answer: "VALLEY", clue: "Low land between hills or mountains, often with a river" },
+      { answer: "PLATEAU", clue: "Large area of flat land that sits high above sea level" },
+      { answer: "ISLAND", clue: "Land completely surrounded by water" },
+      { answer: "PENINSULA", clue: "Land mostly surrounded by water but connected to a mainland" },
+      { answer: "CANYON", clue: "Deep valley with steep sides, often carved by a river" },
+      { answer: "DELTA", clue: "Fan-shaped land formed where a river meets a larger body of water" },
+      { answer: "PLAIN", clue: "Broad, mostly flat stretch of land with few trees" },
+    ],
+  },
+  {
+    slug: "homophones",
+    title: "Homophones",
+    topic: "Homophones",
+    subject: "language",
+    gradeBand: "Grades 3–6 language arts / ESL",
+    blurb:
+      "Free printable homophones crossword for spelling practice — pairs that sound alike but differ in meaning, with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "PAIR", clue: "Homophone of pear that means two matching things" },
+      { answer: "FLOUR", clue: "Homophone of flower; powder used for baking bread" },
+      { answer: "KNIGHT", clue: "Homophone of night; armored warrior of medieval stories" },
+      { answer: "WRITE", clue: "Homophone of right; to form letters or words on paper" },
+      { answer: "SEA", clue: "Homophone of see; large body of salt water" },
+      { answer: "WHOLE", clue: "Homophone of hole; complete or entire" },
+      { answer: "BOARD", clue: "Homophone of bored; flat piece of wood used as a surface" },
+      { answer: "PEACE", clue: "Homophone of piece; calm state without conflict" },
+    ],
+  },
+  {
+    slug: "place-value",
+    title: "Place Value",
+    topic: "Place Value",
+    subject: "classroom",
+    gradeBand: "Grades 2–5 math",
+    blurb:
+      "Free printable place value crossword for early math — digit, tens, hundreds, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "DIGIT", clue: "Any single numeral from zero through nine" },
+      { answer: "TENS", clue: "Place that is ten times the value of the ones place" },
+      { answer: "HUNDREDS", clue: "Place that is ten times the value of the tens place" },
+      { answer: "ONES", clue: "Place that shows how many single units a number has" },
+      { answer: "VALUE", clue: "Worth of a digit based on its place in a number" },
+      { answer: "EXPAND", clue: "Write a number as a sum of its place amounts" },
+      { answer: "ROUND", clue: "Change a number to a nearby value based on place rules" },
+      { answer: "COMPARE", clue: "Decide which of two numbers is greater or smaller" },
+    ],
+  },
+  {
+    slug: "phases-of-the-moon",
+    title: "Phases of the Moon",
+    topic: "Phases of the Moon",
+    subject: "science",
+    gradeBand: "Grades 3–6 earth science",
+    blurb:
+      "Free printable moon phases crossword for astronomy units — crescent, gibbous, eclipse, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "CRESCENT", clue: "Moon shape that looks like a thin curved slice" },
+      { answer: "GIBBOUS", clue: "Moon shape that is more than half lit but not full" },
+      { answer: "FULL", clue: "Moon phase when the entire near side appears bright" },
+      { answer: "NEW", clue: "Moon phase when the near side faces away from sunlight" },
+      { answer: "WAXING", clue: "Growing lit portion as nights move toward a full moon" },
+      { answer: "WANING", clue: "Shrinking lit portion as nights move toward a new moon" },
+      { answer: "ORBIT", clue: "Path the Moon follows as it travels around Earth" },
+      { answer: "ECLIPSE", clue: "Event when Earth, Moon, and Sun line up and block light" },
+    ],
+  },
 ];
 
 /** High-intent classroom / ESL long-tail seeds prioritized for quality review. */
@@ -886,6 +986,15 @@ export const LONG_TAIL_BATCH_3_SLUGS = [
   "map-skills",
   "antonyms",
   "geometry-shapes",
+] as const;
+
+/** Fourth long-tail classroom batch (STEM / geography / spelling / math / astronomy). */
+export const LONG_TAIL_BATCH_4_SLUGS = [
+  "simple-machines",
+  "landforms",
+  "homophones",
+  "place-value",
+  "phases-of-the-moon",
 ] as const;
 
 export function getExample(slug: string) {

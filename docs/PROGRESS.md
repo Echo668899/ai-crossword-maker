@@ -15,15 +15,15 @@ Updated: 2026-10-31
 | 07 Packs / batch export | PARTIAL — A/B/C packs + ZIP/R2 export (queue + inline); consumer processes `pack_export` |
 | 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal APIs |
 | 09 Stripe / ledger / admin | PARTIAL — Hybrid Stripe/Creem + ledger; **admin skeleton** (`/admin`, `/api/v1/admin/*`, audit + ops flags) |
-| 10 SEO polish / deploy hardening | IN PROGRESS — long-tail batch-3 examples + `/vs/` hub + My Crossword Maker comparison + science how-to |
+| 10 SEO polish / deploy hardening | IN PROGRESS — long-tail batch-4 examples + `/vs/eclipse-crossword/` + spelling-list how-to |
 
 ## Latest slice (product iteration)
 
-- Merged long-tail batch-2 + `/vs/crossword-labs/` + maker seed UX via PR #13 → `main` @ `5b281ff`
-- Examples: +5 human-reviewed long-tail seeds (`LONG_TAIL_BATCH_3_SLUGS`) — rock cycle, types of clouds, map skills, antonyms, geometry shapes; examples index subject jump
-- Blog: `/blog/how-to-make-a-science-vocabulary-crossword/` + catalog mesh
-- SEO: `/vs/` hub + honest `/vs/my-crossword-maker/` (FAQPage, no AggregateRating fiction); footer/pricing/blog/how-it-works links
-- Maker UX: Topic quick-picks + example seeds refreshed to batch-3; science how-to deep link
+- Merged long-tail batch-3 + `/vs/` hub + My Crossword Maker + science how-to via PR #14 → `main` @ `2213317`
+- Examples: +5 human-reviewed long-tail seeds (`LONG_TAIL_BATCH_4_SLUGS`) — simple machines, landforms, homophones, place value, phases of the moon; examples index long-tail strip
+- Blog: `/blog/how-to-make-a-crossword-from-a-spelling-list/` + catalog mesh
+- SEO: honest `/vs/eclipse-crossword/` (FAQPage, no AggregateRating fiction); footer/pricing/blog/how-it-works/vs hub links
+- Maker UX: Topic quick-picks + example seeds refreshed to batch-4; spelling-list how-to deep link
 
 ## Open decisions
 

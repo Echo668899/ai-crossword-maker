@@ -6,6 +6,7 @@ import {
   HIGH_TRAFFIC_EXAMPLE_SLUGS,
   LONG_TAIL_BATCH_2_SLUGS,
   LONG_TAIL_BATCH_3_SLUGS,
+  LONG_TAIL_BATCH_4_SLUGS,
   LONG_TAIL_EXPANSION_SLUGS,
   getExample,
 } from "../../lib/examples";
@@ -14,6 +15,7 @@ const featured = HIGH_TRAFFIC_EXAMPLE_SLUGS.map((slug) => getExample(slug)).filt
   (ex): ex is NonNullable<typeof ex> => Boolean(ex),
 );
 const longTail = [
+  ...LONG_TAIL_BATCH_4_SLUGS,
   ...LONG_TAIL_BATCH_3_SLUGS,
   ...LONG_TAIL_BATCH_2_SLUGS,
   ...LONG_TAIL_EXPANSION_SLUGS,
@@ -67,6 +69,7 @@ const jsonLd = {
       · <a href="/printable-crossword-maker/">Printable presets</a>
       · <a href="/esl-crossword-generator/">ESL generator</a>
       · <a href="/cefr-crossword/">CEFR crossword</a>
+      · <a href="/blog/how-to-make-a-crossword-from-a-spelling-list/">Spelling-list how-to</a>
       · <a href="/blog/how-to-make-a-science-vocabulary-crossword/">Science how-to</a>
       · <a href="/blog/">How-to blog</a>
       · <a href="/pricing/">Pricing</a>
