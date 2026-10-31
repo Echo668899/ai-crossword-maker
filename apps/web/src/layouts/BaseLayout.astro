@@ -1,0 +1,102 @@
+---
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath?: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown> | Array<Record<string, unknown>>;
+}
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const {
+  title,
+  description,
+  canonicalPath = Astro.url.pathname,
+  noindex = false,
+  jsonLd,
+} = Astro.props;
+const canonical = new URL(canonicalPath, site).toString();
+const jsonLdBlocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {noindex ? <meta name="robots" content="noindex,nofollow" /> : <meta name="robots" content="index,follow" />}
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="AI Crossword Maker" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,700&family=Source+Sans+3:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    {
+      jsonLdBlocks.map((block) => (
+        <script type="application/ld+json" set:html={JSON.stringify(block)} />
+      ))
+    }
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container site-header-inner">
+        <a class="brand" href="/">AI <span>Crossword</span> Maker</a>
+        <nav class="nav" aria-label="Primary">
+          <a href="/ai-crossword-maker/">Create (AI)</a>
+          <a href="/crossword-maker-for-teachers/">For Teachers</a>
+          <a href="/printable-crossword-maker/">Printable</a>
+          <a href="/examples/">Examples</a>
+          <a href="/pricing/">Pricing</a>
+          <a href="/app/">My puzzles</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="container site-footer-inner">
+        <div>
+          <a class="brand" href="/">AI Crossword Maker</a>
+          <p class="muted" style="margin-top:0.6rem;max-width:36ch">
+            From a topic to a printable crossword — AI writes the clues, you edit and print.
+          </p>
+        </div>
+        <div>
+          <h2>Create</h2>
+          <ul>
+            <li><a href="/ai-crossword-maker/">AI crossword maker</a></li>
+            <li><a href="/crossword-maker-from-word-list/">From word list</a></li>
+            <li><a href="/printable-crossword-maker/">Printable maker</a></li>
+            <li><a href="/crossword-maker-for-teachers/">For teachers</a></li>
+            <li><a href="/esl-crossword-generator/">ESL generator</a></li>
+          </ul>
+        </div>
+        <div>
+          <h2>Help</h2>
+          <ul>
+            <li><a href="/how-it-works/">How it works</a></li>
+            <li><a href="/help/">Help</a></li>
+            <li><a href="/templates/">Templates</a></li>
+            <li><a href="/privacy/">Privacy</a></li>
+            <li><a href="/terms/">Terms</a></li>
+            <li><a href="/refund-policy/">Refund policy</a></li>
+            <li><a href="/contact/">Contact</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

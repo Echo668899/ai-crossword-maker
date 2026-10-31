@@ -1,0 +1,32 @@
+{
+  "name": "aicrosswordmaker",
+  "private": true,
+  "version": "0.1.0",
+  "description": "AI Crossword Maker — from a topic to a printable crossword",
+  "packageManager": "pnpm@10.33.4",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter=./packages/* build && pnpm -r --filter=./apps/* build",
+    "dev": "pnpm --filter @acm/web dev",
+    "dev:api": "pnpm --filter @acm/api dev",
+    "test": "pnpm -r --filter=./packages/* test",
+    "test:engine": "pnpm --filter @acm/crossword-engine test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r --if-present lint"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4",
+    "@types/node": "^22.18.12"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "workerd",
+      "workerd"
+    ]
+  }
+}

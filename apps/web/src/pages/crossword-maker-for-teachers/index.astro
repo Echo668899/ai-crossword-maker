@@ -1,0 +1,62 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import MakerApp from "../../components/maker/MakerApp";
+import { TEACHER_CLASSROOM_ENTRIES } from "../../lib/sample-entries";
+
+const faqs = [
+  {
+    q: "Can I add name and date lines for class handouts?",
+    a: "Yes. Student PDF exports include optional name/date blanks suitable for classroom packets.",
+  },
+  {
+    q: "Do you support A/B/C versions?",
+    a: "Layout variants (same clues, different grids) are a Pro / Activity Pack workflow. This page preloads a classroom object word list so you can try the free path now.",
+  },
+];
+---
+
+<BaseLayout
+  title="Crossword Maker for Teachers — Printable Worksheets & Answer Keys"
+  description="Crossword maker for teachers: classroom word lists, name/date lines, printable PDFs, and separate answer keys. Start from a topic or a ready vocabulary list."
+  canonicalPath="/crossword-maker-for-teachers/"
+  jsonLd={{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  }}
+>
+  <section class="container section" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;"><a href="/">Home</a> / For teachers</nav>
+    <h1 style="margin:0 0 0.5rem;">Crossword Maker for Teachers</h1>
+    <p style="max-width:60ch;margin:0 0 1rem;">
+      Build vocabulary reviews with editable clues, print student sheets with name/date lines, and keep answer keys on a separate file.
+      Preset below: classroom objects sample list (not a locked template).
+    </p>
+    <MakerApp
+      client:load
+      initialMode="manual"
+      initialEntries={TEACHER_CLASSROOM_ENTRIES}
+      heading="Classroom word list preset"
+    />
+  </section>
+  <section class="container section">
+    <h2 class="section-title">Classroom delivery checklist</h2>
+    <ul>
+      <li>Student PDF with name/date blanks</li>
+      <li>Separate answer-key PDF (version matched)</li>
+      <li>Optional share link for practice (noindex) — coming with auth</li>
+      <li>Activity pack / A-B-C layouts on paid plans</li>
+    </ul>
+    <p>See also <a href="/printable-crossword-maker/">printable crossword maker</a> and <a href="/examples/classroom-objects/">classroom objects example</a>.</p>
+  </section>
+  <section class="container section faq">
+    <h2 class="section-title">FAQ</h2>
+    {faqs.map((f) => (
+      <details><summary>{f.q}</summary><p style="margin:0.6rem 0 0;">{f.a}</p></details>
+    ))}
+  </section>
+</BaseLayout>

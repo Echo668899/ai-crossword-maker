@@ -1,0 +1,115 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import MakerApp from "../components/maker/MakerApp";
+import { EXAMPLES } from "../lib/examples";
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const faqs = [
+  {
+    q: "Is this AI crossword maker free?",
+    a: "Yes — you can build grids manually for free, and anonymous AI Topic demos use a small daily quota when the API is enabled. Pro unlocks higher limits, batch exports, and watermark-free PDFs.",
+  },
+  {
+    q: "Does AI place the crossword grid?",
+    a: "No. The language model suggests words and clues. A separate program builds the interlocking grid, numbers clues, and validates structure.",
+  },
+  {
+    q: "Can teachers print an answer key?",
+    a: "Yes. Export a student PDF and a separate answer-key PDF. Free exports may include a small site footer watermark.",
+  },
+  {
+    q: "Do I need an account to try it?",
+    a: "No for the first demo and for manual builds saved in your browser. Sign in when you want cloud saves or paid features.",
+  },
+];
+
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "AI Crossword Maker",
+    url: site,
+    description:
+      "From a topic to a printable crossword — AI writes the clues, you edit and print.",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "AI Crossword Maker",
+    applicationCategory: "EducationalApplication",
+    operatingSystem: "Web",
+    url: site,
+    description: "Free AI crossword maker for printable classroom puzzles.",
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Free AI Crossword Maker — Create & Print Custom Puzzles"
+  description="From a topic to a printable crossword — AI writes the clues, you edit and print. Free crossword maker for teachers with answer keys."
+  canonicalPath="/"
+  jsonLd={jsonLd}
+>
+  <section class="container section" style="padding-top:1.5rem;padding-bottom:1rem;">
+    <p class="muted" style="margin:0 0 0.35rem;font-weight:650;">Free · Printable · Editable clues</p>
+    <h1 style="margin:0 0 0.5rem;font-size:clamp(2rem,4vw,2.75rem);">AI Crossword Maker</h1>
+    <p style="margin:0 0 1.25rem;max-width:54ch;font-size:1.08rem;">
+      From a topic to a printable crossword — AI writes the clues, you edit and print.
+    </p>
+    <MakerApp client:load initialMode="topic" heading="Start from a topic" />
+  </section>
+
+  <section class="container section">
+    <h2 class="section-title">Why teachers use it</h2>
+    <p class="muted" style="margin-top:0;max-width:60ch;">
+      Generate vocabulary practice, edit every clue, then print a student sheet and answer key. No daily puzzle portal — just a maker.
+    </p>
+    <ul style="padding-left:1.1rem;max-width:60ch;">
+      <li>Topic mode for quick AI drafts (quota-limited free demo)</li>
+      <li>Manual words + clues that work offline in your browser</li>
+      <li>Independent grid validation before you export</li>
+    </ul>
+  </section>
+
+  <section class="container section">
+    <h2 class="section-title">Try a ready example</h2>
+    <p class="muted" style="margin-top:0;">Sample puzzles you can print or remix with AI.</p>
+    <div style="display:grid;gap:0.75rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
+      {
+        EXAMPLES.slice(0, 6).map((ex) => (
+          <a
+            href={`/examples/${ex.slug}/`}
+            style="display:block;padding:0.9rem 1rem;border:1px solid var(--color-border);border-radius:8px;background:#fff;text-decoration:none;color:var(--color-ink);"
+          >
+            <strong>{ex.title}</strong>
+            <div class="muted" style="font-size:0.9rem;margin-top:0.25rem;">
+              {ex.blurb}
+            </div>
+          </a>
+        ))
+      }
+    </div>
+    <p style="margin-top:1rem;"><a href="/examples/">Browse all examples</a></p>
+  </section>
+
+  <section class="container section faq" id="faq">
+    <h2 class="section-title">FAQ</h2>
+    {
+      faqs.map((f) => (
+        <details>
+          <summary>{f.q}</summary>
+          <p style="margin:0.6rem 0 0;">{f.a}</p>
+        </details>
+      ))
+    }
+  </section>
+</BaseLayout>

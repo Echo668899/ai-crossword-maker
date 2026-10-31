@@ -1,0 +1,31 @@
+{
+  "name": "@acm/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev --host 0.0.0.0 --port 4321",
+    "build": "astro build",
+    "preview": "astro preview --host 0.0.0.0 --port 4321",
+    "typecheck": "astro check",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@acm/config": "workspace:*",
+    "@acm/contracts": "workspace:*",
+    "@acm/crossword-engine": "workspace:*",
+    "@acm/print-layout": "workspace:*",
+    "@acm/ui": "workspace:*",
+    "@astrojs/react": "^4.4.0",
+    "@astrojs/sitemap": "^3.6.0",
+    "astro": "^5.14.5",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

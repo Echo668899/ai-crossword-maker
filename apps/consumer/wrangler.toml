@@ -1,0 +1,8 @@
+name = "acm-consumer"
+main = "src/index.ts"
+compatibility_date = "2025-10-01"
+
+# [[queues.consumers]]
+# queue = "acm-jobs"
+# max_batch_size = 10
+# max_retries = 3

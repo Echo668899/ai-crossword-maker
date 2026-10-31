@@ -1,0 +1,24 @@
+name = "acm-api"
+main = "src/index.ts"
+compatibility_date = "2025-10-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Bindings are optional in local stub mode.
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "acm"
+# database_id = "00000000-0000-0000-0000-000000000000"
+
+# [[r2_buckets]]
+# binding = "FILES"
+# bucket_name = "acm-private"
+
+# [[queues.producers]]
+# binding = "JOBS"
+# queue = "acm-jobs"
+
+[vars]
+PUBLIC_SITE_URL = "https://aicrosswordmaker.com"
+AI_ENABLED = "false"
+AI_ANON_DEMO_ENABLED = "true"
+PLAN_VERSION = "2026-10-31.hybrid.v1"

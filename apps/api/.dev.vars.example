@@ -1,0 +1,9 @@
+# Copy to .dev.vars for local wrangler (never commit .dev.vars)
+AI_ENABLED=false
+AI_ANON_DEMO_ENABLED=true
+# OPENAI_API_KEY=
+# OPENAI_MODEL_GENERATE=gpt-4.1-mini
+# OPENAI_MODEL_REWRITE=gpt-4.1-mini
+# AI_DAILY_BUDGET=100
+# STRIPE_SECRET_KEY=
+# STRIPE_WEBHOOK_SECRET=

@@ -1,0 +1,85 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { EXAMPLES, getExample } from "../../lib/examples";
+import { buildExamplePuzzle } from "../../lib/build-example";
+
+export function getStaticPaths() {
+  return EXAMPLES.map((ex) => ({ params: { slug: ex.slug } }));
+}
+
+const slug = Astro.params.slug!;
+const example = getExample(slug);
+if (!example) {
+  return Astro.redirect("/examples/");
+}
+const built = buildExamplePuzzle(example);
+const related = EXAMPLES.filter((e) => e.slug !== example.slug && e.subject === example.subject).slice(0, 3);
+const more = EXAMPLES.filter((e) => e.slug !== example.slug && !related.includes(e)).slice(0, 2);
+---
+
+<BaseLayout
+  title={`${example.title} Crossword Puzzle (Free Printable)`}
+  description={`${example.blurb} Free printable ${example.topic.toLowerCase()} crossword with clues and answer key.`}
+  canonicalPath={`/examples/${example.slug}/`}
+>
+  <section class="container section" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / <a href="/examples/">Examples</a> / {example.title}
+    </nav>
+    <p style="margin:0 0 0.35rem;">
+      <span style="display:inline-block;font-size:0.75rem;font-weight:700;padding:0.2rem 0.5rem;border-radius:4px;background:#E8EEF5;">
+        {example.reviewState === "human_reviewed" ? "Human-reviewed" : "Sample"}
+      </span>
+    </p>
+    <h1 style="margin:0 0 0.5rem;">{example.title} Crossword Puzzle</h1>
+    <p style="max-width:62ch;margin:0 0 1rem;">{example.blurb}</p>
+    <p style="margin:0 0 1.25rem;">
+      <a href={`/ai-crossword-maker/?topic=${encodeURIComponent(example.topic)}`}>Make a variant with AI</a>
+      · <a href="/crossword-maker-for-teachers/">For teachers</a>
+      · <a href="/printable-crossword-maker/">Printable maker</a>
+    </p>
+
+    <div class="grid-two">
+      <div>
+        <h2 class="section-title">Puzzle grid</h2>
+        <div set:html={built.svgBlank} style="overflow:auto;background:#fff;padding:0.75rem;border:1px solid var(--color-border);border-radius:8px;" />
+        {!built.validationOk ? (
+          <p class="muted" style="font-size:0.9rem;">Note: this sample placed a subset of entries; regenerate locally for alternate seeds.</p>
+        ) : null}
+      </div>
+      <div>
+        <h2 class="section-title">Clues</h2>
+        <h3 style="font-size:1rem;color:var(--color-primary);">Across</h3>
+        <ol style="padding-left:1.1rem;">
+          {built.across.map((c) => (
+            <li value={c.number} style="margin-bottom:0.35rem;">
+              {c.clue} <span class="muted">({c.length})</span>
+            </li>
+          ))}
+        </ol>
+        <h3 style="font-size:1rem;color:var(--color-primary);">Down</h3>
+        <ol style="padding-left:1.1rem;">
+          {built.down.map((c) => (
+            <li value={c.number} style="margin-bottom:0.35rem;">
+              {c.clue} <span class="muted">({c.length})</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+
+    <details style="margin-top:2rem;border:1px solid var(--color-border);border-radius:8px;background:#fff;padding:0.85rem 1rem;">
+      <summary style="font-weight:700;cursor:pointer;">Answer key</summary>
+      <div set:html={built.svgAnswers} style="overflow:auto;margin-top:0.75rem;" />
+    </details>
+
+    <div style="margin-top:2rem;">
+      <h2 class="section-title">Related examples</h2>
+      <ul>
+        {[...related, ...more].map((ex) => (
+          <li><a href={`/examples/${ex.slug}/`}>{ex.title}</a></li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

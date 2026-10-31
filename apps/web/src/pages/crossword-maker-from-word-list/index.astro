@@ -1,0 +1,20 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import MakerApp from "../../components/maker/MakerApp";
+---
+
+<BaseLayout
+  title="Crossword Maker from a Word List — Vocabulary Crossword Generator"
+  description="Generate a crossword from your vocabulary list. Paste answers, add or generate clues, build an interlocking grid, and print with an answer key."
+  canonicalPath="/crossword-maker-from-word-list/"
+>
+  <section class="container section" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;"><a href="/">Home</a> / Word list</nav>
+    <h1 style="margin:0 0 0.5rem;">Crossword Maker from a Word List</h1>
+    <p style="max-width:60ch;margin:0 0 1rem;">
+      Keep your answers. Add clues manually or (when AI is enabled) fill missing clues only — we will not replace your vocabulary without confirmation.
+      CSV example header: <code>answer,clue,category</code>.
+    </p>
+    <MakerApp client:load initialMode="words" heading="Start from your vocabulary list" />
+  </section>
+</BaseLayout>

@@ -1,0 +1,58 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import MakerApp from "../../components/maker/MakerApp";
+
+const faqs = [
+  {
+    q: "What is an AI crossword maker?",
+    a: "You describe a topic; a language model proposes answers and clues. Our grid engine places the interlocking puzzle, numbers it, and checks structure before you print.",
+  },
+  {
+    q: "How many free AI generations do I get?",
+    a: "The experimental free demo allows a small number of successful AI operations per day per visitor (default 3) with abuse controls. Manual grid building is unlimited locally.",
+  },
+  {
+    q: "Can I edit AI clues?",
+    a: "Yes. Every clue is editable. Rebuilding the grid never spends another AI credit.",
+  },
+];
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+---
+
+<BaseLayout
+  title="AI Crossword Maker & Generator — Editable Clues, Printable PDF"
+  description="AI crossword maker and generator: enter a topic, review editable clues, build an interlocking grid, and print with an answer key. Free demo available."
+  canonicalPath="/ai-crossword-maker/"
+  jsonLd={{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  }}
+>
+  <section class="container section" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / AI crossword maker
+    </nav>
+    <h1 style="margin:0 0 0.5rem;">AI Crossword Maker</h1>
+    <p style="max-width:58ch;margin:0 0 0.5rem;">
+      Topic in → AI drafts words and clues → you edit → the program builds a printable grid.
+      Free demo uses a daily quota; signup is not required to preview.
+    </p>
+    <p class="muted" style="margin:0 0 1.25rem;">Also searching for an AI crossword generator? Same tool — editable clues, not a locked black-box PDF.</p>
+    <MakerApp client:load initialMode="topic" heading="Generate clues from a topic" />
+  </section>
+  <section class="container section faq">
+    <h2 class="section-title">FAQ</h2>
+    {faqs.map((f) => (
+      <details>
+        <summary>{f.q}</summary>
+        <p style="margin:0.6rem 0 0;">{f.a}</p>
+      </details>
+    ))}
+    <p style="margin-top:1rem;">Related: <a href="/crossword-maker-for-teachers/">For teachers</a> · <a href="/printable-crossword-maker/">Printable maker</a> · <a href="/examples/">Examples</a> · <a href={`${site}/pricing/`}>Pricing</a></p>
+  </section>
+</BaseLayout>

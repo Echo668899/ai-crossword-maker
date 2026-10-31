@@ -1,0 +1,17 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import MakerApp from "../../../components/maker/MakerApp";
+
+const modeParam = Astro.url.searchParams.get("mode");
+const mode =
+  modeParam === "words" || modeParam === "manual" || modeParam === "paste" || modeParam === "import" || modeParam === "topic"
+    ? modeParam
+    : "topic";
+const topic = Astro.url.searchParams.get("topic") ?? "";
+---
+<BaseLayout title="New crossword — AI Crossword Maker" description="Create a new crossword." canonicalPath="/app/new/" noindex={true}>
+  <section class="container section" style="padding-top:1.5rem;">
+    <h1 style="margin-top:0;">New crossword</h1>
+    <MakerApp client:load initialMode={mode} initialTopic={topic} heading="Full maker" />
+  </section>
+</BaseLayout>

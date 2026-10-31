@@ -1,0 +1,30 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import MakerApp from "../../components/maker/MakerApp";
+---
+
+<BaseLayout
+  title="Printable Crossword Maker — PDF & Answer Key"
+  description="Printable crossword maker with PDF export, answer key page, Letter/A4 layouts, and optional name/date lines. Free watermarked exports; Pro removes the footer."
+  canonicalPath="/printable-crossword-maker/"
+>
+  <section class="container section" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;"><a href="/">Home</a> / Printable</nav>
+    <h1 style="margin:0 0 0.5rem;">Printable Crossword Maker</h1>
+    <p style="max-width:60ch;margin:0 0 1rem;">
+      Design on screen, then export a student PDF and a separate answer key. Free exports may include an aicrosswordmaker.com footer watermark.
+      Use Build grid for layout — printing never requires AI.
+    </p>
+    <MakerApp client:load initialMode="manual" heading="Build, then export PDF" />
+  </section>
+  <section class="container section">
+    <h2 class="section-title">Print settings available</h2>
+    <ul>
+      <li>US Letter and A4</li>
+      <li>Name / date blanks</li>
+      <li>Student sheet without embedded answers</li>
+      <li>Answer key as a separate download</li>
+    </ul>
+    <p>Teachers: see <a href="/crossword-maker-for-teachers/">crossword maker for teachers</a>. Need inspiration? <a href="/examples/">Examples</a>.</p>
+  </section>
+</BaseLayout>

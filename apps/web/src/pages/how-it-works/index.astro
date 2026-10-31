@@ -1,0 +1,30 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="How It Works — AI Clues, Program Grid, Human Review"
+  description="How AI Crossword Maker works: language models draft words and clues; a deterministic engine builds and validates the grid; you review before printing."
+  canonicalPath="/how-it-works/"
+>
+  <section class="container section prose" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;"><a href="/">Home</a> / How it works</nav>
+    <h1>How it works</h1>
+    <h2>1. You provide a topic or word list</h2>
+    <p>Topic mode asks AI for candidates. Word list and manual modes keep your answers under your control.</p>
+    <h2>2. AI drafts content — not the grid</h2>
+    <p>The model may suggest titles, answers, and clues. It cannot write coordinates, numbering, validation flags, prices, or entitlements.</p>
+    <h2>3. The program builds and checks the puzzle</h2>
+    <p>A deterministic TypeScript engine places interlocking words with a seed and search budget, then an independent validator rescans the grid for ghost words and mismatches.</p>
+    <h2>4. You review, edit, and export</h2>
+    <p>Statuses mean different things: <strong>Grid checks passed</strong> is structural only; <strong>Clues need review</strong> means AI text is unchecked; <strong>Reviewed by you</strong> is your confirmation.</p>
+    <h2>What we do not promise</h2>
+    <ul>
+      <li>That every word list packs perfectly</li>
+      <li>That clues are factually perfect without review</li>
+      <li>Newspaper-style symmetry or cryptic clues</li>
+      <li>“AI verified” or “guaranteed unique solution” badges</li>
+    </ul>
+    <p><a href="/#maker">Open the maker</a></p>
+  </section>
+</BaseLayout>
