@@ -1133,6 +1133,106 @@ export const EXAMPLES: ExamplePuzzle[] = [
       { answer: "ENERGY", clue: "Power obtained from resources such as sun, wind, or fuel" },
     ],
   },
+  {
+    slug: "volcanoes",
+    title: "Volcanoes",
+    topic: "Volcanoes",
+    subject: "science",
+    gradeBand: "Grades 3–6 earth science",
+    blurb:
+      "Free printable volcanoes crossword for earth science — lava, magma, crater, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "LAVA", clue: "Molten rock that flows out onto Earth's surface" },
+      { answer: "MAGMA", clue: "Molten rock still underground beneath a volcano" },
+      { answer: "CRATER", clue: "Bowl-shaped opening at the top of a volcano" },
+      { answer: "ERUPT", clue: "Suddenly release ash, gas, or molten rock" },
+      { answer: "ASH", clue: "Fine powdery rock fragments blown into the air" },
+      { answer: "VENT", clue: "Opening through which gas and molten rock escape" },
+      { answer: "CONE", clue: "Steep hill of cooled material built around a vent" },
+      { answer: "DORMANT", clue: "Quiet for a long time but able to become active again" },
+    ],
+  },
+  {
+    slug: "thirteen-colonies",
+    title: "Thirteen Colonies",
+    topic: "Thirteen Colonies",
+    subject: "social",
+    gradeBand: "Grades 4–8 U.S. history",
+    blurb:
+      "Free printable Thirteen Colonies crossword for U.S. history — colony, settler, charter, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "COLONY", clue: "Settlement ruled by a distant country rather than itself" },
+      { answer: "SETTLER", clue: "Person who moves to a new land to live and farm" },
+      { answer: "CHARTER", clue: "Written grant that outlines rights to start a settlement" },
+      { answer: "HARBOR", clue: "Sheltered coastal place where ships load and unload" },
+      { answer: "TRADE", clue: "Buying and selling goods between colonies and Europe" },
+      { answer: "PURITAN", clue: "English Protestant group that settled early New England" },
+      { answer: "TOBACCO", clue: "Cash crop grown widely in the southern settlements" },
+      { answer: "ASSEMBLY", clue: "Local lawmaking body elected by colonial voters" },
+    ],
+  },
+  {
+    slug: "compound-words",
+    title: "Compound Words",
+    topic: "Compound Words",
+    subject: "language",
+    gradeBand: "Grades 2–5 language arts",
+    blurb:
+      "Free printable compound words crossword for ELA — closed, open, hyphen, and related spelling terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "COMPOUND", clue: "Word made by joining two or more smaller words" },
+      { answer: "CLOSED", clue: "Form written as one word with no space or mark" },
+      { answer: "OPEN", clue: "Form written as separate words with a space between" },
+      { answer: "HYPHEN", clue: "Short dash that links parts in some joined words" },
+      { answer: "ROOTS", clue: "Base words that keep their meaning when joined" },
+      { answer: "JOIN", clue: "Put two shorter words together to make a longer one" },
+      { answer: "MEANING", clue: "Sense created when two word parts work as one idea" },
+      { answer: "SPELLING", clue: "Correct letter order of a joined classroom word" },
+    ],
+  },
+  {
+    slug: "area-and-perimeter",
+    title: "Area and Perimeter",
+    topic: "Area and Perimeter",
+    subject: "classroom",
+    gradeBand: "Grades 3–6 math",
+    blurb:
+      "Free printable area and perimeter crossword for elementary math — length, width, square, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "AREA", clue: "Amount of surface inside a shape, measured in square units" },
+      { answer: "PERIMETER", clue: "Distance around the outside edge of a shape" },
+      { answer: "LENGTH", clue: "Longer side measurement of a rectangle" },
+      { answer: "WIDTH", clue: "Shorter side measurement of a rectangle" },
+      { answer: "SQUARE", clue: "Shape with four equal sides and four right angles" },
+      { answer: "RECTANGLE", clue: "Four-sided shape with opposite sides equal and right angles" },
+      { answer: "UNIT", clue: "Standard measure such as inch or centimeter used in formulas" },
+      { answer: "FORMULA", clue: "Rule that shows how to calculate area or distance around" },
+    ],
+  },
+  {
+    slug: "biomes",
+    title: "Biomes",
+    topic: "Biomes",
+    subject: "science",
+    gradeBand: "Grades 4–7 life science",
+    blurb:
+      "Free printable biomes crossword for ecology — desert, tundra, grassland, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "BIOME", clue: "Large region with a shared climate and typical living things" },
+      { answer: "DESERT", clue: "Dry region that receives very little rainfall" },
+      { answer: "TUNDRA", clue: "Cold treeless plain with a short growing season" },
+      { answer: "FOREST", clue: "Region dominated by trees and layered plant life" },
+      { answer: "GRASSLAND", clue: "Open region where grasses are the main plants" },
+      { answer: "CLIMATE", clue: "Long-term weather pattern of a region" },
+      { answer: "ADAPT", clue: "Change traits over time to survive in a region" },
+      { answer: "RAINFOREST", clue: "Warm wet forest with very high yearly rainfall" },
+    ],
+  },
 ];
 
 /** High-intent classroom / ESL long-tail seeds prioritized for quality review. */
@@ -1213,6 +1313,15 @@ export const LONG_TAIL_BATCH_6_SLUGS = [
   "figurative-language",
   "decimals",
   "natural-resources",
+] as const;
+
+/** Seventh long-tail classroom batch (volcanoes / colonies / compounds / area / biomes). */
+export const LONG_TAIL_BATCH_7_SLUGS = [
+  "volcanoes",
+  "thirteen-colonies",
+  "compound-words",
+  "area-and-perimeter",
+  "biomes",
 ] as const;
 
 export function getExample(slug: string) {
