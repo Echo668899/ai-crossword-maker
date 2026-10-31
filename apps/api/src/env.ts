@@ -34,7 +34,7 @@ export type ApiEnv = {
   TURNSTILE_REQUIRED?: string;
   TURNSTILE_HOSTNAMES?: string;
   TURNSTILE_ACTION?: string;
-  /** Billing: `auto` (Stripe if ready else Creem), `stripe`, or `creem`. */
+  /** Billing: `auto` (Creem if ready else Stripe), `stripe`, or `creem`. */
   BILLING_PROVIDER?: string;
   STRIPE_SECRET_KEY?: string;
   STRIPE_WEBHOOK_SECRET?: string;

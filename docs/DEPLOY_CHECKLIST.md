@@ -59,7 +59,10 @@ pnpm exec wrangler secret put STRIPE_PRICE_ACTIVITY_PACK
 pnpm exec wrangler secret put TURNSTILE_SECRET_KEY
 pnpm exec wrangler secret put ADMIN_EMAILS
 pnpm exec wrangler secret put RESEND_API_KEY
-# Optional Creem: CREEM_API_KEY, CREEM_WEBHOOK_SECRET, CREEM_PRODUCT_*
+# Creem primary: CREEM_API_KEY, CREEM_WEBHOOK_SECRET,
+#   CREEM_PRODUCT_PRO_MONTHLY, CREEM_PRODUCT_PRO_YEARLY,
+#   CREEM_PRODUCT_CREDITS_50, CREEM_PRODUCT_CREDITS_100, CREEM_PRODUCT_ACTIVITY_PACK
+# Optional Stripe fallback: STRIPE_* prices + webhook
 # Non-secret mail vars in wrangler.toml: MAIL_PROVIDER, MAIL_FROM, MAIL_FROM_NAME
 ```
 
@@ -84,7 +87,7 @@ Dry-run: `./scripts/cf-deploy.sh --dry-run`
 - [ ] Apex + `www` → Pages `acm-web` (proxied)
 - [ ] Worker route: `crosswordmaker.app/api/*` → `acm-api` (same host as SSG)
 - [ ] Confirm `PUBLIC_SITE_URL=https://crosswordmaker.app` on API `[vars]` and web build
-- [ ] Stripe/Creem webhooks → `/api/v1/billing/webhooks/stripe` (and creem)
+- [ ] Creem webhook → `https://crosswordmaker.app/api/v1/billing/webhooks/creem` (optional Stripe sibling)
 
 ### 5) Smoke
 

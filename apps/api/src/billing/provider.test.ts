@@ -31,17 +31,25 @@ describe("getBillingStatus", () => {
     expect(s.activeProvider).toBeNull();
   });
 
-  it("prefers Stripe in auto mode when both ready", () => {
+  it("prefers Creem in auto mode when both ready", () => {
     const s = getBillingStatus(env({ ...stripeReady, ...creemReady }));
-    expect(s.activeProvider).toBe("stripe");
+    expect(s.activeProvider).toBe("creem");
     expect(s.checkoutEnabled).toBe(true);
+    expect(s.portalEnabled).toBe(false);
+  });
+
+  it("falls back to Stripe when Creem incomplete", () => {
+    const s = getBillingStatus(env(stripeReady));
+    expect(s.activeProvider).toBe("stripe");
     expect(s.portalEnabled).toBe(true);
   });
 
-  it("falls back to Creem when Stripe incomplete", () => {
-    const s = getBillingStatus(env(creemReady));
-    expect(s.activeProvider).toBe("creem");
-    expect(s.portalEnabled).toBe(false);
+  it("honors BILLING_PROVIDER=stripe even if Creem ready", () => {
+    const s = getBillingStatus(
+      env({ ...stripeReady, ...creemReady, BILLING_PROVIDER: "stripe" }),
+    );
+    expect(s.activeProvider).toBe("stripe");
+    expect(billingPreference(env({ BILLING_PROVIDER: "stripe" }))).toBe("stripe");
   });
 
   it("honors BILLING_PROVIDER=creem even if Stripe ready", () => {

@@ -14,7 +14,7 @@ Updated: 2026-10-31
 | 06 Auth + cloud save | PARTIAL — magic link + Google OAuth; project CRUD + revision; **in-maker cloud Save/Load picker** |
 | 07 Packs / batch export | PARTIAL — A/B/C packs + ZIP/R2 export (queue + inline); consumer processes `pack_export` |
 | 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal APIs |
-| 09 Stripe / ledger / admin | PARTIAL — Hybrid Stripe/Creem + ledger; **admin skeleton** (`/admin`, `/api/v1/admin/*`, audit + ops flags) |
+| 09 Stripe / ledger / admin | PARTIAL — Hybrid Creem-primary / Stripe-fallback + ledger; **admin skeleton** (`/admin`, `/api/v1/admin/*`, audit + ops flags); production CREEM_* secrets still operator-gated |
 | 10 SEO polish / deploy hardening | IN PROGRESS — long-tail batch-8 examples + `/vs/teachers-corner/` + geography vocabulary how-to |
 
 ## Latest slice (product iteration)

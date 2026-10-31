@@ -87,7 +87,15 @@ pnpm exec wrangler secret put OPENAI_API_KEY
 # Auth
 pnpm exec wrangler secret put GOOGLE_CLIENT_ID
 pnpm exec wrangler secret put GOOGLE_CLIENT_SECRET
-# Billing — Stripe preferred
+# Billing — Creem primary (all five product ids required for checkoutEnabled)
+pnpm exec wrangler secret put CREEM_API_KEY
+pnpm exec wrangler secret put CREEM_WEBHOOK_SECRET
+pnpm exec wrangler secret put CREEM_PRODUCT_PRO_MONTHLY
+pnpm exec wrangler secret put CREEM_PRODUCT_PRO_YEARLY
+pnpm exec wrangler secret put CREEM_PRODUCT_CREDITS_50
+pnpm exec wrangler secret put CREEM_PRODUCT_CREDITS_100
+pnpm exec wrangler secret put CREEM_PRODUCT_ACTIVITY_PACK
+# Optional Stripe fallback
 pnpm exec wrangler secret put STRIPE_SECRET_KEY
 pnpm exec wrangler secret put STRIPE_WEBHOOK_SECRET
 pnpm exec wrangler secret put STRIPE_PRICE_PRO_MONTHLY
@@ -95,11 +103,6 @@ pnpm exec wrangler secret put STRIPE_PRICE_PRO_YEARLY
 pnpm exec wrangler secret put STRIPE_PRICE_CREDITS_50
 pnpm exec wrangler secret put STRIPE_PRICE_CREDITS_100
 pnpm exec wrangler secret put STRIPE_PRICE_ACTIVITY_PACK
-# Optional Creem fallback
-pnpm exec wrangler secret put CREEM_API_KEY
-pnpm exec wrangler secret put CREEM_WEBHOOK_SECRET
-pnpm exec wrangler secret put CREEM_PRODUCT_PRO_MONTHLY
-# … remaining CREEM_PRODUCT_* as needed
 # Turnstile (anon AI)
 pnpm exec wrangler secret put TURNSTILE_SECRET_KEY
 # Admin allowlist (comma-separated emails) — treat as sensitive
@@ -108,7 +111,9 @@ pnpm exec wrangler secret put ADMIN_EMAILS
 pnpm exec wrangler secret put RESEND_API_KEY
 ```
 
-Set Worker `vars` in `wrangler.toml` (non-secret): `PUBLIC_SITE_URL`, `AI_ENABLED`, `AI_ANON_DEMO_ENABLED`, `PLAN_VERSION`, `BILLING_PROVIDER=auto`, model ids, `TURNSTILE_REQUIRED`, `TURNSTILE_HOSTNAMES`, `TURNSTILE_ACTION`, `MAIL_PROVIDER=resend`, `MAIL_FROM=noreply@crosswordmaker.app`, `MAIL_FROM_NAME`.
+Or export the same names in the shell (values never printed by the script) and run `./scripts/cf-put-secrets.sh`.
+
+Set Worker `vars` in `wrangler.toml` (non-secret): `PUBLIC_SITE_URL`, `AI_ENABLED`, `AI_ANON_DEMO_ENABLED`, `PLAN_VERSION`, `BILLING_PROVIDER=auto`, `CREEM_API_BASE=https://api.creem.io`, model ids, `TURNSTILE_REQUIRED`, `TURNSTILE_HOSTNAMES`, `TURNSTILE_ACTION`, `MAIL_PROVIDER=resend`, `MAIL_FROM=noreply@crosswordmaker.app`, `MAIL_FROM_NAME`.
 
 Production magic-link mail: verify the sending domain in Resend (SPF/DKIM DNS), put `RESEND_API_KEY`, keep `AUTH_DEV_RETURN_LINK` / `AUTH_DEV_LOG_LINKS` **unset/false**. Operator steps (Chinese): project store `docs/email-setup.md`.
 
@@ -126,10 +131,44 @@ pnpm --filter @acm/consumer exec wrangler deploy
 pnpm --filter @acm/api exec wrangler deploy
 ```
 
-Point Stripe/Creem webhooks to:
+### Creem products + webhook (operator)
 
-- `https://crosswordmaker.app/api/v1/billing/webhooks/stripe`
-- `https://crosswordmaker.app/api/v1/billing/webhooks/creem`
+1. Create a Creem store (test mode first; switch API base when going live).
+2. Create **five products** matching Hybrid SKUs in `packages/config/src/pricing.ts`:
+
+| SKU | Creem product | Billing | USD |
+| --- | --- | --- | --- |
+| `pro_monthly` | Pro Monthly | subscription / month | 9 |
+| `pro_yearly` | Pro Yearly | subscription / year | 72 |
+| `credits_50` | Credit Pack 50 | one-time | 5 |
+| `credits_100` | Credit Pack 100 | one-time | 8 |
+| `activity_pack` | Activity Pack | one-time | 4.99 |
+
+3. Copy each product id into the matching `CREEM_PRODUCT_*` Worker secret (never commit ids to git if you treat them as private; product ids are not as sensitive as API keys but still go through secrets for consistency).
+4. Developers → API Keys → put the key in `CREEM_API_KEY`.
+5. Developers → Webhooks → endpoint:
+
+   `https://crosswordmaker.app/api/v1/billing/webhooks/creem`
+
+   Subscribe at least: `checkout.completed`, `subscription.active`, `subscription.paid`, `subscription.canceled`, `subscription.expired`, `subscription.past_due`, `subscription.update`, `subscription.trialing`, `subscription.paused`, `subscription.scheduled_cancel`. Copy the signing secret into `CREEM_WEBHOOK_SECRET` (header verified: `creem-signature` HMAC-SHA256 hex of raw body).
+
+6. Confirm Worker vars: `BILLING_PROVIDER=auto` (or `creem`) and `CREEM_API_BASE=https://api.creem.io` (live) or `https://test-api.creem.io` (test). Redeploy API after secret/var changes.
+
+7. Stripe (optional fallback) webhook:
+
+   `https://crosswordmaker.app/api/v1/billing/webhooks/stripe`
+
+### Billing smoke (after secrets)
+
+```bash
+curl -sS https://crosswordmaker.app/api/v1/billing/status
+# expect: checkoutEnabled=true, activeProvider=creem, providers.creem.configured=true, productsMapped=true
+
+# Signed-in browser: /pricing → Buy Pro Monthly → Creem Checkout → pay test card
+# → success redirect /app/billing/?checkout=success
+# → Creem dashboard webhook deliveries 2xx
+# → GET /api/v1/billing/entitlements shows Pro / credits grant
+```
 
 5. **Build + deploy web** (or `./scripts/cf-deploy.sh`)
 
@@ -201,9 +240,11 @@ Use this as a go / no-go list. Mark real integrations **BLOCKED** until wired �
 | `TURNSTILE_SECRET_KEY` + `PUBLIC_TURNSTILE_SITE_KEY` | API secret + web | Anon AI anti-abuse | Mint widget; consider `TURNSTILE_REQUIRED=true` |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | API secrets | Google sign-in | Optional if magic-link mail works |
 | Production mailer (magic links) | `RESEND_API_KEY` + `MAIL_FROM` | Auth without Google | BLOCKED until Resend domain + secret; local uses `AUTH_DEV_RETURN_LINK` |
-| `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` + price ids | API secrets | Paid checkout | Prefer Stripe; test/live separated |
-| `CREEM_*` | API secrets | Fallback checkout | Optional when `BILLING_PROVIDER=auto` |
-| Webhook URLs live | Stripe/Creem dashboards | Entitlements | Point at `/api/v1/billing/webhooks/*` |
+| `CREEM_API_KEY` + `CREEM_WEBHOOK_SECRET` + five `CREEM_PRODUCT_*` | API secrets | Paid checkout (primary) | All seven required for `checkoutEnabled` under Creem |
+| `CREEM_API_BASE` | API var | test vs live API host | Default in code is test; production wrangler sets live |
+| `BILLING_PROVIDER` | API var | Provider selection | `auto` (Creem first) / `creem` / `stripe` |
+| `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` + price ids | API secrets | Fallback checkout | Optional when Creem is primary |
+| Webhook URLs live | Creem (and optional Stripe) dashboards | Entitlements | `https://crosswordmaker.app/api/v1/billing/webhooks/creem` |
 | `ADMIN_EMAILS` | API secret/var | `/admin` console | Empty = deny-all |
 | `PUBLIC_SITE_URL` | API + web build | Canonical / auth redirects | `https://crosswordmaker.app` |
 | D1 migrations remote | `wrangler d1 … --remote` | Persistence | Through `0007_admin_audit` |

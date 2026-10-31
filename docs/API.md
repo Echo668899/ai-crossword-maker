@@ -72,9 +72,9 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 ## Billing (Hybrid)
 
 - SKUs (server whitelist): `pro_monthly`, `pro_yearly`, `credits_50`, `credits_100`, `activity_pack`.
-- Provider abstraction: Stripe primary, Creem fallback; `BILLING_PROVIDER=auto|stripe|creem`.
+- Provider abstraction: Creem primary, Stripe fallback; `BILLING_PROVIDER=auto|stripe|creem` (`auto` prefers Creem when fully configured).
 - Checkout creates a pending `orders` row, then redirects to provider Checkout; entitlements are granted only after verified webhooks (`payment_events` unique on provider+event id).
-- Secrets: `STRIPE_*` / `CREEM_*` from env only; missing keys → graceful `503` / Pricing UI disabled checkout (Free demo still works).
+- Secrets: `CREEM_*` / `STRIPE_*` from env only; missing keys → graceful `503` / Pricing UI disabled checkout (Free demo still works).
 
 ## Admin
 
