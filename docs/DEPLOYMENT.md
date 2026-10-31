@@ -49,7 +49,7 @@ pnpm test:engine
 pnpm --filter @acm/api exec wrangler d1 migrations apply acm --remote
 ```
 
-Migrations today: `0001_init` … `0006_export_files`.
+Migrations today: `0001_init` … `0007_admin_audit`.
 
 3. **Secrets** (never commit; never log)
 
@@ -74,6 +74,8 @@ wrangler secret put CREEM_PRODUCT_PRO_MONTHLY
 # … remaining CREEM_PRODUCT_* as needed
 # Turnstile (anon AI)
 wrangler secret put TURNSTILE_SECRET_KEY
+# Admin allowlist (comma-separated emails) — treat as sensitive
+wrangler secret put ADMIN_EMAILS
 ```
 
 Set Worker `vars` in `wrangler.toml` (non-secret): `PUBLIC_SITE_URL`, `AI_ENABLED`, `AI_ANON_DEMO_ENABLED`, `PLAN_VERSION`, `BILLING_PROVIDER=auto`, model ids, `TURNSTILE_REQUIRED`, `TURNSTILE_HOSTNAMES`, `TURNSTILE_ACTION`.
@@ -136,8 +138,41 @@ curl -sI https://aicrosswordmaker.com/p/demo-token/ | tr -d '\r' | grep -i 'x-ro
 # HTML play shell is noindex via meta robots on /p/_/
 ```
 
+## Pre-launch secrets & config checklist
+
+Use this as a go / no-go list. Mark real integrations **BLOCKED** until wired — never claim DONE without keys.
+
+| Item | Where | Required for | Status habit |
+| --- | --- | --- | --- |
+| `OPENAI_API_KEY` | API secret | Live AI Topic | BLOCKED without key; mock/`?mock=1` only in local |
+| `AI_ENABLED=true` | API var | Live AI | Keep false until key + budget set |
+| `AI_ANON_DEMO_ENABLED` | API var | SEO landing demo | Default true; ops flag can force off |
+| `TURNSTILE_SECRET_KEY` + `PUBLIC_TURNSTILE_SITE_KEY` | API secret + web | Anon AI anti-abuse | Mint widget; consider `TURNSTILE_REQUIRED=true` |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | API secrets | Google sign-in | Optional if magic-link mail works |
+| Production mailer (magic links) | TBD provider | Auth without Google | BLOCKED — local uses `AUTH_DEV_RETURN_LINK` |
+| `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` + price ids | API secrets | Paid checkout | Prefer Stripe; test/live separated |
+| `CREEM_*` | API secrets | Fallback checkout | Optional when `BILLING_PROVIDER=auto` |
+| Webhook URLs live | Stripe/Creem dashboards | Entitlements | Point at `/api/v1/billing/webhooks/*` |
+| `ADMIN_EMAILS` | API secret/var | `/admin` console | Empty = deny-all |
+| `PUBLIC_SITE_URL` | API + web build | Canonical / auth redirects | `https://aicrosswordmaker.com` |
+| D1 migrations remote | `wrangler d1 … --remote` | Persistence | Through `0007_admin_audit` |
+| R2 `FILES` private + Queue `JOBS` | CF bindings | Pack ZIP export | Consumer Worker deployed |
+| Legal entity on Privacy / Terms / Refund / Contact | Web pages | Charging cards | **Publish blocker — do not invent** |
+| GSC property + sitemap submit | Search Console | SEO | Manual once DNS live |
+| AI daily budget / model ids | API vars | Cost control | Confirm before wide anon AI |
+
+### Operator confirmation (human)
+
+- [ ] Domain DNS + HTTPS on `aicrosswordmaker.com`
+- [ ] No secrets in git / screenshots / client bundles
+- [ ] Privacy/Terms/Refund/Contact operator fields filled by a real person
+- [ ] Stripe/Creem test → live cutover plan + rollback
+- [ ] Admin allowlist emails verified
+- [ ] Data retention / D1 backup habit noted
+
 ## Still deferred
 
-- Admin dashboards
+- Deeper admin analytics (AI cost estimates, funnel events soak)
 - Production mail provider for magic links
 - Live GSC submit automation
+- Stripe webhook soak in production

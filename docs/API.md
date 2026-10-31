@@ -38,6 +38,12 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 | POST | `/billing/portal` | Live — Stripe Customer Portal when Stripe active + customer exists |
 | POST | `/billing/webhooks/stripe` | Live — signed Stripe webhooks → entitlement ledger |
 | POST | `/billing/webhooks/creem` | Live — signed Creem webhooks → entitlement ledger |
+| GET | `/admin/me` | Live — admin session check (`ADMIN_EMAILS`) |
+| GET | `/admin/overview` | Live — aggregate counts + runtime + ops flags (no raw puzzles) |
+| GET | `/admin/orders` | Live — recent orders (email for ops only) |
+| GET | `/admin/jobs` | Live — recent job statuses |
+| GET | `/admin/audit` | Live — admin audit trail |
+| PATCH | `/admin/flags` | Live — emergency ops flags → `audit_logs` |
 
 ## Topic AI
 
@@ -70,6 +76,11 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 - Checkout creates a pending `orders` row, then redirects to provider Checkout; entitlements are granted only after verified webhooks (`payment_events` unique on provider+event id).
 - Secrets: `STRIPE_*` / `CREEM_*` from env only; missing keys → graceful `503` / Pricing UI disabled checkout (Free demo still works).
 
-Planned next: admin console, production mailer, live GSC.
+## Admin
+
+- Access: signed-in user email must appear in `ADMIN_EMAILS` (comma-separated). Empty allowlist → `503 admin_unconfigured` (deny-all).
+- Never returns raw word lists, clues, or secrets. Flag changes write `audit_logs`.
+
+Planned next: production mailer, live GSC, deeper admin cost/funnel analytics.
 
 Errors: `{ error: { code, message } }` — no stacks/secrets.

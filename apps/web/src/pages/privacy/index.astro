@@ -1,10 +1,69 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
-<BaseLayout title="Privacy Policy — AI Crossword Maker" description="Privacy policy placeholder aligned to actual product behavior." canonicalPath="/privacy/">
+<BaseLayout
+  title="Privacy Policy — AI Crossword Maker"
+  description="Privacy policy placeholder aligned to actual product behavior. Operator entity required before launch."
+  canonicalPath="/privacy/"
+>
   <section class="container section prose" style="padding-top:1.5rem;">
     <h1>Privacy Policy</h1>
-    <p><em>Draft for development — replace with counsel-reviewed text before production.</em></p>
-    <p>Local drafts stay in your browser IndexedDB until you sign in and migrate. API keys never ship to the browser. Production logs should not store full word lists, clues, or email bodies by default. AI providers may process prompt content under their terms; we set <code>store: false</code> where supported and do not claim zero retention across the whole vendor chain.</p>
+    <p>
+      <em>
+        Development draft — not counsel-reviewed. Operator legal entity, registered address, and
+        privacy contact are <strong>publish blockers</strong>. Do not invent a company name.
+      </em>
+    </p>
+
+    <h2>Who we are</h2>
+    <p>
+      <strong>Operator entity:</strong> [TO BE FILLED BEFORE LAUNCH]<br />
+      <strong>Privacy contact:</strong> [TO BE FILLED — e.g. privacy@your-domain]<br />
+      Brand / site: AI Crossword Maker at <code>https://aicrosswordmaker.com</code>
+      (<code>PUBLIC_SITE_URL</code>).
+    </p>
+
+    <h2>What we process (product-aligned)</h2>
+    <ul>
+      <li>
+        <strong>Local drafts:</strong> stay in your browser IndexedDB until you sign in and save to
+        the cloud.
+      </li>
+      <li>
+        <strong>Account:</strong> email (magic link or Google OAuth), optional display name, session
+        cookies (HttpOnly).
+      </li>
+      <li>
+        <strong>Cloud puzzles:</strong> titles, grids, clues, versions, activity packs, and share
+        tokens you create — stored in Cloudflare D1 / private R2 for exports you request.
+      </li>
+      <li>
+        <strong>Anonymous AI demo:</strong> hashed IP + user-agent for daily quota; optional
+        Turnstile token verification. We do not put API keys in the browser.
+      </li>
+      <li>
+        <strong>Billing:</strong> Stripe/Creem process payments. We store order/subscription ledger
+        rows and provider customer IDs — not full card numbers.
+      </li>
+    </ul>
+
+    <h2>AI providers</h2>
+    <p>
+      When you use AI Topic, prompt content is sent to the configured model provider under their
+      terms. Where supported we set <code>store: false</code>. We do not claim zero retention across
+      the entire vendor chain.
+    </p>
+
+    <h2>Logs &amp; admin</h2>
+    <p>
+      Operational logs should not store full word lists, clues, or email bodies by default. Admin
+      overview shows aggregates and order metadata, not raw puzzle content.
+    </p>
+
+    <h2>Before charging customers</h2>
+    <p>
+      Replace this draft with counsel-reviewed text, fill the operator fields above, and publish a
+      working privacy contact. Until then, treat legal pages as incomplete.
+    </p>
   </section>
 </BaseLayout>

@@ -15,13 +15,25 @@ function collectAstro(dir: string, out: string[] = []): string[] {
 }
 
 describe("SEO shell hardening", () => {
-  it("keeps robots disallowing app/login/play while allowing public SEO", () => {
+  it("keeps robots disallowing app/admin/login/play while allowing public SEO", () => {
     const robots = readFileSync(join(import.meta.dirname, "../../public/robots.txt"), "utf8");
     expect(robots).toContain("Disallow: /app/");
+    expect(robots).toContain("Disallow: /admin/");
     expect(robots).toContain("Disallow: /p/");
     expect(robots).toContain("Disallow: /login/");
     expect(robots).toContain("Allow: /");
     expect(robots).toContain("Sitemap:");
+  });
+
+  it("marks legal pages as operator-entity placeholders without inventing a company", () => {
+    for (const page of ["privacy", "terms", "refund-policy", "contact"]) {
+      const src = readFileSync(join(pagesRoot, `${page}/index.astro`), "utf8");
+      expect(src).toMatch(/TO BE FILLED/);
+      expect(src).toMatch(/Do not invent/i);
+      expect(src).not.toMatch(/Acme Legal LLC|Fake Corp|Example Inc\./i);
+    }
+    const admin = readFileSync(join(pagesRoot, "admin/index.astro"), "utf8");
+    expect(admin).toContain("noindex={true}");
   });
 
   it("rewrites share play URLs without indexing answers in HTML shell", () => {

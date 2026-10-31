@@ -1,9 +1,46 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 ---
-<BaseLayout title="Refund Policy — AI Crossword Maker" description="Refund policy draft for subscriptions and credit packs." canonicalPath="/refund-policy/">
+<BaseLayout
+  title="Refund Policy — AI Crossword Maker"
+  description="Refund policy draft for subscriptions and credit packs. Operator entity required before charging cards."
+  canonicalPath="/refund-policy/"
+>
   <section class="container section prose" style="padding-top:1.5rem;">
     <h1>Refund Policy</h1>
-    <p><em>Draft.</em> Unused credit packs and unused subscription periods will follow Stripe dispute/refund tooling once billing is live. Publish final terms with operator identity before charging cards.</p>
+    <p>
+      <em>
+        Draft. Publish final refund terms with a real operator identity before charging cards.
+        Do not invent a company name.
+      </em>
+    </p>
+
+    <h2>Operator</h2>
+    <p>
+      <strong>Legal entity:</strong> [TO BE FILLED BEFORE LAUNCH]<br />
+      <strong>Billing support contact:</strong> [TO BE FILLED]
+    </p>
+
+    <h2>Intended product behavior (subject to final counsel text)</h2>
+    <ul>
+      <li>
+        <strong>Subscriptions (Pro monthly/yearly):</strong> cancel anytime via customer portal when
+        Stripe is the active provider; access continues through the paid period unless otherwise
+        stated in the final policy.
+      </li>
+      <li>
+        <strong>Credit Packs / Activity Pack:</strong> unused credits may be eligible for refund
+        windows defined at launch; consumed AI/export entitlements are generally non-refundable.
+      </li>
+      <li>
+        Chargebacks and disputes follow Stripe/Creem tooling once billing is live.
+      </li>
+    </ul>
+
+    <h2>Publish blocker</h2>
+    <p>
+      Until the operator entity and support contact are filled, treat this page as incomplete and
+      do not rely on it for live payments.
+    </p>
   </section>
 </BaseLayout>

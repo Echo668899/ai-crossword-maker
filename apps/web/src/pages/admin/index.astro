@@ -1,0 +1,14 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import AdminConsole from "../../components/admin/AdminConsole";
+---
+<BaseLayout
+  title="Admin — AI Crossword Maker"
+  description="Operator console for AI Crossword Maker."
+  canonicalPath="/admin/"
+  noindex={true}
+>
+  <section class="container section" style="padding-top:1.5rem;">
+    <AdminConsole client:load />
+  </section>
+</BaseLayout>

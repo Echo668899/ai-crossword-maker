@@ -39,3 +39,6 @@ AUTH_DEV_RETURN_LINK=true
 # TURNSTILE_HOSTNAMES=aicrosswordmaker.com,localhost,127.0.0.1
 # TURNSTILE_ACTION=ai-topic
 # Frontend: set PUBLIC_TURNSTILE_SITE_KEY in apps/web env / Pages vars.
+
+# Admin console (/admin + /api/v1/admin/*). Comma-separated allowlist; empty = deny-all.
+# ADMIN_EMAILS=you@example.com
