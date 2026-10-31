@@ -9,7 +9,6 @@ import {
   type BuildResult,
   type WordEntry,
 } from "@acm/crossword-engine";
-import { buildAnswerKeyPdf, buildStudentPdf } from "@acm/print-layout";
 import { Button } from "@acm/ui";
 import { StatusPill } from "@acm/ui";
 import { loadDraft, saveDraft } from "../../lib/maker-storage";
@@ -177,31 +176,44 @@ export default function MakerApp({
   const [mobileTab, setMobileTab] = useState<"input" | "clues" | "grid" | "export">("input");
   const [history, setHistory] = useState<EntryRow[][]>([]);
   const [future, setFuture] = useState<EntryRow[][]>([]);
+  const [draftReady, setDraftReady] = useState(Boolean(initialEntries?.length));
 
   useEffect(() => {
     let cancelled = false;
-    loadDraft().then((draft) => {
-      if (!draft || cancelled) return;
-      dispatch({
-        type: "hydrate",
-        payload: {
-          mode: draft.mode,
-          topic: draft.topic,
-          wordCount: draft.wordCount,
-          difficulty: draft.difficulty,
-          title: draft.title,
-          rows: draft.rawEntries.length ? draft.rawEntries : undefined,
-          seed: draft.seed,
-          statusMessage: "Restored local draft from this browser.",
-        },
+    // Page-provided presets win over stale IndexedDB drafts.
+    if (initialEntries?.length) {
+      setDraftReady(true);
+      return;
+    }
+    loadDraft()
+      .then((draft) => {
+        if (!draft || cancelled) return;
+        const usable = (draft.rawEntries ?? []).filter((r) => r.answer?.trim());
+        if (usable.length < 2 && !draft.topic.trim()) return;
+        dispatch({
+          type: "hydrate",
+          payload: {
+            mode: draft.mode,
+            topic: draft.topic,
+            wordCount: draft.wordCount,
+            difficulty: draft.difficulty,
+            title: draft.title,
+            rows: usable.length >= 2 ? draft.rawEntries : undefined,
+            seed: draft.seed,
+            statusMessage: "Restored local draft from this browser.",
+          },
+        });
+      })
+      .finally(() => {
+        if (!cancelled) setDraftReady(true);
       });
-    });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [initialEntries]);
 
   useEffect(() => {
+    if (!draftReady) return;
     const handle = window.setTimeout(() => {
       void saveDraft({
         version: 1,
@@ -216,7 +228,16 @@ export default function MakerApp({
       });
     }, 400);
     return () => window.clearTimeout(handle);
-  }, [state.mode, state.topic, state.wordCount, state.difficulty, state.rows, state.seed, state.title]);
+  }, [
+    draftReady,
+    state.mode,
+    state.topic,
+    state.wordCount,
+    state.difficulty,
+    state.rows,
+    state.seed,
+    state.title,
+  ]);
 
   const validation = useMemo(() => {
     if (!state.result || !state.entries.length) return null;
@@ -257,44 +278,51 @@ export default function MakerApp({
   }
 
   function runBuild() {
-    const sourceRows =
-      state.mode === "paste" && state.pasteText.trim() ? parsePaste(state.pasteText) : state.rows;
-    const cleaned = sourceRows.filter((r) => r.answer.trim());
-    const { entries, issues } = normalizeEntries(
-      cleaned.map((r, i) => ({
-        id: `local-${i + 1}`,
-        answerRaw: r.answer,
-        clue: r.clue,
-        origin: "manual" as const,
-        reviewState: "reviewed_by_user" as const,
-      })),
-    );
-    if (entries.length < 2) {
-      dispatch({
-        type: "setStatus",
-        statusMessage: `Need at least 2 valid A–Z answers (3–24 letters). Issues: ${issues.map((i) => i.code).join(", ") || "none"}`,
+    try {
+      dispatch({ type: "setStatus", statusMessage: "Building grid…" });
+      const sourceRows =
+        state.mode === "paste" && state.pasteText.trim() ? parsePaste(state.pasteText) : state.rows;
+      const cleaned = sourceRows.filter((r) => r.answer.trim());
+      const { entries, issues } = normalizeEntries(
+        cleaned.map((r, i) => ({
+          id: `local-${i + 1}`,
+          answerRaw: r.answer,
+          clue: r.clue,
+          origin: "manual" as const,
+          reviewState: "reviewed_by_user" as const,
+        })),
+      );
+      if (entries.length < 2) {
+        dispatch({
+          type: "setStatus",
+          statusMessage: `Need at least 2 valid A–Z answers (3–24 letters). Got ${cleaned.length} rows, ${entries.length} valid. Issues: ${issues.map((i) => i.code).join(", ") || "none"}`,
+        });
+        return;
+      }
+      const leaks = entries.filter((e) => clueLeaksAnswer(e.clue, e.answerNormalized));
+      let result = buildGrid({
+        entries,
+        seed: state.seed,
+        size: "auto",
+        nodeBudget: 25_000,
       });
-      return;
+      result = numberBuildResult(result);
+      const report = validateBuildResult(result, entries);
+      const msg = [
+        `Placed ${result.placedEntryIds.length}/${entries.length} (${result.status}).`,
+        report.ok ? "Grid checks passed." : `Validator: ${report.errors[0]?.message ?? "issues found"}.`,
+        leaks.length ? `Clue leak warning on ${leaks.length} entr${leaks.length === 1 ? "y" : "ies"}.` : "",
+        issues.length ? `Normalize notes: ${issues.length}.` : "",
+      ]
+        .filter(Boolean)
+        .join(" ");
+      dispatch({ type: "setBuild", result, entries, statusMessage: msg });
+      setMobileTab("grid");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      dispatch({ type: "setStatus", statusMessage: `Build failed: ${message}` });
+      console.error(err);
     }
-    const leaks = entries.filter((e) => clueLeaksAnswer(e.clue, e.answerNormalized));
-    let result = buildGrid({
-      entries,
-      seed: state.seed,
-      size: "auto",
-      nodeBudget: 40_000,
-    });
-    result = numberBuildResult(result);
-    const report = validateBuildResult(result, entries);
-    const msg = [
-      `Placed ${result.placedEntryIds.length}/${entries.length} (${result.status}).`,
-      report.ok ? "Grid checks passed." : `Validator: ${report.errors[0]?.message ?? "issues found"}.`,
-      leaks.length ? `Clue leak warning on ${leaks.length} entr${leaks.length === 1 ? "y" : "ies"}.` : "",
-      issues.length ? `Normalize notes: ${issues.length}.` : "",
-    ]
-      .filter(Boolean)
-      .join(" ");
-    dispatch({ type: "setBuild", result, entries, statusMessage: msg });
-    setMobileTab("grid");
   }
 
   async function exportPdf(kind: "student" | "answers") {
@@ -305,24 +333,31 @@ export default function MakerApp({
         statusMessage: "Grid has validation errors — you can still export a draft, but fix issues before sharing.",
       });
     }
-    const bytes =
-      kind === "student"
-        ? await buildStudentPdf({
-            result: state.result,
-            entries: state.entries,
-            settings: { title: state.title, showNameDate: true, watermark: "aicrosswordmaker.com" },
-          })
-        : await buildAnswerKeyPdf({
-            result: state.result,
-            entries: state.entries,
-            settings: { title: `${state.title} — Answer Key` },
-          });
-    downloadBlob(
-      kind === "student" ? `${slugify(state.title)}.pdf` : `${slugify(state.title)}-answers.pdf`,
-      bytes,
-      "application/pdf",
-    );
-    dispatch({ type: "setStatus", statusMessage: `Downloaded ${kind} PDF.` });
+    try {
+      const { buildAnswerKeyPdf, buildStudentPdf } = await import("@acm/print-layout");
+      const bytes =
+        kind === "student"
+          ? await buildStudentPdf({
+              result: state.result,
+              entries: state.entries,
+              settings: { title: state.title, showNameDate: true, watermark: "aicrosswordmaker.com" },
+            })
+          : await buildAnswerKeyPdf({
+              result: state.result,
+              entries: state.entries,
+              settings: { title: `${state.title} — Answer Key` },
+            });
+      downloadBlob(
+        kind === "student" ? `${slugify(state.title)}.pdf` : `${slugify(state.title)}-answers.pdf`,
+        bytes,
+        "application/pdf",
+      );
+      dispatch({ type: "setStatus", statusMessage: `Downloaded ${kind} PDF.` });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      dispatch({ type: "setStatus", statusMessage: `PDF export failed: ${message}` });
+      console.error(err);
+    }
   }
 
   function exportSvg(showAnswers: boolean) {
