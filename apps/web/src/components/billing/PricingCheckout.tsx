@@ -39,6 +39,7 @@ const card: CSSProperties = {
 const primaryCard: CSSProperties = {
   ...card,
   borderColor: "var(--color-primary)",
+  boxShadow: "0 0 0 1px rgba(47, 92, 143, 0.12)",
 };
 
 function CheckoutButton({
@@ -117,6 +118,9 @@ export default function PricingCheckout() {
     if (params.get("checkout") === "canceled") {
       setNotice("Checkout canceled. No charge was made.");
     }
+    if (params.get("upgraded") === "1") {
+      setNotice("Welcome to Pro — your entitlements refresh after webhook confirmation.");
+    }
     let cancelled = false;
     (async () => {
       try {
@@ -183,13 +187,26 @@ export default function PricingCheckout() {
       : status?.activeProvider === "creem"
         ? "Creem"
         : null;
+  const yearlyPerMonth = (pricing.proYearly.priceUsd / 12).toFixed(0);
 
   return (
     <div>
-      <p style={{ maxWidth: "60ch", margin: "0 0 0.75rem" }}>
-        Pay for workflow — not for basic grid correctness. Manual building and structural
-        validation stay available. Plan version:{" "}
+      <p style={{ maxWidth: "62ch", margin: "0 0 0.5rem", fontSize: "1.05rem" }}>
+        Start free with a daily AI Topic demo. Upgrade to Pro when you need more generations,
+        cloud saves, batch classroom packs, and watermark-free PDFs.
+      </p>
+      <p className="muted" style={{ maxWidth: "60ch", margin: "0 0 0.75rem" }}>
+        You pay for workflow — not for basic grid correctness. Manual building and structural
+        validation stay available on Free. Plan version:{" "}
         <code>{status?.planVersion ?? pricing.planVersion}</code>.
+      </p>
+
+      <p style={{ margin: "0 0 1.25rem" }}>
+        <a href="/#maker">Try the free Topic demo</a>
+        {" · "}
+        <a href="/examples/">Browse printable examples</a>
+        {" · "}
+        <a href="/crossword-maker-for-teachers/">Teacher workflows</a>
       </p>
 
       {status && !enabled ? (
@@ -243,40 +260,59 @@ export default function PricingCheckout() {
           <h2 style={{ margin: 0, fontSize: "1.25rem" }}>Free</h2>
           <p style={{ margin: 0, fontSize: "1.6rem", fontWeight: 700 }}>$0</p>
           <ul style={{ paddingLeft: "1.1rem", margin: 0 }}>
-            <li>{pricing.free.anonAiDemoPerDay} AI demo ops / day (experimental)</li>
-            <li>Manual maker + local draft</li>
-            <li>Watermarked PDF export</li>
+            <li>{pricing.free.anonAiDemoPerDay} AI Topic demos / day</li>
+            <li>Manual maker + local draft autosave</li>
+            <li>Watermarked PDF + share play links</li>
+            <li>Up to {pricing.free.loggedInCloudProjects} cloud projects when signed in</li>
           </ul>
+          <p className="muted" style={{ margin: 0, fontSize: "0.88rem" }}>
+            When the daily demo runs out, keep building manually — or upgrade for more AI ops.
+          </p>
           <p style={{ marginTop: "auto" }}>
-            <a href="/#maker">Try Topic demo</a>
+            <a href="/#maker" style={linkBtnStyle}>
+              Start free Topic demo
+            </a>
           </p>
         </article>
 
         <article style={primaryCard}>
+          <p
+            style={{
+              margin: 0,
+              fontSize: "0.75rem",
+              fontWeight: 700,
+              letterSpacing: "0.04em",
+              textTransform: "uppercase",
+              color: "var(--color-primary)",
+            }}
+          >
+            Recommended for teachers
+          </p>
           <h2 style={{ margin: 0, fontSize: "1.25rem" }}>Pro</h2>
           <p style={{ margin: 0, fontSize: "1.6rem", fontWeight: 700 }}>
             ${pricing.proMonthly.priceUsd}/mo
           </p>
           <p className="muted" style={{ margin: 0 }}>
-            or ${pricing.proYearly.priceUsd}/year
+            or ${pricing.proYearly.priceUsd}/year (≈ ${yearlyPerMonth}/mo)
           </p>
           <ul style={{ paddingLeft: "1.1rem", margin: 0 }}>
-            <li>~{pricing.proMonthly.aiOpsPerPeriod} AI ops / period</li>
-            <li>{pricing.proMonthly.cloudProjects} cloud projects</li>
-            <li>Batch export, versions, no watermark</li>
+            <li>~{pricing.proMonthly.aiOpsPerPeriod} AI ops / billing period</li>
+            <li>{pricing.proMonthly.cloudProjects} cloud projects + version history</li>
+            <li>Batch / Activity pack export, no watermark</li>
+            <li>Best Free → Pro path when you prep classes weekly</li>
           </ul>
           <div style={{ display: "grid", gap: "0.5rem", marginTop: "auto" }}>
             <CheckoutButton
-              sku="pro_monthly"
-              label="Subscribe monthly"
+              sku="pro_yearly"
+              label={`Go Pro yearly (save $${pricing.proMonthly.priceUsd * 12 - pricing.proYearly.priceUsd})`}
               enabled={enabled}
               signedIn={signedIn}
               busySku={busySku}
               onCheckout={startCheckout}
             />
             <CheckoutButton
-              sku="pro_yearly"
-              label="Subscribe yearly"
+              sku="pro_monthly"
+              label="Go Pro monthly"
               enabled={enabled}
               signedIn={signedIn}
               busySku={busySku}
@@ -293,6 +329,7 @@ export default function PricingCheckout() {
           </p>
           <ul style={{ paddingLeft: "1.1rem", margin: 0 }}>
             <li>Pay-as-you-go AI operations</li>
+            <li>Good for occasional parents / one-off units</li>
             <li>Does not remove watermark by default</li>
           </ul>
           <div style={{ display: "grid", gap: "0.5rem", marginTop: "auto" }}>
@@ -323,6 +360,7 @@ export default function PricingCheckout() {
           <ul style={{ paddingLeft: "1.1rem", margin: 0 }}>
             <li>One project, up to {pricing.activityPack.layoutVariants} layout variants</li>
             <li>+{pricing.activityPack.bonusAiOps} AI ops for that project</li>
+            <li>Classroom A/B/C sheets without a full Pro sub</li>
           </ul>
           <div style={{ marginTop: "auto" }}>
             <CheckoutButton
@@ -336,6 +374,18 @@ export default function PricingCheckout() {
           </div>
         </article>
       </div>
+
+      <section style={{ marginTop: "2rem", maxWidth: "68ch" }}>
+        <h2 style={{ margin: "0 0 0.5rem", fontSize: "1.25rem" }}>Free → Pro in practice</h2>
+        <ol style={{ margin: 0, paddingLeft: "1.2rem" }}>
+          <li>Generate a Topic demo on the homepage (no signup required for the first tries).</li>
+          <li>Print with a light brand footer, or sign in to save a cloud draft.</li>
+          <li>
+            Hit the daily AI wall or need clean PDFs / batch packs → choose Pro (yearly saves most)
+            or a Credit Pack for light use.
+          </li>
+        </ol>
+      </section>
     </div>
   );
 }

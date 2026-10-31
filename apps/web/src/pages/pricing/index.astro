@@ -5,12 +5,15 @@ import PricingCheckout from "../../components/billing/PricingCheckout";
 
 <BaseLayout
   title="Pricing — Free AI Demo, Pro, and Credit Packs"
-  description="Hybrid pricing for AI Crossword Maker: free daily AI demo, Pro monthly/yearly, credit packs, and optional Activity Pack. Experimental prices."
+  description="Hybrid pricing for AI Crossword Maker: free daily AI Topic demo, Pro monthly/yearly for teachers, credit packs, and Activity Pack. Start free, upgrade when you need more."
   canonicalPath="/pricing/"
 >
   <section class="container section" style="padding-top:1.5rem;">
     <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;"><a href="/">Home</a> / Pricing</nav>
     <h1 style="margin:0 0 0.5rem;">Pricing</h1>
+    <p class="muted" style="max-width:60ch;margin:0 0 1rem;">
+      Free gets you a real Topic → print loop. Pro unlocks the weekly teacher workflow: more AI ops, cloud versions, batch packs, and clean PDFs.
+    </p>
     <PricingCheckout client:load />
   </section>
 </BaseLayout>

@@ -11,20 +11,18 @@ Updated: 2026-10-31
 | 03 Manual maker + P0 SEO shell + examples≥20 | DONE |
 | 04 Print layout + PDF | DONE (basic pdf-lib) |
 | 05 AI provider + jobs + anon demo | DONE (sync Topic + anon quota; Turnstile wired) |
-| 06 Auth + cloud save | PARTIAL — magic link + Google OAuth; project CRUD + revision; **in-maker cloud reload + version picker** |
+| 06 Auth + cloud save | PARTIAL — magic link + Google OAuth; project CRUD + revision; **in-maker cloud Save/Load picker** |
 | 07 Packs / batch export | PARTIAL — A/B/C packs + ZIP/R2 export (queue + inline); consumer processes `pack_export` |
 | 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal APIs |
 | 09 Stripe / ledger / admin | PARTIAL — Hybrid Stripe/Creem + ledger; **admin skeleton** (`/admin`, `/api/v1/admin/*`, audit + ops flags) |
-| 10 SEO polish / deploy hardening | IN PROGRESS (shells + Playwright smoke + deploy/secrets checklist + legal placeholders) |
+| 10 SEO polish / deploy hardening | IN PROGRESS — examples long-tail quality + maker/pricing funnel polish |
 
-## Latest slice (post PR #5)
+## Latest slice (product iteration)
 
-- Merged pack ZIP/R2 export, Turnstile, project CRUD, Playwright (PR #5) → `main`
-- Admin skeleton: `ADMIN_EMAILS` gate, overview/orders/jobs/audit/flags APIs, noindex `/admin/`
-- Migration `0007_admin_audit` (`audit_logs`, `ops_flags`)
-- Deeper cloud reload: maker hydrates from `?project=&version=`; PuzzleEditor version list + open-in-maker; conflict-safe Save new version
-- Legal placeholders (Privacy / Terms / Refund / Contact) with `[TO BE FILLED]` — **no invented operator entity**
-- Deployment secrets / pre-launch checklist expanded in `DEPLOYMENT.md`
+- Examples: +5 topic seeds (25 total), `gradeBand`, print button + `@media print`, richer FAQ (5 Qs), `relatedExamples` internal links
+- Maker UX: Topic empty-start path, Enter-to-generate, live AI quota pill, quota/error alert → Pricing, cloud Load select + Save sign-in clarity
+- Pricing: Free→Pro funnel copy, yearly-first CTA, “Recommended for teachers”, demo/examples CTAs
+- Prior (PR #6): admin skeleton, cloud version reload, legal placeholders, deploy checklist
 
 ## Open decisions
 

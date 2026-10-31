@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { EXAMPLES, getExample } from "../../lib/examples";
+import { EXAMPLES, getExample, relatedExamples } from "../../lib/examples";
 import { buildExamplePuzzle } from "../../lib/build-example";
 
 export function getStaticPaths() {
@@ -13,24 +13,32 @@ if (!example) {
   return Astro.redirect("/examples/");
 }
 const built = buildExamplePuzzle(example);
-const related = EXAMPLES.filter((e) => e.slug !== example.slug && e.subject === example.subject).slice(0, 3);
-const more = EXAMPLES.filter((e) => e.slug !== example.slug && !related.includes(e)).slice(0, 2);
+const related = relatedExamples(example.slug, 5);
 const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
 const pageUrl = new URL(`/examples/${example.slug}/`, site).toString();
+const reviewLabel = example.reviewState === "human_reviewed" ? "Human-reviewed" : "Sample";
 const faq = [
   {
     q: `Is this ${example.title} crossword free to print?`,
-    a: `Yes. This sample ${example.topic.toLowerCase()} crossword includes a printable grid, clues, and an answer key. Marked as ${example.reviewState === "human_reviewed" ? "Human-reviewed" : "Sample"} content.`,
+    a: `Yes. This ${example.topic.toLowerCase()} crossword is free to print for classroom or home use. The page includes a blank grid, numbered clues, and a fold-away answer key. Content is marked ${reviewLabel}.`,
+  },
+  {
+    q: "How do I print the puzzle and answer key?",
+    a: "Use the Print puzzle button (or your browser Print). Hide the answer key details before printing student sheets; expand Answer key when you need the teacher copy. For editable PDFs with name/date lines, open the printable maker.",
   },
   {
     q: "Can I make a different layout with the same topic?",
-    a: "Use Make a variant with AI to open the Topic maker prefilled with this topic, then edit clues and shuffle the layout before printing.",
+    a: `Use Make a variant with AI to open the Topic maker prefilled with “${example.topic}”, then edit clues and shuffle the layout before printing.`,
   },
   {
     q: "Are the answers fact-checked?",
     a: example.reviewState === "human_reviewed"
       ? "This page is marked Human-reviewed. Always spot-check clues for your class."
       : "This page is a Sample for inspiration — not a claim of curriculum certification or fact verification. Review clues before classroom use.",
+  },
+  {
+    q: "Can students solve this online?",
+    a: "This example page is a printable worksheet. After you create a variant in the maker, you can share a noindex play link so students solve in the browser without signing up.",
   },
 ];
 const jsonLd = [
@@ -57,34 +65,39 @@ const jsonLd = [
 
 <BaseLayout
   title={`${example.title} Crossword Puzzle (Free Printable)`}
-  description={`${example.blurb} Free printable ${example.topic.toLowerCase()} crossword with clues and answer key.`}
+  description={`${example.blurb} ${example.gradeBand}. Free printable ${example.topic.toLowerCase()} crossword with clues and answer key.`}
   canonicalPath={`/examples/${example.slug}/`}
   jsonLd={jsonLd}
 >
-  <section class="container section" style="padding-top:1.5rem;">
-    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;" aria-label="Breadcrumb">
+  <section class="container section example-page" style="padding-top:1.5rem;">
+    <nav class="muted no-print" style="font-size:0.9rem;margin-bottom:0.75rem;" aria-label="Breadcrumb">
       <a href="/">Home</a> / <a href="/examples/">Examples</a> / {example.title}
     </nav>
-    <p style="margin:0 0 0.35rem;">
+    <p class="no-print" style="margin:0 0 0.35rem;">
       <span style="display:inline-block;font-size:0.75rem;font-weight:700;padding:0.2rem 0.5rem;border-radius:4px;background:#E8EEF5;">
-        {example.reviewState === "human_reviewed" ? "Human-reviewed" : "Sample"}
+        {reviewLabel}
       </span>
+      <span class="muted" style="margin-left:0.5rem;font-size:0.9rem;">{example.gradeBand}</span>
     </p>
     <h1 style="margin:0 0 0.5rem;">{example.title} Crossword Puzzle</h1>
     <p style="max-width:62ch;margin:0 0 1rem;">{example.blurb}</p>
-    <p style="margin:0 0 1.25rem;">
-      <a href={`/ai-crossword-maker/?topic=${encodeURIComponent(example.topic)}`}>Make a variant with AI</a>
-      · <a href="/crossword-maker-for-teachers/">For teachers</a>
-      · <a href="/printable-crossword-maker/">Printable maker</a>
-      · <a href="/esl-crossword-generator/">ESL generator</a>
+    <p class="no-print example-actions" style="margin:0 0 1.25rem;display:flex;flex-wrap:wrap;gap:0.65rem;align-items:center;">
+      <button type="button" class="print-btn" onclick="window.print()">Print puzzle</button>
+      <a class="print-btn print-btn-secondary" href={`/ai-crossword-maker/?topic=${encodeURIComponent(example.topic)}`}>Make a variant with AI</a>
+      <span class="muted" style="font-size:0.92rem;">
+        <a href="/crossword-maker-for-teachers/">For teachers</a>
+        · <a href="/printable-crossword-maker/">Printable maker</a>
+        · <a href="/esl-crossword-generator/">ESL generator</a>
+        · <a href="/pricing/">Pricing</a>
+      </span>
     </p>
 
-    <div class="grid-two">
+    <div class="grid-two example-print-body">
       <div>
         <h2 class="section-title">Puzzle grid</h2>
-        <div set:html={built.svgBlank} style="overflow:auto;background:#fff;padding:0.75rem;border:1px solid var(--color-border);border-radius:8px;" />
+        <div class="example-grid-frame" set:html={built.svgBlank} />
         {!built.validationOk ? (
-          <p class="muted" style="font-size:0.9rem;">Note: this sample placed a subset of entries; regenerate locally for alternate seeds.</p>
+          <p class="muted no-print" style="font-size:0.9rem;">Note: this sample placed a subset of entries; regenerate locally for alternate seeds.</p>
         ) : null}
       </div>
       <div>
@@ -108,12 +121,15 @@ const jsonLd = [
       </div>
     </div>
 
-    <details style="margin-top:2rem;border:1px solid var(--color-border);border-radius:8px;background:#fff;padding:0.85rem 1rem;">
+    <details class="example-answer-key" style="margin-top:2rem;border:1px solid var(--color-border);border-radius:8px;background:#fff;padding:0.85rem 1rem;">
       <summary style="font-weight:700;cursor:pointer;">Answer key</summary>
       <div set:html={built.svgAnswers} style="overflow:auto;margin-top:0.75rem;" />
+      <p class="muted no-print" style="font-size:0.88rem;margin:0.75rem 0 0;">
+        Tip: leave this section collapsed when printing student copies.
+      </p>
     </details>
 
-    <section style="margin-top:2.5rem;">
+    <section class="no-print" style="margin-top:2.5rem;">
       <h2 class="section-title">FAQ</h2>
       {faq.map((item) => (
         <div style="margin-bottom:1rem;">
@@ -123,15 +139,21 @@ const jsonLd = [
       ))}
     </section>
 
-    <div style="margin-top:2rem;">
+    <div class="no-print" style="margin-top:2rem;">
       <h2 class="section-title">Related examples</h2>
-      <ul>
-        {[...related, ...more].map((ex) => (
-          <li><a href={`/examples/${ex.slug}/`}>{ex.title}</a></li>
+      <ul style="display:grid;gap:0.45rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));list-style:none;padding:0;margin:0.75rem 0 0;">
+        {related.map((ex) => (
+          <li>
+            <a href={`/examples/${ex.slug}/`} style="text-decoration:none;color:var(--color-ink);">
+              <strong>{ex.title}</strong>
+              <div class="muted" style="font-size:0.88rem;">{ex.gradeBand}</div>
+            </a>
+          </li>
         ))}
       </ul>
-      <p class="muted" style="margin-top:0.75rem;">
-        Need classroom A/B/C layouts? See <a href="/crossword-maker-for-teachers/">teacher packs</a> and <a href="/pricing/">pricing</a>.
+      <p class="muted" style="margin-top:0.85rem;">
+        Browse the full <a href="/examples/">examples index</a>. Need classroom A/B/C layouts?
+        See <a href="/crossword-maker-for-teachers/">teacher packs</a> and <a href="/pricing/">Pro pricing</a>.
       </p>
     </div>
   </section>

@@ -168,13 +168,20 @@ export default function MakerApp({
     wordCount: 12,
     difficulty: "medium",
     title: "Untitled crossword",
-    rows: initialEntries?.length ? initialEntries : SAMPLE_MANUAL_ENTRIES,
+    rows: initialEntries?.length
+      ? initialEntries
+      : initialMode === "topic"
+        ? []
+        : SAMPLE_MANUAL_ENTRIES,
     pasteText: "",
     seed: 42,
     result: null,
     entries: [],
     selectedEntryId: null,
-    statusMessage: "Enter a topic and Generate with AI, or switch to Words + clues / Load sample words.",
+    statusMessage:
+      initialMode === "topic"
+        ? "Enter a topic, then Generate with AI — preview builds automatically."
+        : "Add answers and clues, then Build grid. Switch to Topic (AI) anytime.",
     aiBlockedReason: null,
   });
   const [mobileTab, setMobileTab] = useState<"input" | "clues" | "grid" | "export">("input");
@@ -192,6 +199,13 @@ export default function MakerApp({
   const [cloudRevision, setCloudRevision] = useState<number | null>(null);
   const [cloudVersionId, setCloudVersionId] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [quota, setQuota] = useState<{ remaining: number; limit: number } | null>(null);
+  const [signedIn, setSignedIn] = useState(false);
+  const [cloudProjects, setCloudProjects] = useState<
+    Array<{ id: string; title: string; revision: number }>
+  >([]);
+  const [loadProjectId, setLoadProjectId] = useState("");
+  const [cloudLoadBusy, setCloudLoadBusy] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -323,6 +337,44 @@ export default function MakerApp({
     state.seed,
     state.title,
   ]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const [quotaRes, meRes] = await Promise.all([
+          apiFetch("/api/v1/ai/quota"),
+          apiFetch("/api/v1/auth/me"),
+        ]);
+        if (cancelled) return;
+        if (quotaRes.ok) {
+          const q = (await quotaRes.json()) as { remaining?: number; limit?: number };
+          if (typeof q.remaining === "number" && typeof q.limit === "number") {
+            setQuota({ remaining: q.remaining, limit: q.limit });
+          }
+        }
+        if (meRes.ok) {
+          const me = (await meRes.json()) as { authenticated?: boolean };
+          const ok = Boolean(me.authenticated);
+          setSignedIn(ok);
+          if (ok) {
+            const projectsRes = await apiFetch("/api/v1/projects");
+            if (!cancelled && projectsRes.ok) {
+              const data = (await projectsRes.json()) as {
+                projects?: Array<{ id: string; title: string; revision: number }>;
+              };
+              setCloudProjects(data.projects ?? []);
+            }
+          }
+        }
+      } catch {
+        /* API optional on static marketing pages */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const validation = useMemo(() => {
     if (!state.result || !state.entries.length) return null;
@@ -652,6 +704,48 @@ export default function MakerApp({
     };
   }
 
+  async function loadCloudProject(projectId: string) {
+    if (!projectId) return;
+    setCloudLoadBusy(true);
+    try {
+      const res = await apiFetch(`/api/v1/projects/${projectId}`);
+      const data = await res.json();
+      if (!res.ok || !data.headVersion?.snapshot) {
+        dispatch({
+          type: "setStatus",
+          statusMessage: data?.error?.message ?? "Could not load cloud puzzle.",
+        });
+        return;
+      }
+      const hydrated = hydrateFromSnapshot(data.headVersion.snapshot as CloudSnapshot);
+      setCloudProjectId(projectId);
+      setCloudVersionId(data.headVersion.id);
+      setCloudRevision(data.revision ?? 1);
+      setCloudPath(`/app/puzzles/${projectId}/edit/`);
+      pushHistory(hydrated.rows);
+      dispatch({
+        type: "hydrate",
+        payload: {
+          mode: "manual",
+          title: hydrated.title,
+          seed: hydrated.seed,
+          rows: hydrated.rows,
+        },
+      });
+      dispatch({
+        type: "setBuild",
+        result: hydrated.result,
+        entries: hydrated.entries,
+        statusMessage: `Loaded “${hydrated.title}” from cloud. Edit, then Save new cloud version.`,
+      });
+      setMobileTab("grid");
+    } catch {
+      dispatch({ type: "setStatus", statusMessage: "Cloud load failed — is the API running?" });
+    } finally {
+      setCloudLoadBusy(false);
+    }
+  }
+
   async function saveToCloud() {
     const snapshot = currentSnapshot();
     if (!snapshot) return;
@@ -660,13 +754,16 @@ export default function MakerApp({
       const me = await apiFetch("/api/v1/auth/me");
       const meData = await me.json();
       if (!meData.authenticated) {
+        setSignedIn(false);
         dispatch({
           type: "setStatus",
-          statusMessage: "Sign in to save a cloud puzzle.",
+          statusMessage: "Sign in to save a cloud puzzle — local draft still autosaves here.",
         });
-        window.location.href = "/login/";
+        const next = encodeURIComponent(`${window.location.pathname}${window.location.search}`);
+        window.location.href = `/login/?next=${next}`;
         return;
       }
+      setSignedIn(true);
 
       if (cloudProjectId && cloudRevision != null) {
         const res = await apiFetch(`/api/v1/projects/${cloudProjectId}`, {
@@ -784,15 +881,21 @@ export default function MakerApp({
       }
 
       if (res.status === 429) {
+        const exhausted = body?.quota as { remaining?: number; limit?: number } | undefined;
+        if (exhausted?.limit != null) {
+          setQuota({ remaining: 0, limit: exhausted.limit });
+        } else if (quota) {
+          setQuota({ remaining: 0, limit: quota.limit });
+        }
         dispatch({
           type: "setAiBlocked",
           reason:
             body?.error?.message ||
-            "Daily anonymous AI demo limit reached. Switch to manual mode or browse Examples.",
+            "Daily free AI demo limit reached. Upgrade for more Topic generations, or keep editing manually.",
         });
         dispatch({
           type: "setStatus",
-          statusMessage: "AI quota exhausted for today — manual Build grid still works.",
+          statusMessage: "AI quota exhausted for today — Build grid / Examples still work. See Pricing for Pro.",
         });
         return;
       }
@@ -811,8 +914,10 @@ export default function MakerApp({
         throw new Error("AI returned no entries.");
       }
 
+      if (data.quota) setQuota({ remaining: data.quota.remaining, limit: data.quota.limit });
       pushHistory(data.entries);
       if (data.title) dispatch({ type: "setTitle", title: data.title });
+      // Stay on Topic path mentally: keep editing in place, then jump to grid preview.
       dispatch({ type: "setMode", mode: "manual" });
       const quotaNote =
         data.quota != null
@@ -824,7 +929,8 @@ export default function MakerApp({
         statusMessage: `AI suggestions loaded${mockNote}.${quotaNote} Building preview grid…`,
       });
       // First-visit demo: generate + preview without an extra click.
-      buildFromRows(data.entries, "AI preview ready.");
+      buildFromRows(data.entries, "AI preview ready — edit clues, then print or Save to cloud.");
+      setMobileTab("grid");
     } catch (err) {
       dispatch({
         type: "setAiBlocked",
@@ -875,7 +981,16 @@ export default function MakerApp({
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
           {validation?.ok ? <StatusPill label="Grid checks passed" tone="ok" /> : null}
           {validation && !validation.ok ? <StatusPill label="Clues / grid need review" tone="warn" /> : null}
-          <StatusPill label="Local draft autosave" tone="neutral" />
+          {quota ? (
+            <StatusPill
+              label={`AI demo ${quota.remaining}/${quota.limit} today`}
+              tone={quota.remaining > 0 ? "neutral" : "warn"}
+            />
+          ) : null}
+          <StatusPill
+            label={signedIn ? "Signed in · cloud ready" : "Local draft autosave"}
+            tone="neutral"
+          />
         </div>
       </div>
 
@@ -962,6 +1077,9 @@ export default function MakerApp({
 
           {state.mode === "topic" ? (
             <div style={{ display: "grid", gap: "0.75rem" }}>
+              <p className="muted" style={{ margin: 0, fontSize: "0.92rem" }}>
+                1) Type a classroom topic → 2) Generate with AI → 3) Edit clues &amp; print. Grid layout never spends AI credits.
+              </p>
               <label style={{ display: "grid", gap: "0.35rem" }}>
                 <span style={{ fontWeight: 650 }}>Topic</span>
                 <input
@@ -969,6 +1087,12 @@ export default function MakerApp({
                   onChange={(e) => dispatch({ type: "setTopic", topic: e.target.value })}
                   placeholder="e.g. Solar System for grade 5"
                   style={inputStyle}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && state.topic.trim() && !aiLoading) {
+                      e.preventDefault();
+                      void runTopicAi();
+                    }
+                  }}
                 />
               </label>
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
@@ -1008,10 +1132,15 @@ export default function MakerApp({
                   disabled={
                     !state.topic.trim() ||
                     aiLoading ||
+                    (quota != null && quota.remaining <= 0) ||
                     (turnstileConfigured() && !turnstileToken)
                   }
                 >
-                  {aiLoading ? "Generating…" : "Generate with AI"}
+                  {aiLoading
+                    ? "Generating…"
+                    : quota != null && quota.remaining <= 0
+                      ? "Daily AI limit reached"
+                      : "Generate with AI"}
                 </Button>
                 <Button
                   variant="secondary"
@@ -1019,6 +1148,10 @@ export default function MakerApp({
                     pushHistory(SAMPLE_MANUAL_ENTRIES);
                     dispatch({ type: "setMode", mode: "manual" });
                     dispatch({ type: "setTitle", title: "Solar System (Sample)" });
+                    dispatch({
+                      type: "setStatus",
+                      statusMessage: "Loaded sample words — click Build grid (no AI).",
+                    });
                   }}
                 >
                   Load sample words
@@ -1037,15 +1170,32 @@ export default function MakerApp({
                 </Button>
               </div>
               {state.aiBlockedReason ? (
-                <p style={{ margin: 0, color: "var(--color-warn)", fontSize: "0.92rem" }}>
-                  {state.aiBlockedReason}{" "}
-                  <a href="/examples/">Browse examples</a>
-                  {" · "}
-                  <a href="/crossword-maker-from-word-list/">Word list maker</a>
-                </p>
+                <div
+                  role="alert"
+                  style={{
+                    margin: 0,
+                    padding: "0.7rem 0.85rem",
+                    borderRadius: 8,
+                    border: "1px solid #e6d4a8",
+                    background: "#fff8e8",
+                    color: "var(--color-warn)",
+                    fontSize: "0.92rem",
+                  }}
+                >
+                  <div>{state.aiBlockedReason}</div>
+                  <div style={{ marginTop: "0.35rem" }}>
+                    <a href="/pricing/">Upgrade on Pricing</a>
+                    {" · "}
+                    <a href="/examples/">Browse examples</a>
+                    {" · "}
+                    <a href="/crossword-maker-from-word-list/">Word list maker</a>
+                  </div>
+                </div>
               ) : (
                 <p className="muted" style={{ margin: 0, fontSize: "0.9rem" }}>
-                  Free anonymous demo uses a daily quota when the API is enabled. Layout never spends AI credits.
+                  {quota
+                    ? `Free demo: ${quota.remaining} of ${quota.limit} AI ops left today. Layout reshuffles are free.`
+                    : "Free anonymous demo uses a daily quota when the API is enabled. Layout never spends AI credits."}
                 </p>
               )}
             </div>
@@ -1076,7 +1226,7 @@ export default function MakerApp({
           {state.mode === "words" || state.mode === "manual" || state.mode === "topic" ? (
             <div style={{ marginTop: state.mode === "topic" ? "1rem" : 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem", marginBottom: "0.5rem" }}>
-                <strong>Entries</strong>
+                <strong>Entries{state.rows.length ? ` (${state.rows.length})` : ""}</strong>
                 <div style={{ display: "flex", gap: "0.35rem" }}>
                   <Button variant="ghost" onClick={undo} disabled={!history.length}>
                     Undo
@@ -1089,6 +1239,11 @@ export default function MakerApp({
                   </Button>
                 </div>
               </div>
+              {state.mode === "topic" && state.rows.length === 0 ? (
+                <p className="muted" style={{ margin: "0 0 0.65rem", fontSize: "0.9rem" }}>
+                  Entries appear here after Generate with AI — or Add row to draft manually.
+                </p>
+              ) : null}
               <div style={{ display: "grid", gap: "0.45rem", maxHeight: 320, overflow: "auto" }}>
                 {state.rows.map((row, index) => (
                   <div
@@ -1200,12 +1355,64 @@ export default function MakerApp({
               >
                 {cloudBusy
                   ? "Saving…"
-                  : cloudProjectId
-                    ? "Save new cloud version"
-                    : "Save to cloud"}
+                  : !signedIn
+                    ? "Sign in to save"
+                    : cloudProjectId
+                      ? "Save new cloud version"
+                      : "Save to cloud"}
               </Button>
             </div>
           </div>
+          {signedIn && cloudProjects.length > 0 ? (
+            <div
+              style={{
+                display: "flex",
+                gap: "0.5rem",
+                flexWrap: "wrap",
+                alignItems: "center",
+                marginTop: "0.75rem",
+              }}
+            >
+              <label style={{ display: "flex", gap: "0.4rem", alignItems: "center", flex: "1 1 220px" }}>
+                <span className="muted" style={{ fontSize: "0.9rem", whiteSpace: "nowrap" }}>
+                  Load cloud
+                </span>
+                <select
+                  value={loadProjectId}
+                  onChange={(e) => setLoadProjectId(e.target.value)}
+                  style={{ ...inputStyle, flex: 1 }}
+                  aria-label="Load cloud puzzle"
+                >
+                  <option value="">Select a saved puzzle…</option>
+                  {cloudProjects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title} (rev {p.revision})
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <Button
+                variant="secondary"
+                disabled={!loadProjectId || cloudLoadBusy}
+                onClick={() => void loadCloudProject(loadProjectId)}
+              >
+                {cloudLoadBusy ? "Loading…" : "Load"}
+              </Button>
+              <a href="/app/" style={{ fontSize: "0.9rem" }}>
+                My puzzles
+              </a>
+            </div>
+          ) : signedIn ? (
+            <p className="muted" style={{ margin: "0.65rem 0 0", fontSize: "0.9rem" }}>
+              No cloud puzzles yet — Save to cloud after you build a grid.{" "}
+              <a href="/app/">Open library</a>
+            </p>
+          ) : (
+            <p className="muted" style={{ margin: "0.65rem 0 0", fontSize: "0.9rem" }}>
+              Local drafts autosave in this browser. <a href="/login/?next=/app/">Sign in</a> to
+              save/load cloud puzzles across devices.
+            </p>
+          )}
           {shareUrl ? (
             <p style={{ margin: "0.65rem 0 0", fontSize: "0.92rem" }}>
               Share (noindex): <a href={shareUrl}>{shareUrl}</a>
