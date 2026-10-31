@@ -1233,6 +1233,106 @@ export const EXAMPLES: ExamplePuzzle[] = [
       { answer: "RAINFOREST", clue: "Warm wet forest with very high yearly rainfall" },
     ],
   },
+  {
+    slug: "electricity",
+    title: "Electricity",
+    topic: "Electricity",
+    subject: "science",
+    gradeBand: "Grades 3–6 physical science",
+    blurb:
+      "Free printable electricity crossword for physical science — circuit, current, voltage, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "CIRCUIT", clue: "Closed path that lets electric charge travel" },
+      { answer: "CURRENT", clue: "Flow of electric charge through a path" },
+      { answer: "VOLTAGE", clue: "Push that drives charge through a path" },
+      { answer: "WIRE", clue: "Metal strand that carries charge in a path" },
+      { answer: "BATTERY", clue: "Portable source that stores chemical energy for a path" },
+      { answer: "SWITCH", clue: "Device that opens or closes a path on purpose" },
+      { answer: "CONDUCTOR", clue: "Material that lets charge move through it easily" },
+      { answer: "INSULATOR", clue: "Material that resists the flow of charge" },
+    ],
+  },
+  {
+    slug: "westward-expansion",
+    title: "Westward Expansion",
+    topic: "Westward Expansion",
+    subject: "social",
+    gradeBand: "Grades 4–8 U.S. history",
+    blurb:
+      "Free printable westward expansion crossword for U.S. history — pioneer, frontier, trail, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "PIONEER", clue: "Early settler who moves into little-known land" },
+      { answer: "FRONTIER", clue: "Edge of settled land next to wilder territory" },
+      { answer: "WAGON", clue: "Covered vehicle pulled by animals on long journeys" },
+      { answer: "TRAIL", clue: "Marked overland route used by migrating families" },
+      { answer: "SETTLER", clue: "Person who builds a home on newly claimed land" },
+      { answer: "HOMESTEAD", clue: "Farm claim granted to a family that works the land" },
+      { answer: "RAILROAD", clue: "Tracks and trains that sped travel across the continent" },
+      { answer: "TERRITORY", clue: "Land organized by the nation before it became a state" },
+    ],
+  },
+  {
+    slug: "root-words",
+    title: "Root Words",
+    topic: "Root Words",
+    subject: "language",
+    gradeBand: "Grades 3–6 language arts",
+    blurb:
+      "Free printable root words crossword for ELA — root, prefix, suffix, and related morphology terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "ROOT", clue: "Main word part that carries the core meaning" },
+      { answer: "PREFIX", clue: "Word part added before a base to change meaning" },
+      { answer: "SUFFIX", clue: "Word part added after a base to change meaning" },
+      { answer: "BASE", clue: "Simple form a longer word is built from" },
+      { answer: "MEANING", clue: "Idea or definition a word part carries" },
+      { answer: "AFFIX", clue: "General name for a part added before or after a base" },
+      { answer: "STEM", clue: "Form of a word before certain endings are attached" },
+      { answer: "ORIGIN", clue: "Language source a classroom word part comes from" },
+    ],
+  },
+  {
+    slug: "multiplication",
+    title: "Multiplication",
+    topic: "Multiplication",
+    subject: "classroom",
+    gradeBand: "Grades 2–5 math",
+    blurb:
+      "Free printable multiplication crossword for elementary math — product, factor, array, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "PRODUCT", clue: "Result you get when you multiply two numbers" },
+      { answer: "FACTOR", clue: "One of the numbers you multiply together" },
+      { answer: "MULTIPLY", clue: "Combine equal groups to find a total" },
+      { answer: "TIMES", clue: "Everyday word that signals a multiply operation" },
+      { answer: "ARRAY", clue: "Rows and columns that show equal groups" },
+      { answer: "ZERO", clue: "Number that makes any product equal nothing" },
+      { answer: "DOUBLE", clue: "Multiply a number by two" },
+      { answer: "TRIPLE", clue: "Multiply a number by three" },
+    ],
+  },
+  {
+    slug: "fossils",
+    title: "Fossils",
+    topic: "Fossils",
+    subject: "science",
+    gradeBand: "Grades 3–6 earth science",
+    blurb:
+      "Free printable fossils crossword for earth science — amber, imprint, sediment, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "FOSSIL", clue: "Preserved remains or traces of ancient living things" },
+      { answer: "AMBER", clue: "Hardened tree resin that can trap insects" },
+      { answer: "IMPRINT", clue: "Shape left in rock by a leaf, shell, or footprint" },
+      { answer: "BONE", clue: "Hard body part often found preserved in rock layers" },
+      { answer: "SEDIMENT", clue: "Layers of mud, sand, or silt that can bury remains" },
+      { answer: "EXTINCT", clue: "No longer living anywhere on Earth" },
+      { answer: "DIG", clue: "Careful excavation that uncovers buried remains" },
+      { answer: "PRESERVE", clue: "Keep remains from decaying so they last a long time" },
+    ],
+  },
 ];
 
 /** High-intent classroom / ESL long-tail seeds prioritized for quality review. */
@@ -1322,6 +1422,15 @@ export const LONG_TAIL_BATCH_7_SLUGS = [
   "compound-words",
   "area-and-perimeter",
   "biomes",
+] as const;
+
+/** Eighth long-tail classroom batch (electricity / expansion / roots / multiply / fossils). */
+export const LONG_TAIL_BATCH_8_SLUGS = [
+  "electricity",
+  "westward-expansion",
+  "root-words",
+  "multiplication",
+  "fossils",
 ] as const;
 
 export function getExample(slug: string) {

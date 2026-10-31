@@ -15,15 +15,15 @@ Updated: 2026-10-31
 | 07 Packs / batch export | PARTIAL — A/B/C packs + ZIP/R2 export (queue + inline); consumer processes `pack_export` |
 | 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal APIs |
 | 09 Stripe / ledger / admin | PARTIAL — Hybrid Stripe/Creem + ledger; **admin skeleton** (`/admin`, `/api/v1/admin/*`, audit + ops flags) |
-| 10 SEO polish / deploy hardening | IN PROGRESS — long-tail batch-7 examples + `/vs/easy-puzzle-maker/` + history vocabulary how-to |
+| 10 SEO polish / deploy hardening | IN PROGRESS — long-tail batch-8 examples + `/vs/teachers-corner/` + geography vocabulary how-to |
 
 ## Latest slice (product iteration)
 
-- Merged long-tail batch-6 + Armored Penguin + social studies how-to via PR #17 → `main` @ `c127d18`
-- Examples: +5 human-reviewed long-tail seeds (`LONG_TAIL_BATCH_7_SLUGS`) — volcanoes, thirteen-colonies, compound-words, area-and-perimeter, biomes; examples index long-tail strip
-- Blog: `/blog/how-to-make-a-history-vocabulary-crossword/` + catalog mesh
-- SEO: honest `/vs/easy-puzzle-maker/` (FAQPage, no AggregateRating fiction); footer/pricing/blog/how-it-works/vs hub links
-- Maker UX: Topic quick-picks + example seeds refreshed to batch-7; history how-to deep link
+- Merged long-tail batch-7 + Easy Puzzle Maker + history how-to via PR #18 → `main` @ `75d4b95`
+- Examples: +5 human-reviewed long-tail seeds (`LONG_TAIL_BATCH_8_SLUGS`) — electricity, westward-expansion, root-words, multiplication, fossils; examples index long-tail strip
+- Blog: `/blog/how-to-make-a-geography-vocabulary-crossword/` + catalog mesh
+- SEO: honest `/vs/teachers-corner/` (FAQPage, no AggregateRating fiction); footer/pricing/blog/how-it-works/vs hub links
+- Maker UX: Topic quick-picks + example seeds refreshed to batch-8; geography how-to deep link
 
 ## Open decisions
 

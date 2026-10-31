@@ -10,6 +10,7 @@ import {
   LONG_TAIL_BATCH_5_SLUGS,
   LONG_TAIL_BATCH_6_SLUGS,
   LONG_TAIL_BATCH_7_SLUGS,
+  LONG_TAIL_BATCH_8_SLUGS,
   LONG_TAIL_EXPANSION_SLUGS,
   SECOND_PASS_REVIEWED_SLUGS,
   getExample,
@@ -122,6 +123,17 @@ describe("examples quality", () => {
     }
   });
 
+  it("marks long-tail batch-8 seeds as human-reviewed with printable blurbs", () => {
+    expect(LONG_TAIL_BATCH_8_SLUGS.length).toBeGreaterThanOrEqual(5);
+    for (const slug of LONG_TAIL_BATCH_8_SLUGS) {
+      const ex = getExample(slug);
+      expect(ex, slug).toBeTruthy();
+      expect(ex!.reviewState).toBe("human_reviewed");
+      expect(ex!.blurb.toLowerCase()).toMatch(/print|crossword|vocabulary|answer/);
+      expect(ex!.entries.every((e) => e.clue.trim().length >= 12)).toBe(true);
+    }
+  });
+
   it("keeps a blog ↔ examples internal link mesh", () => {
     expect(BLOG_POSTS.length).toBeGreaterThanOrEqual(3);
     for (const post of BLOG_POSTS) {
@@ -141,6 +153,7 @@ describe("examples quality", () => {
       ...LONG_TAIL_BATCH_5_SLUGS,
       ...LONG_TAIL_BATCH_6_SLUGS,
       ...LONG_TAIL_BATCH_7_SLUGS,
+      ...LONG_TAIL_BATCH_8_SLUGS,
     ]) {
       const posts = blogPostsForExample(slug, 2);
       expect(posts.length).toBeGreaterThanOrEqual(1);
