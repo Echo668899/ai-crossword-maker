@@ -21,7 +21,7 @@ queue = "acm-jobs"
 
 [vars]
 PUBLIC_SITE_URL = "https://aicrosswordmaker.com"
-AI_ENABLED = "false"
+AI_ENABLED = "true"
 AI_ANON_DEMO_ENABLED = "true"
 AI_MAX_RETRIES = "2"
 PLAN_VERSION = "2026-10-31.hybrid.v1"
