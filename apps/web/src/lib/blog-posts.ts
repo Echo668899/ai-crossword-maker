@@ -102,6 +102,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "water-cycle",
       "simple-machines",
       "phases-of-the-moon",
+      "force-and-motion",
+      "life-cycles",
     ],
   },
   {
@@ -122,6 +124,27 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "irregular-verbs",
       "parts-of-speech",
       "place-value",
+      "prefixes-and-suffixes",
+    ],
+  },
+  {
+    slug: "how-to-make-a-math-vocabulary-crossword",
+    title: "How to Make a Math Vocabulary Crossword",
+    description:
+      "Turn a math unit word bank into a printable crossword with definition clues, interlocking grid, and answer key.",
+    toolPaths: [
+      "/ai-crossword-maker/",
+      "/crossword-maker-from-word-list/",
+      "/printable-crossword-maker/",
+      "/crossword-maker-for-teachers/",
+    ],
+    exampleSlugs: [
+      "measurement",
+      "place-value",
+      "geometry-shapes",
+      "fractions",
+      "money-math",
+      "telling-time",
     ],
   },
 ];

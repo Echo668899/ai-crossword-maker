@@ -933,6 +933,106 @@ export const EXAMPLES: ExamplePuzzle[] = [
       { answer: "ECLIPSE", clue: "Event when Earth, Moon, and Sun line up and block light" },
     ],
   },
+  {
+    slug: "force-and-motion",
+    title: "Force and Motion",
+    topic: "Force and Motion",
+    subject: "science",
+    gradeBand: "Grades 3–6 physical science",
+    blurb:
+      "Free printable force and motion crossword for physics units — push, friction, gravity, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "FORCE", clue: "A push or pull that can change an object's motion" },
+      { answer: "MOTION", clue: "Change in an object's position over time" },
+      { answer: "SPEED", clue: "How fast an object travels relative to time" },
+      { answer: "MASS", clue: "Amount of matter in an object, measured in grams or kilograms" },
+      { answer: "FRICTION", clue: "Force that resists sliding when surfaces rub" },
+      { answer: "GRAVITY", clue: "Force that pulls objects toward Earth's center" },
+      { answer: "INERTIA", clue: "Tendency of an object to keep its current motion" },
+      { answer: "BALANCE", clue: "State when opposing forces cancel so net force is zero" },
+    ],
+  },
+  {
+    slug: "branches-of-government",
+    title: "Branches of Government",
+    topic: "Branches of Government",
+    subject: "social",
+    gradeBand: "Grades 4–8 civics",
+    blurb:
+      "Free printable U.S. government branches crossword for civics — executive, legislative, judicial, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "EXECUTIVE", clue: "Branch that carries out laws, led by the president" },
+      { answer: "SENATE", clue: "Upper chamber of Congress with two members per state" },
+      { answer: "JUDICIAL", clue: "Branch that interprets laws through the courts" },
+      { answer: "CONGRESS", clue: "Legislative body made of the House and Senate" },
+      { answer: "VETO", clue: "Presidential power to reject a bill passed by Congress" },
+      { answer: "COURT", clue: "Place where judges hear cases and apply the law" },
+      { answer: "BALLOT", clue: "Form or method used to cast a vote in an election" },
+      { answer: "CONSTITUTION", clue: "Supreme written plan of government for the United States" },
+    ],
+  },
+  {
+    slug: "prefixes-and-suffixes",
+    title: "Prefixes and Suffixes",
+    topic: "Prefixes and Suffixes",
+    subject: "language",
+    gradeBand: "Grades 3–6 language arts",
+    blurb:
+      "Free printable prefixes and suffixes crossword for morphology practice — root, affix, and related word-building terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "PREFIX", clue: "Word part added to the beginning of a base word" },
+      { answer: "SUFFIX", clue: "Word part added to the end of a base word" },
+      { answer: "ROOT", clue: "Main part of a word that carries the core meaning" },
+      { answer: "AFFIX", clue: "General name for a prefix or suffix attached to a root" },
+      { answer: "BASE", clue: "Standalone word before any prefix or suffix is added" },
+      { answer: "MEANING", clue: "Definition a word gains after an affix changes it" },
+      { answer: "PLURAL", clue: "Form that shows more than one, often ending in -s or -es" },
+      { answer: "ENDING", clue: "Letters at the tail of a word that can change its form" },
+    ],
+  },
+  {
+    slug: "measurement",
+    title: "Measurement",
+    topic: "Measurement",
+    subject: "classroom",
+    gradeBand: "Grades 2–5 math",
+    blurb:
+      "Free printable measurement crossword for early math — length, volume, mass, and related units with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "INCH", clue: "Customary unit of length equal to one twelfth of a foot" },
+      { answer: "METER", clue: "Basic metric unit used to measure length or distance" },
+      { answer: "LITER", clue: "Metric unit commonly used to measure liquid volume" },
+      { answer: "GRAM", clue: "Metric unit used to measure small amounts of mass" },
+      { answer: "VOLUME", clue: "Amount of space a liquid or object takes up" },
+      { answer: "LENGTH", clue: "Distance measured from one end of an object to the other" },
+      { answer: "RULER", clue: "Straight tool marked with units for measuring length" },
+      { answer: "SCALE", clue: "Tool that measures how heavy an object is" },
+    ],
+  },
+  {
+    slug: "life-cycles",
+    title: "Life Cycles",
+    topic: "Life Cycles",
+    subject: "science",
+    gradeBand: "Grades 2–5 life science",
+    blurb:
+      "Free printable life cycles crossword for biology units — egg, larva, pupa, adult, and related terms with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "EGG", clue: "First stage for many insects and animals before hatching" },
+      { answer: "LARVA", clue: "Young insect stage that often looks like a caterpillar" },
+      { answer: "PUPA", clue: "Resting stage when a larva changes into an adult insect" },
+      { answer: "ADULT", clue: "Final stage when an animal can reproduce" },
+      { answer: "CYCLE", clue: "Series of stages that repeats as a living thing grows" },
+      { answer: "HATCH", clue: "Break out of an egg at the start of life" },
+      { answer: "NYMPH", clue: "Young stage of some insects that looks like a small adult" },
+      { answer: "GROWTH", clue: "Increase in size as an organism moves through its stages" },
+    ],
+  },
 ];
 
 /** High-intent classroom / ESL long-tail seeds prioritized for quality review. */
@@ -995,6 +1095,15 @@ export const LONG_TAIL_BATCH_4_SLUGS = [
   "homophones",
   "place-value",
   "phases-of-the-moon",
+] as const;
+
+/** Fifth long-tail classroom batch (physics / civics / morphology / math / life science). */
+export const LONG_TAIL_BATCH_5_SLUGS = [
+  "force-and-motion",
+  "branches-of-government",
+  "prefixes-and-suffixes",
+  "measurement",
+  "life-cycles",
 ] as const;
 
 export function getExample(slug: string) {

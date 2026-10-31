@@ -1,0 +1,131 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getBlogPost, relatedBlogPosts } from "../../../lib/blog-posts";
+import { getExample } from "../../../lib/examples";
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const meta = getBlogPost("how-to-make-a-math-vocabulary-crossword")!;
+const relatedGuides = relatedBlogPosts(meta.slug);
+const featuredExamples = meta.exampleSlugs.map((s) => getExample(s)).filter(Boolean);
+const title = "How to Make a Math Vocabulary Crossword — Printable Worksheet";
+const description =
+  "Turn a math unit word bank into a printable crossword: pick a topic or paste terms, edit clues, build the grid, and export a student sheet plus answer key.";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath="/blog/how-to-make-a-math-vocabulary-crossword/"
+  jsonLd={[
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: "How to Make a Math Vocabulary Crossword",
+      description,
+      inLanguage: "en",
+      mainEntityOfPage: `${site}/blog/how-to-make-a-math-vocabulary-crossword/`,
+      author: { "@type": "Organization", name: "AI Crossword Maker" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
+        { "@type": "ListItem", position: 2, name: "Blog", item: `${site}/blog/` },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: "How to make a math vocabulary crossword",
+          item: `${site}/blog/how-to-make-a-math-vocabulary-crossword/`,
+        },
+      ],
+    },
+  ]}
+>
+  <article class="container section prose" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / <a href="/blog/">Blog</a> / Math vocabulary crossword
+    </nav>
+    <h1>How to Make a Math Vocabulary Crossword</h1>
+    <p>
+      Math units hinge on precise vocabulary — place value, measurement units, fraction language — that students must spell and define, not only compute.
+      A short printable crossword turns that word bank into retrieval practice with an answer key you can grade quickly.
+    </p>
+    <p>
+      <a href="/ai-crossword-maker/"><strong>Generate from a math topic</strong></a>
+      or
+      <a href="/crossword-maker-from-word-list/">paste your unit word list</a>
+      · teacher presets on
+      <a href="/crossword-maker-for-teachers/">Teachers</a>.
+    </p>
+
+    <h2>1. Start from the unit word bank (or a topic)</h2>
+    <p>
+      Collect 8–16 A–Z answers from your lesson: textbook glossary, exit-ticket terms, or standards checklist.
+      Prefer concrete nouns (INCH, NUMERATOR, ANGLE) over multi-word phrases that will not fit a teaching grid.
+      If you do not have a list yet, open Topic mode and try a classroom chip like “Measurement for grade 3” or “Place Value for grade 3”.
+    </p>
+
+    <h2>2. Prefer definition clues over computation riddles</h2>
+    <p>
+      Math vocabulary clues work best as short definitions (“Metric unit used to measure liquid volume”) rather than story problems that hide the answer.
+      AI drafts are a starting point — edit any clue that feels too vague or that repeats the answer word.
+      Keep one idea per clue so early readers and ESL students can succeed without guessing slang.
+    </p>
+
+    <h2>3. Build the grid, then skim placements</h2>
+    <p>
+      Click <strong>Build grid</strong>. If a long term will not place, shorten the list or swap a classroom synonym.
+      You can also <strong>Load example seed</strong> from a reviewed math printable and edit in place — no AI credit spent for layout.
+    </p>
+
+    <h2>4. Print puzzle + answer key</h2>
+    <p>
+      Use
+      <a href="/printable-crossword-maker/">Printable</a>
+      or the Teachers landing for Letter/A4, optional name/class/date lines, and a matching answer key.
+      Free exports may include a light site footer; Pro removes branding. Step-by-step print tips:
+      <a href="/blog/how-to-print-crossword-worksheets/">How to print crossword worksheets</a>.
+    </p>
+
+    <h2>Ready math examples</h2>
+    <p>
+      Start from a reviewed printable:
+      <a href="/examples/measurement/">measurement</a>,
+      <a href="/examples/place-value/">place value</a>,
+      <a href="/examples/geometry-shapes/">geometry shapes</a>,
+      or <a href="/examples/fractions/">fractions</a>.
+    </p>
+    <ul>
+      {
+        featuredExamples.map((ex) =>
+          ex ? (
+            <li>
+              <a href={`/examples/${ex.slug}/`}>{ex.title}</a>
+              <span class="muted"> — {ex.gradeBand}</span>
+            </li>
+          ) : null,
+        )
+      }
+    </ul>
+
+    <h2>Related guides</h2>
+    <ul>
+      {
+        relatedGuides.map((g) => (
+          <li>
+            <a href={`/blog/${g.slug}/`}>{g.title}</a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="muted" style="font-size:0.92rem;">
+      Comparing tools?
+      <a href="/vs/">Honest comparisons</a>
+      · <a href="/vs/discovery-education-puzzlemaker/">vs Discovery Education Puzzlemaker</a>
+      · <a href="/vs/eclipse-crossword/">vs Eclipse Crossword</a>
+      · <a href="/vs/my-crossword-maker/">vs My Crossword Maker</a>
+      · <a href="/vs/crossword-labs/">vs Crossword Labs</a>
+    </p>
+  </article>
+</BaseLayout>
