@@ -32,3 +32,10 @@ AUTH_DEV_RETURN_LINK=true
 # CREEM_PRODUCT_CREDITS_50=
 # CREEM_PRODUCT_CREDITS_100=
 # CREEM_PRODUCT_ACTIVITY_PACK=
+
+# Turnstile (anon AI anti-abuse). Create widget in Cloudflare dashboard; never commit the secret.
+# TURNSTILE_SECRET_KEY=
+# TURNSTILE_REQUIRED=false
+# TURNSTILE_HOSTNAMES=aicrosswordmaker.com,localhost,127.0.0.1
+# TURNSTILE_ACTION=ai-topic
+# Frontend: set PUBLIC_TURNSTILE_SITE_KEY in apps/web env / Pages vars.

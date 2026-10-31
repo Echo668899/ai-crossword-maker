@@ -14,13 +14,19 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 | GET | `/auth/google` + `/callback` | Live when Google OAuth env set |
 | POST | `/auth/logout` | Live |
 | GET | `/projects` | Live — signed-in cloud projects |
+| POST | `/projects` | Live — create cloud project + head version from snapshot |
+| GET | `/projects/:id` | Live — project + latest snapshot (owner) |
+| PATCH | `/projects/:id` | Live — title/folder/archive/snapshot; `expectedRevision` → 409 on conflict |
 | GET | `/projects/:id/versions` | Live — immutable version list (plan-capped) |
 | POST | `/projects/:id/versions` | Live — save snapshot version |
 | GET | `/projects/:id/versions/:versionId` | Live — load snapshot (owner only) |
 | GET | `/packs` | Live — activity packs + entitlement access summary |
 | POST | `/packs` | Live — create pack with A/B/C layout variants (Activity Pack / Pro) |
 | GET | `/packs/:id` | Live — pack detail + items |
-| POST | `/packs/:id/export` | Live — sync JSON export manifest (ZIP+R2 later) |
+| POST | `/packs/:id/export` | Live — queue or inline ZIP→R2 (`?sync=1`); manifest-only if FILES unbound |
+| GET | `/jobs/:id` | Live — job status + download path when ready |
+| GET | `/jobs/:id/download` | Live — owner download of private R2 ZIP |
+| POST | `/jobs/:id/process` | Live — inline reprocess (dev/ops when consumer offline) |
 | POST | `/shares` | Live — publish snapshot → unlisted share token |
 | POST | `/shares/:token/revoke` | Live — owner revoke |
 | GET | `/play/:token` | Live — play payload **without answers** |
@@ -39,7 +45,8 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 - Response: `{ title, themeBlurb?, entries[{answer,clue}], reviewState: "needs_review", quota?, model?, mock? }`.
 - Model must not return grid/coordinates/numbering/entitlements; server assigns IDs and sanitizes A–Z answers.
 - Anon daily quota: `pricing.free.anonAiDemoPerDay` (default 3) keyed by hashed IP+UA; D1 when bound, else in-memory.
-- Secrets: `OPENAI_API_KEY` only via Worker secrets / `.dev.vars` — never git or response bodies.
+- Anti-abuse: optional Turnstile (`TURNSTILE_SECRET_KEY` + `turnstileToken`); burst rate limit per IP; `TURNSTILE_REQUIRED=true` fails closed if secret missing.
+- Secrets: `OPENAI_API_KEY` / `TURNSTILE_SECRET_KEY` only via Worker secrets / `.dev.vars` — never git or response bodies.
 - Logs: model, request id, latency, entry counts — never raw topic text or API keys.
 
 ## Auth + share
@@ -52,8 +59,9 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 
 - Creating packs requires `activity_pack` entitlement or Pro; Free gets `403 entitlement_required`.
 - Variants reuse the same clues with different seeds/layouts (A/B/C…).
-- Export returns a sync manifest (`students/`, `answer-keys/`, `instructions/`); student files omit answer grids.
-- Project versions are immutable snapshots with plan-based history caps.
+- Export enqueues `pack_export` (or inline with `?sync=1` / missing `JOBS`): ZIP with student PDFs + answer-key PDFs + JSON + `manifest.json` → private R2 `FILES`.
+- Student JSON/PDF omit answer grids; answer-keys keep grids. Download via `/jobs/:id/download` (authz).
+- Project versions are immutable snapshots with plan-based history caps; PATCH uses optimistic `expectedRevision`.
 
 ## Billing (Hybrid)
 
@@ -62,6 +70,6 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 - Checkout creates a pending `orders` row, then redirects to provider Checkout; entitlements are granted only after verified webhooks (`payment_events` unique on provider+event id).
 - Secrets: `STRIPE_*` / `CREEM_*` from env only; missing keys → graceful `503` / Pricing UI disabled checkout (Free demo still works).
 
-Planned next: ZIP+R2 consumer, admin.
+Planned next: admin console, production mailer, live GSC.
 
 Errors: `{ error: { code, message } }` — no stacks/secrets.

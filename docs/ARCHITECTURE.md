@@ -7,9 +7,9 @@
 | Public pages | Astro SSG | Real HTML for SEO; React islands for maker |
 | Maker | React | Same component on `/`, scene pages, `/app/new/` |
 | API | Worker + Hono | `/api/v1/*` — no SPA fallback |
-| Jobs | Queues + consumer | IDs only on messages |
-| Data | D1 | Ownership, jobs, ledger, shares |
-| Files | R2 private | Exports; never public bucket for private puzzles |
+| Jobs | Queues + consumer | IDs only on messages; pack ZIP materialization |
+| Data | D1 | Ownership, jobs, ledger, shares, export_files |
+| Files | R2 private | Pack ZIP exports; never public bucket for private puzzles |
 | Engine | `@acm/crossword-engine` | Browser + server shared rules |
 
 ## Trust boundary

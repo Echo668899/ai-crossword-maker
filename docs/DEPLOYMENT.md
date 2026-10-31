@@ -8,10 +8,10 @@ Production domain default: **https://aicrosswordmaker.com** (`PUBLIC_SITE_URL`).
 | --- | --- | --- |
 | SEO + maker UI | Workers Static Assets or Pages | `apps/web` (Astro SSG) |
 | API | Worker (Hono) | `apps/api` → `/api/v1/*` |
-| Queue consumer | Worker | `apps/consumer` (stub until ZIP/R2 jobs) |
+| Queue consumer | Worker | `apps/consumer` (pack ZIP → R2) |
 | DB | D1 (`acm`) | `db/migrations` |
-| Private exports | R2 (private bucket) | bind as `FILES` when enabling ZIP export |
-| Async jobs | Queues | bind as `JOBS` when enabling consumer |
+| Private exports | R2 (private bucket) | `FILES` → `acm-private` |
+| Async jobs | Queues | `JOBS` / consumer on `acm-jobs` |
 
 Do **not** use SPA fallback for missing HTML or API errors. Share play uses `_redirects` 200 rewrite to `/p/_/` only.
 
@@ -49,7 +49,7 @@ pnpm test:engine
 pnpm --filter @acm/api exec wrangler d1 migrations apply acm --remote
 ```
 
-Migrations today: `0001_init` … `0005_packs_versions`.
+Migrations today: `0001_init` … `0006_export_files`.
 
 3. **Secrets** (never commit; never log)
 
@@ -72,9 +72,19 @@ wrangler secret put CREEM_API_KEY
 wrangler secret put CREEM_WEBHOOK_SECRET
 wrangler secret put CREEM_PRODUCT_PRO_MONTHLY
 # … remaining CREEM_PRODUCT_* as needed
+# Turnstile (anon AI)
+wrangler secret put TURNSTILE_SECRET_KEY
 ```
 
-Set Worker `vars` in `wrangler.toml` (non-secret): `PUBLIC_SITE_URL`, `AI_ENABLED`, `AI_ANON_DEMO_ENABLED`, `PLAN_VERSION`, `BILLING_PROVIDER=auto`, model ids.
+Set Worker `vars` in `wrangler.toml` (non-secret): `PUBLIC_SITE_URL`, `AI_ENABLED`, `AI_ANON_DEMO_ENABLED`, `PLAN_VERSION`, `BILLING_PROVIDER=auto`, model ids, `TURNSTILE_REQUIRED`, `TURNSTILE_HOSTNAMES`, `TURNSTILE_ACTION`.
+
+Web/Pages: `PUBLIC_TURNSTILE_SITE_KEY` (site key only — never the secret).
+
+Also deploy consumer:
+
+```bash
+pnpm --filter @acm/consumer exec wrangler deploy
+```
 
 4. **Deploy API**
 
@@ -96,7 +106,7 @@ PUBLIC_SITE_URL=https://aicrosswordmaker.com pnpm --filter @acm/web build
 Serve `apps/web/dist` via **Workers Static Assets** on the same host as the API, or Cloudflare Pages with:
 
 - Route `/api/*` → `acm-api` Worker
-- `_redirects` already includes `/p/*` and `/app/packs/*` 200 rewrites
+- `_redirects` already includes `/p/*`, `/app/packs/*`, and `/app/puzzles/*/edit/` 200 rewrites
 
 6. **DNS**
 
@@ -106,7 +116,7 @@ Serve `apps/web/dist` via **Workers Static Assets** on the same host as the API,
 
 7. **Hardening before wide anon AI**
 
-- Turnstile siteverify (server) when opening anon demo widely
+- Mint Turnstile widget; set `TURNSTILE_SECRET_KEY` + `PUBLIC_TURNSTILE_SITE_KEY`; consider `TURNSTILE_REQUIRED=true`
 - Confirm magic-link mailer (production) — local uses `AUTH_DEV_RETURN_LINK`
 - Connect Google Search Console; submit `sitemap-index.xml`
 - Confirm privacy/terms operator entity (release blocker if missing)
@@ -128,6 +138,6 @@ curl -sI https://aicrosswordmaker.com/p/demo-token/ | tr -d '\r' | grep -i 'x-ro
 
 ## Still deferred
 
-- R2 ZIP batch export consumer (manifest API is live; binary ZIP pending `FILES` + queue)
 - Admin dashboards
 - Production mail provider for magic links
+- Live GSC submit automation

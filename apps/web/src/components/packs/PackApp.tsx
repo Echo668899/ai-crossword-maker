@@ -15,7 +15,6 @@ type PackItem = {
 
 function packIdFromPath(): string {
   const parts = window.location.pathname.split("/").filter(Boolean);
-  // /app/packs/:id/
   const idx = parts.indexOf("packs");
   const id = idx >= 0 ? parts[idx + 1] : "";
   return id && id !== "_" ? id : "";
@@ -27,6 +26,8 @@ export default function PackApp({ initialPackId = "" }: { initialPackId?: string
   const [items, setItems] = useState<PackItem[]>([]);
   const [status, setStatus] = useState("Loading pack…");
   const [exportJson, setExportJson] = useState<string | null>(null);
+  const [downloadPath, setDownloadPath] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -58,12 +59,35 @@ export default function PackApp({ initialPackId = "" }: { initialPackId?: string
     };
   }, [initialPackId]);
 
+  async function pollJob(id: string) {
+    for (let i = 0; i < 20; i++) {
+      const res = await apiFetch(`/api/v1/jobs/${id}`);
+      const data = await res.json();
+      if (!res.ok) {
+        setStatus(data?.error?.message ?? "Could not poll export job.");
+        return null;
+      }
+      if (data.status === "completed") return data;
+      if (data.status === "failed") {
+        setStatus(`Export failed (${data.errorCode ?? "error"}).`);
+        return null;
+      }
+      setStatus(`Export ${data.status}${data.stage ? ` / ${data.stage}` : ""}…`);
+      await new Promise((r) => setTimeout(r, 500));
+    }
+    setStatus("Export still running — refresh and check Jobs later.");
+    return null;
+  }
+
   async function runExport() {
     if (!packId) return;
     setBusy(true);
     setExportJson(null);
+    setDownloadPath(null);
+    setJobId(null);
     try {
-      const res = await apiFetch(`/api/v1/packs/${packId}/export`, {
+      // Prefer inline ZIP when queue consumer isn't running locally.
+      const res = await apiFetch(`/api/v1/packs/${packId}/export?sync=1`, {
         method: "POST",
         body: "{}",
       });
@@ -72,10 +96,55 @@ export default function PackApp({ initialPackId = "" }: { initialPackId?: string
         setStatus(data?.error?.message ?? "Export failed.");
         return;
       }
-      setExportJson(JSON.stringify(data.manifest, null, 2));
-      setStatus(`Export manifest ready (job ${data.jobId}).`);
+      setJobId(data.jobId ?? null);
+      if (data.previewManifest || data.manifest) {
+        setExportJson(JSON.stringify(data.previewManifest ?? data.manifest, null, 2));
+      }
+      if (data.status === "queued" && data.jobId) {
+        const done = await pollJob(data.jobId);
+        if (done?.downloadPath) {
+          setDownloadPath(done.downloadPath);
+          setStatus(`ZIP ready (${done.file?.byteSize ?? "?"} bytes).`);
+        }
+        return;
+      }
+      if (data.downloadPath) {
+        setDownloadPath(data.downloadPath);
+        setStatus(
+          data.mode === "manifest_only"
+            ? "Manifest ready (bind FILES for ZIP download)."
+            : `ZIP ready${data.byteSize ? ` (${data.byteSize} bytes)` : ""}.`,
+        );
+        return;
+      }
+      setStatus(`Export ${data.status ?? "done"} (job ${data.jobId}).`);
     } catch {
       setStatus("Export failed — is the API running?");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function downloadZip() {
+    if (!downloadPath) return;
+    setBusy(true);
+    try {
+      const res = await apiFetch(downloadPath);
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        setStatus(data?.error?.message ?? "Download failed.");
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `pack-export${jobId ? `-${jobId.slice(0, 8)}` : ""}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setStatus("ZIP downloaded.");
+    } catch {
+      setStatus("Download failed.");
     } finally {
       setBusy(false);
     }
@@ -111,8 +180,13 @@ export default function PackApp({ initialPackId = "" }: { initialPackId?: string
       ) : null}
       <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
         <Button variant="secondary" disabled={!packId || busy} onClick={() => void runExport()}>
-          {busy ? "Exporting…" : "Batch export manifest"}
+          {busy ? "Exporting…" : "Batch export ZIP"}
         </Button>
+        {downloadPath ? (
+          <Button disabled={busy} onClick={() => void downloadZip()}>
+            Download ZIP
+          </Button>
+        ) : null}
         <a href="/pricing/">Entitlements</a>
       </div>
       {exportJson ? (

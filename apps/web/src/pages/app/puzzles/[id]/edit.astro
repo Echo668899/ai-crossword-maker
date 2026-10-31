@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+import PuzzleEditor from "../../../../components/puzzles/PuzzleEditor";
+
+export function getStaticPaths() {
+  return [{ params: { id: "_" } }];
+}
+
+const paramId = Astro.params.id ?? "";
+const initialId = paramId === "_" ? "" : paramId;
+---
+<BaseLayout
+  title="Edit puzzle — AI Crossword Maker"
+  description="Cloud puzzle detail and conflict-safe metadata edits."
+  canonicalPath={`/app/puzzles/${paramId}/edit/`}
+  noindex={true}
+>
+  <section class="container section" style="padding-top:1.5rem;">
+    <PuzzleEditor client:load initialId={initialId} />
+  </section>
+</BaseLayout>
