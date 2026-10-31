@@ -26,14 +26,20 @@ Open `http://localhost:4321/`.
 
 Manual path: switch to **Words + clues** (or load sample) → **Build grid** → **Export PDF**.
 
-API (optional):
+API + AI Topic Demo:
 
 ```bash
-pnpm --filter @acm/api dev
-# health: http://localhost:8787/api/v1/health
+cp apps/api/.dev.vars.example apps/api/.dev.vars
+# set AI_ENABLED=true and OPENAI_API_KEY in .dev.vars (never commit)
+pnpm --filter @acm/api exec wrangler d1 migrations apply acm --local
+pnpm --filter @acm/api dev          # :8787
+pnpm --filter @acm/web dev          # :4321 proxies /api → :8787
 ```
 
-AI Topic returns `503` until `AI_ENABLED=true` and `OPENAI_API_KEY` are set in `apps/api/.dev.vars` (see `.dev.vars.example`). Use `?mock=1` only for local mock payloads.
+- Health: `http://localhost:8787/api/v1/health`
+- Topic: homepage **Generate with AI** (same-origin `/api/v1/ai/topic`)
+- Preview without Vite proxy: `PUBLIC_API_BASE_URL=http://127.0.0.1:8787 pnpm --filter @acm/web preview`
+- Without keys, API returns `503` and the maker falls back to manual / examples. Use `?mock=1` only for local mock payloads.
 
 ## Monorepo
 

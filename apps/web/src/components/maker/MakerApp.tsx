@@ -170,13 +170,14 @@ export default function MakerApp({
     result: null,
     entries: [],
     selectedEntryId: null,
-    statusMessage: "Edit entries, then Build grid. AI Topic demo calls the API when configured.",
+    statusMessage: "Enter a topic and Generate with AI, or switch to Words + clues / Load sample words.",
     aiBlockedReason: null,
   });
   const [mobileTab, setMobileTab] = useState<"input" | "clues" | "grid" | "export">("input");
   const [history, setHistory] = useState<EntryRow[][]>([]);
   const [future, setFuture] = useState<EntryRow[][]>([]);
   const [draftReady, setDraftReady] = useState(Boolean(initialEntries?.length));
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -370,11 +371,62 @@ export default function MakerApp({
     );
   }
 
+  function apiUrl(path: string): string {
+    const base = (import.meta.env.PUBLIC_API_BASE_URL as string | undefined)?.replace(/\/$/, "") || "";
+    return `${base}${path}`;
+  }
+
+  function buildFromRows(rows: EntryRow[], titleHint?: string) {
+    try {
+      dispatch({ type: "setStatus", statusMessage: "Building grid…" });
+      const cleaned = rows.filter((r) => r.answer.trim());
+      const { entries, issues } = normalizeEntries(
+        cleaned.map((r, i) => ({
+          id: `local-${i + 1}`,
+          answerRaw: r.answer,
+          clue: r.clue,
+          origin: "topic_ai" as const,
+          reviewState: "needs_review" as const,
+        })),
+      );
+      if (entries.length < 2) {
+        dispatch({
+          type: "setStatus",
+          statusMessage: `Need at least 2 valid A–Z answers. Got ${entries.length} valid.`,
+        });
+        return;
+      }
+      let result = buildGrid({
+        entries,
+        seed: state.seed,
+        size: "auto",
+        nodeBudget: 25_000,
+      });
+      result = numberBuildResult(result);
+      const report = validateBuildResult(result, entries);
+      const msg = [
+        titleHint ? `${titleHint} ` : "",
+        `Placed ${result.placedEntryIds.length}/${entries.length} (${result.status}).`,
+        report.ok ? "Grid checks passed." : `Validator: ${report.errors[0]?.message ?? "issues found"}.`,
+        "Clues need review before you treat them as final.",
+        issues.length ? `Normalize notes: ${issues.length}.` : "",
+      ]
+        .filter(Boolean)
+        .join(" ");
+      dispatch({ type: "setBuild", result, entries, statusMessage: msg });
+      setMobileTab("grid");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      dispatch({ type: "setStatus", statusMessage: `Build failed: ${message}` });
+    }
+  }
+
   async function runTopicAi() {
     dispatch({ type: "setAiBlocked", reason: null });
     dispatch({ type: "setStatus", statusMessage: "Requesting AI Topic demo…" });
+    setAiLoading(true);
     try {
-      const res = await fetch("/api/v1/ai/topic", {
+      const res = await fetch(apiUrl("/api/v1/ai/topic"), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -384,33 +436,64 @@ export default function MakerApp({
           audience: "general",
         }),
       });
+      const body = await res.json().catch(() => null);
+
       if (res.status === 404 || res.status === 501 || res.status === 503) {
         dispatch({
           type: "setAiBlocked",
           reason:
+            body?.error?.message ||
             "AI API is not connected in this environment yet. Use Words + clues / sample list, or open Examples.",
         });
         dispatch({
           type: "setStatus",
-          statusMessage: "AI Topic unavailable — switched guidance to manual Build grid path.",
+          statusMessage: "AI Topic unavailable — use Load sample words, manual entries, or Examples.",
         });
         return;
       }
+
+      if (res.status === 429) {
+        dispatch({
+          type: "setAiBlocked",
+          reason:
+            body?.error?.message ||
+            "Daily anonymous AI demo limit reached. Switch to manual mode or browse Examples.",
+        });
+        dispatch({
+          type: "setStatus",
+          statusMessage: "AI quota exhausted for today — manual Build grid still works.",
+        });
+        return;
+      }
+
       if (!res.ok) {
-        const body = await res.json().catch(() => null);
         throw new Error(body?.error?.message || `AI request failed (${res.status})`);
       }
-      const data = (await res.json()) as {
+
+      const data = body as {
         title?: string;
         entries: Array<{ answer: string; clue: string }>;
+        quota?: { remaining: number; limit: number };
+        mock?: boolean;
       };
+      if (!data?.entries?.length) {
+        throw new Error("AI returned no entries.");
+      }
+
       pushHistory(data.entries);
       if (data.title) dispatch({ type: "setTitle", title: data.title });
       dispatch({ type: "setMode", mode: "manual" });
+      const quotaNote =
+        data.quota != null
+          ? ` Demo remaining today: ${data.quota.remaining}/${data.quota.limit}.`
+          : "";
+      const mockNote = data.mock ? " (mock payload)" : "";
       dispatch({
         type: "setStatus",
-        statusMessage: "AI suggestions loaded — review clues, then Build grid (no extra AI charge for layout).",
+        statusMessage: `AI suggestions loaded${mockNote}.${quotaNote} Building preview grid…`,
       });
+      // First-visit demo: generate + preview without an extra click.
+      buildFromRows(data.entries, "AI preview ready.");
     } catch (err) {
       dispatch({
         type: "setAiBlocked",
@@ -418,8 +501,10 @@ export default function MakerApp({
       });
       dispatch({
         type: "setStatus",
-        statusMessage: "AI Topic failed. You can still build manually from a word list.",
+        statusMessage: "AI Topic failed. You can still build manually from a word list or open Examples.",
       });
+    } finally {
+      setAiLoading(false);
     }
   }
 
@@ -586,8 +671,8 @@ export default function MakerApp({
                 </label>
               </div>
               <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                <Button onClick={() => void runTopicAi()} disabled={!state.topic.trim()}>
-                  Generate with AI
+                <Button onClick={() => void runTopicAi()} disabled={!state.topic.trim() || aiLoading}>
+                  {aiLoading ? "Generating…" : "Generate with AI"}
                 </Button>
                 <Button
                   variant="secondary"
@@ -599,11 +684,25 @@ export default function MakerApp({
                 >
                   Load sample words
                 </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    dispatch({ type: "setMode", mode: "manual" });
+                    dispatch({
+                      type: "setStatus",
+                      statusMessage: "Switched to manual Words + clues — no AI required.",
+                    });
+                  }}
+                >
+                  Use manual instead
+                </Button>
               </div>
               {state.aiBlockedReason ? (
                 <p style={{ margin: 0, color: "var(--color-warn)", fontSize: "0.92rem" }}>
                   {state.aiBlockedReason}{" "}
                   <a href="/examples/">Browse examples</a>
+                  {" · "}
+                  <a href="/crossword-maker-from-word-list/">Word list maker</a>
                 </p>
               ) : (
                 <p className="muted" style={{ margin: 0, fontSize: "0.9rem" }}>
