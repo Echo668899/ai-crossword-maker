@@ -33,10 +33,11 @@ export function getBillingStatus(env: ApiEnv): BillingStatus {
     active = stripeOk && stripeMapped ? "stripe" : null;
   } else if (pref === "creem") {
     active = creemOk && creemMapped ? "creem" : null;
+  } else if (creemOk && creemMapped) {
+    // auto: Creem primary when fully configured; Stripe remains available fallback.
+    active = "creem";
   } else if (stripeOk && stripeMapped) {
     active = "stripe";
-  } else if (creemOk && creemMapped) {
-    active = "creem";
   }
 
   return {

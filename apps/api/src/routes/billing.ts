@@ -44,7 +44,7 @@ billingRoutes.post("/api/v1/billing/checkout", async (c) => {
         error: {
           code: "billing_not_configured",
           message:
-            "Checkout is disabled until a payment provider is configured (Stripe preferred, Creem fallback). Set STRIPE_* or CREEM_* secrets and price/product mappings.",
+            "Checkout is disabled until a payment provider is configured (Creem preferred, Stripe fallback). Set CREEM_* or STRIPE_* secrets and product/price mappings.",
         },
         billing: status,
       },

@@ -222,7 +222,7 @@ export default function PricingCheckout() {
           }}
         >
           Checkout is offline until payment secrets are configured. Set{" "}
-          <code>STRIPE_*</code> (preferred) or <code>CREEM_*</code> plus price/product IDs.
+          <code>CREEM_*</code> (preferred) or <code>STRIPE_*</code> plus product/price IDs.
           Free AI demo and manual maker remain available.
         </p>
       ) : null}
