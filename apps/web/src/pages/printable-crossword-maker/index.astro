@@ -1,12 +1,36 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import MakerApp from "../../components/maker/MakerApp";
+
+const faqs = [
+  {
+    q: "Does the student PDF include answers?",
+    a: "No. Export a student sheet without answers, then download a separate answer-key PDF that matches the same grid version.",
+  },
+  {
+    q: "Can I add name and date lines?",
+    a: "Yes. Choose Name + Date, Name + Class + Date, Name + Period + Date, or none before you export. Answer keys omit the blanks.",
+  },
+  {
+    q: "When should I use the teachers page instead?",
+    a: "Use crossword maker for teachers when you want a classroom word-list preset and Class header defaults. Stay here for general PDF/paper-size export settings.",
+  },
+];
 ---
 
 <BaseLayout
   title="Printable Crossword Maker — PDF & Answer Key"
   description="Printable crossword maker with PDF export, answer key page, Letter/A4 layouts, and optional name/date lines. Free watermarked exports; Pro removes the footer."
   canonicalPath="/printable-crossword-maker/"
+  jsonLd={{
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  }}
 >
   <section class="container section" style="padding-top:1.5rem;">
     <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;"><a href="/">Home</a> / Printable</nav>
@@ -17,6 +41,19 @@ import MakerApp from "../../components/maker/MakerApp";
     </p>
     <MakerApp client:load initialMode="manual" initialNameLinePreset="name-date" heading="Build, then export PDF" />
   </section>
+
+  <section class="container section" aria-labelledby="printable-teachers-cta">
+    <h2 id="printable-teachers-cta" class="section-title">Making handouts for a class?</h2>
+    <p style="max-width:62ch;margin:0 0 0.85rem;">
+      Teachers often want a ready classroom word list plus Name + Class + Date blanks.
+      Open the teachers landing for that preset, or read the short print how-to first.
+    </p>
+    <p style="display:flex;flex-wrap:wrap;gap:0.75rem 1rem;align-items:center;margin:0;">
+      <a class="print-btn" href="/crossword-maker-for-teachers/">Open crossword maker for teachers</a>
+      <a href="/blog/how-to-print-crossword-worksheets/">How to print worksheets with answer keys</a>
+    </p>
+  </section>
+
   <section class="container section">
     <h2 class="section-title">Print settings available</h2>
     <ul>
@@ -26,10 +63,17 @@ import MakerApp from "../../components/maker/MakerApp";
       <li>Answer key as a separate download</li>
     </ul>
     <p>
-      Teachers: see <a href="/crossword-maker-for-teachers/">crossword maker for teachers</a>.
-      Need inspiration? <a href="/examples/">Examples</a> ·
+      Need inspiration?
+      <a href="/examples/">Examples</a> ·
       <a href="/blog/how-to-make-a-crossword-puzzle/">How to make a crossword</a> ·
       <a href="/esl-crossword-generator/">ESL generator</a>.
     </p>
+  </section>
+
+  <section class="container section faq">
+    <h2 class="section-title">FAQ</h2>
+    {faqs.map((f) => (
+      <details><summary>{f.q}</summary><p style="margin:0.6rem 0 0;">{f.a}</p></details>
+    ))}
   </section>
 </BaseLayout>
