@@ -20,6 +20,7 @@ import { shareRoutes } from "./routes/shares";
 import { versionRoutes } from "./routes/versions";
 import { adminRoutes } from "./routes/admin";
 import { googleEnabled } from "./auth/google";
+import { mailConfigured, mailProvider } from "./auth/mailer";
 import { getBillingStatus } from "./billing/provider";
 import { clientIp, verifyTurnstile } from "./security/turnstile";
 import { consumeRateLimit } from "./security/rate-limit";
@@ -50,6 +51,8 @@ app.get("/api/v1/health", (c) => {
     auth: {
       db: Boolean(c.env.DB),
       googleEnabled: googleEnabled(c.env),
+      mailConfigured: mailConfigured(c.env),
+      mailProvider: mailProvider(c.env),
     },
     billing: {
       checkoutEnabled: billing.checkoutEnabled,

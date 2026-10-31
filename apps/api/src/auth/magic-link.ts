@@ -1,10 +1,12 @@
 import type { ApiEnv } from "../env";
 import { clientIp, generateId, generateToken, hashIp, sha256Hex } from "./crypto";
+import { mailConfigured, sendMagicLinkEmail } from "./mailer";
 import { consumeRateLimit } from "./rate-limit";
 import { createSession, upsertUserByEmail } from "./session";
 import { siteOrigin } from "../env";
 
 const MAGIC_TTL_MS = 1000 * 60 * 20; // 20 minutes
+const MAGIC_TTL_MINUTES = 20;
 const EMAIL_DAILY_LIMIT = 8;
 
 function requireDb(env: ApiEnv): D1Database {
@@ -75,22 +77,49 @@ export async function requestMagicLink(
   const apiOrigin = new URL(request.url).origin;
   const verifyUrl = new URL("/api/v1/auth/magic-link/verify", apiOrigin);
   verifyUrl.searchParams.set("token", rawToken);
+  const verifyUrlStr = verifyUrl.toString();
 
-  // No real mailer in this phase — log URL only when explicitly enabled; never log raw token alone in prod logs without flag.
+  // Dev-only: log / return link. Never enable AUTH_DEV_* in production.
   if (env.AUTH_DEV_LOG_LINKS === "true") {
     console.log(
       JSON.stringify({
         event: "auth_magic_link_created",
         emailDomain: email.split("@")[1] ?? "unknown",
         expiresAt,
+        mailConfigured: mailConfigured(env),
       }),
     );
-    console.log(`[auth-dev] magic link for ${email}: ${verifyUrl.toString()}`);
+    console.log(`[auth-dev] magic link for ${email}: ${verifyUrlStr}`);
+  }
+
+  if (mailConfigured(env)) {
+    const sent = await sendMagicLinkEmail(env, {
+      to: email,
+      verifyUrl: verifyUrlStr,
+      expiresMinutes: MAGIC_TTL_MINUTES,
+    });
+    if (!sent.ok) {
+      console.log(
+        JSON.stringify({
+          event: "auth_magic_link_mail_failed",
+          code: sent.code,
+          emailDomain: email.split("@")[1] ?? "unknown",
+        }),
+      );
+    }
+  } else if (env.AUTH_DEV_RETURN_LINK !== "true") {
+    console.log(
+      JSON.stringify({
+        event: "auth_magic_link_mail_skipped",
+        reason: "mailer_not_configured",
+        emailDomain: email.split("@")[1] ?? "unknown",
+      }),
+    );
   }
 
   const result: MagicLinkCreateResult = { ok: true, email };
   if (env.AUTH_DEV_RETURN_LINK === "true") {
-    return { ...result, devLink: verifyUrl.toString() };
+    return { ...result, devLink: verifyUrlStr };
   }
   return result;
 }

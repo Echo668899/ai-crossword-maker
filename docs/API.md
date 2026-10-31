@@ -81,6 +81,6 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 - Access: signed-in user email must appear in `ADMIN_EMAILS` (comma-separated). Empty allowlist → `503 admin_unconfigured` (deny-all).
 - Never returns raw word lists, clues, or secrets. Flag changes write `audit_logs`.
 
-Planned next: production mailer, live GSC, deeper admin cost/funnel analytics.
+Health `auth.mailConfigured` / `auth.mailProvider` reflect Resend readiness. Planned next: live GSC, deeper admin cost/funnel analytics.
 
 Errors: `{ error: { code, message } }` — no stacks/secrets.

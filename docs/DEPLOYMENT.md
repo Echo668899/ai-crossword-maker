@@ -104,9 +104,13 @@ pnpm exec wrangler secret put CREEM_PRODUCT_PRO_MONTHLY
 pnpm exec wrangler secret put TURNSTILE_SECRET_KEY
 # Admin allowlist (comma-separated emails) — treat as sensitive
 pnpm exec wrangler secret put ADMIN_EMAILS
+# Magic-link mail (Resend) — never print the key
+pnpm exec wrangler secret put RESEND_API_KEY
 ```
 
-Set Worker `vars` in `wrangler.toml` (non-secret): `PUBLIC_SITE_URL`, `AI_ENABLED`, `AI_ANON_DEMO_ENABLED`, `PLAN_VERSION`, `BILLING_PROVIDER=auto`, model ids, `TURNSTILE_REQUIRED`, `TURNSTILE_HOSTNAMES`, `TURNSTILE_ACTION`.
+Set Worker `vars` in `wrangler.toml` (non-secret): `PUBLIC_SITE_URL`, `AI_ENABLED`, `AI_ANON_DEMO_ENABLED`, `PLAN_VERSION`, `BILLING_PROVIDER=auto`, model ids, `TURNSTILE_REQUIRED`, `TURNSTILE_HOSTNAMES`, `TURNSTILE_ACTION`, `MAIL_PROVIDER=resend`, `MAIL_FROM=noreply@crosswordmaker.app`, `MAIL_FROM_NAME`.
+
+Production magic-link mail: verify the sending domain in Resend (SPF/DKIM DNS), put `RESEND_API_KEY`, keep `AUTH_DEV_RETURN_LINK` / `AUTH_DEV_LOG_LINKS` **unset/false**. Operator steps (Chinese): project store `docs/email-setup.md`.
 
 Web/Pages: `PUBLIC_TURNSTILE_SITE_KEY` (site key only — never the secret).
 
@@ -166,7 +170,7 @@ Notes:
 7. **Hardening before wide anon AI**
 
 - Mint Turnstile widget; set `TURNSTILE_SECRET_KEY` + `PUBLIC_TURNSTILE_SITE_KEY`; consider `TURNSTILE_REQUIRED=true`
-- Confirm magic-link mailer (production) — local uses `AUTH_DEV_RETURN_LINK`
+- Confirm magic-link mailer: `RESEND_API_KEY` + verified `MAIL_FROM` domain; health `auth.mailConfigured=true` — local uses `AUTH_DEV_RETURN_LINK`
 - Connect Google Search Console; submit `sitemap-index.xml`
 - Confirm privacy/terms operator entity (release blocker if missing)
 
@@ -196,7 +200,7 @@ Use this as a go / no-go list. Mark real integrations **BLOCKED** until wired �
 | `AI_ANON_DEMO_ENABLED` | API var | SEO landing demo | Default true; ops flag can force off |
 | `TURNSTILE_SECRET_KEY` + `PUBLIC_TURNSTILE_SITE_KEY` | API secret + web | Anon AI anti-abuse | Mint widget; consider `TURNSTILE_REQUIRED=true` |
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | API secrets | Google sign-in | Optional if magic-link mail works |
-| Production mailer (magic links) | TBD provider | Auth without Google | BLOCKED — local uses `AUTH_DEV_RETURN_LINK` |
+| Production mailer (magic links) | `RESEND_API_KEY` + `MAIL_FROM` | Auth without Google | BLOCKED until Resend domain + secret; local uses `AUTH_DEV_RETURN_LINK` |
 | `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` + price ids | API secrets | Paid checkout | Prefer Stripe; test/live separated |
 | `CREEM_*` | API secrets | Fallback checkout | Optional when `BILLING_PROVIDER=auto` |
 | Webhook URLs live | Stripe/Creem dashboards | Entitlements | Point at `/api/v1/billing/webhooks/*` |
@@ -220,6 +224,6 @@ Use this as a go / no-go list. Mark real integrations **BLOCKED** until wired �
 ## Still deferred
 
 - Deeper admin analytics (AI cost estimates, funnel events soak)
-- Production mail provider for magic links
 - Live GSC submit automation
 - Stripe webhook soak in production
+- Optional alternate mail providers (Mailchannels not wired; Resend is the production path)

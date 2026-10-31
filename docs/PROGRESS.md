@@ -33,7 +33,7 @@ Updated: 2026-10-31
 4. Pro yearly $72 / 100–150 ops confirm
 5. `/p/*` forever noindex?
 6. Examples CMS vs content collection
-7. Production mailer for magic links (dev returns link when flagged)
+7. ~~Production mailer for magic links~~ — Resend wired (`RESEND_API_KEY` + `MAIL_FROM`); ops still must verify domain + put secret
 8. Whether to keep separate ESL + CEFR URLs long-term vs consolidate after GSC data
 
 ## Blockers
