@@ -1,5 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import type { BuildResult, WordEntry } from "@acm/crossword-engine";
+import { nameLineText, resolveNameLinePreset } from "./name-line.js";
 import { DEFAULT_PRINT_LAYOUT, type ClueLine, type PrintLayoutSettings } from "./types.js";
 
 function paperPoints(paper: PrintLayoutSettings["paper"], orientation: PrintLayoutSettings["orientation"]) {
@@ -65,8 +66,14 @@ export async function buildStudentPdf(input: {
     });
     y -= 20;
   }
-  if (settings.showNameDate) {
-    page.drawText("Name: ______________________  Date: __________", {
+  // Prefer an explicit caller preset; otherwise honor legacy showNameDate
+  // (answer keys pass showNameDate: false without setting nameLinePreset).
+  const namePreset =
+    input.settings?.nameLinePreset ??
+    resolveNameLinePreset({ showNameDate: settings.showNameDate });
+  const nameLine = nameLineText(namePreset);
+  if (nameLine) {
+    page.drawText(nameLine, {
       x: margin,
       y: y - 12,
       size: 10,

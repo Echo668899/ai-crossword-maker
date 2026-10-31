@@ -23,13 +23,14 @@
 - FAQPage JSON-LD when FAQ visible (home, AI, teachers, each example)
 - ItemList on `/examples/`; BreadcrumbList on example detail
 - No AggregateRating fiction
-- `/app/`, `/admin/`, `/login/`, `/p/*` noindex; excluded from sitemap filter
+- `/app/`, `/admin/`, `/login/`, `/p/*` noindex; sitemap filter excludes those + `/404`
 - Real 404; sitemap via `@astrojs/sitemap`
 - No Chinese routes
 - Sample vs Human-reviewed labeling; no false “fact verified” claims
+- Teacher/printable pages + examples cross-link blog/ESL/CEFR; home features high-traffic examples
 
 ## 90-day
 
 - **A:** P0 shells + maker demo + FAQ + sitemap (done)
-- **B:** examples≥25 + print/FAQ/related links polish (done); ESL/CEFR depth + how-tos (this slice)
-- **C:** GSC-driven long-tail; honest comparison pages; human-review top seeds
+- **B:** examples≥25 + print/FAQ/related links polish (done); ESL/CEFR depth + how-tos (done)
+- **C:** human-review top seeds + teacher name-line presets + sitemap/internal-link hardening (this slice); GSC-driven long-tail next; honest `/vs/` comparison pages still open

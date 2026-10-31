@@ -6,18 +6,22 @@ import { TEACHER_CLASSROOM_ENTRIES } from "../../lib/sample-entries";
 const faqs = [
   {
     q: "Can I add name and date lines for class handouts?",
-    a: "Yes. Student PDF exports include optional name/date blanks suitable for classroom packets.",
+    a: "Yes. Choose a Name line preset before Export PDF: Name + Date, Name + Class + Date, or Name + Period + Date. Answer-key PDFs omit the blanks.",
   },
   {
     q: "Do you support A/B/C versions?",
     a: "Layout variants (same clues, different grids) are a Pro / Activity Pack workflow. This page preloads a classroom object word list so you can try the free path now.",
+  },
+  {
+    q: "Where can I find printable topic examples?",
+    a: "Browse free printable examples by subject, or read the how-to guides on the blog, then open the AI maker to create a classroom variant.",
   },
 ];
 ---
 
 <BaseLayout
   title="Crossword Maker for Teachers — Printable Worksheets & Answer Keys"
-  description="Crossword maker for teachers: classroom word lists, name/date lines, printable PDFs, and separate answer keys. Start from a topic or a ready vocabulary list."
+  description="Crossword maker for teachers: classroom word lists, name/class/period/date lines, printable PDFs, and separate answer keys. Start from a topic or a ready vocabulary list."
   canonicalPath="/crossword-maker-for-teachers/"
   jsonLd={{
     "@context": "https://schema.org",
@@ -33,25 +37,33 @@ const faqs = [
     <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;"><a href="/">Home</a> / For teachers</nav>
     <h1 style="margin:0 0 0.5rem;">Crossword Maker for Teachers</h1>
     <p style="max-width:60ch;margin:0 0 1rem;">
-      Build vocabulary reviews with editable clues, print student sheets with name/date lines, and keep answer keys on a separate file.
-      Preset below: classroom objects sample list (not a locked template).
+      Build vocabulary reviews with editable clues, print student sheets with Name/Class/Period/Date blanks, and keep answer keys on a separate file.
+      Preset below: classroom objects sample list with a Name + Class + Date header for packets.
     </p>
     <MakerApp
       client:load
       initialMode="manual"
       initialEntries={TEACHER_CLASSROOM_ENTRIES}
+      initialNameLinePreset="name-class-date"
       heading="Classroom word list preset"
     />
   </section>
   <section class="container section">
     <h2 class="section-title">Classroom delivery checklist</h2>
     <ul>
-      <li>Student PDF with name/date blanks</li>
-      <li>Separate answer-key PDF (version matched)</li>
-      <li>Optional share link for practice (noindex) — coming with auth</li>
+      <li>Student PDF with Name line presets (Name+Date, Class, or Period)</li>
+      <li>Separate answer-key PDF (version matched; no name blanks)</li>
+      <li>Optional share link for practice (noindex)</li>
       <li>Activity pack / A-B-C layouts on paid plans</li>
     </ul>
-    <p>See also <a href="/printable-crossword-maker/">printable crossword maker</a> and <a href="/examples/classroom-objects/">classroom objects example</a>.</p>
+    <p>
+      See also
+      <a href="/printable-crossword-maker/">printable crossword maker</a>,
+      <a href="/examples/classroom-objects/">classroom objects example</a>,
+      <a href="/esl-crossword-generator/">ESL crossword generator</a>,
+      and
+      <a href="/blog/how-to-make-a-crossword-puzzle/">how to make a crossword puzzle</a>.
+    </p>
   </section>
   <section class="container section faq">
     <h2 class="section-title">FAQ</h2>

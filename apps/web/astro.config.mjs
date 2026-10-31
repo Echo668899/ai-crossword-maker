@@ -10,7 +10,12 @@ export default defineConfig({
   integrations: [
     react(),
     sitemap({
-      filter: (page) => !page.includes("/p/") && !page.includes("/login/") && !page.includes("/app/"),
+      filter: (page) =>
+        !page.includes("/p/") &&
+        !page.includes("/login/") &&
+        !page.includes("/app/") &&
+        !page.includes("/admin/") &&
+        !page.includes("/404"),
     }),
   ],
   vite: {

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { EXAMPLES, relatedExamples } from "./examples";
+import { EXAMPLES, HIGH_TRAFFIC_EXAMPLE_SLUGS, getExample, relatedExamples } from "./examples";
 import { buildExamplePuzzle } from "./build-example";
 
 describe("examples quality", () => {
@@ -9,6 +9,16 @@ describe("examples quality", () => {
     expect(EXAMPLES.length).toBeGreaterThanOrEqual(20);
     const slugs = new Set(EXAMPLES.map((e) => e.slug));
     expect(slugs.size).toBe(EXAMPLES.length);
+  });
+
+  it("marks high-traffic classroom seeds as human-reviewed with stronger blurbs", () => {
+    for (const slug of HIGH_TRAFFIC_EXAMPLE_SLUGS) {
+      const ex = getExample(slug);
+      expect(ex, slug).toBeTruthy();
+      expect(ex!.reviewState).toBe("human_reviewed");
+      expect(ex!.blurb.toLowerCase()).toMatch(/print|crossword|vocabulary|answer/);
+      expect(ex!.entries.every((e) => e.clue.trim().length >= 12)).toBe(true);
+    }
   });
 
   it("uses English A–Z answers and non-empty blurbs/clues", () => {
