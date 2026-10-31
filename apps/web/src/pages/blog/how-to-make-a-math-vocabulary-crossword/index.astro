@@ -3,7 +3,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 import { getBlogPost, relatedBlogPosts } from "../../../lib/blog-posts";
 import { getExample } from "../../../lib/examples";
 
-const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const site = import.meta.env.PUBLIC_SITE_URL || "https://crosswordmaker.app";
 const meta = getBlogPost("how-to-make-a-math-vocabulary-crossword")!;
 const relatedGuides = relatedBlogPosts(meta.slug);
 const featuredExamples = meta.exampleSlugs.map((s) => getExample(s)).filter(Boolean);

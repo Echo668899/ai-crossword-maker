@@ -71,10 +71,10 @@ export function siteOrigin(env: ApiEnv): string {
   const raw =
     env.AUTH_PUBLIC_ORIGIN?.trim() ||
     env.PUBLIC_SITE_URL?.trim() ||
-    "https://aicrosswordmaker.com";
+    "https://crosswordmaker.app";
   try {
     return new URL(raw).origin;
   } catch {
-    return "https://aicrosswordmaker.com";
+    return "https://crosswordmaker.app";
   }
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Post-deploy smoke checks (read-only). Usage: ./scripts/cf-smoke.sh [base-url]
 set -euo pipefail
-BASE="${1:-https://aicrosswordmaker.com}"
+BASE="${1:-https://crosswordmaker.app}"
 BASE="${BASE%/}"
 
 fail=0

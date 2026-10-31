@@ -19,7 +19,7 @@ for arg in "$@"; do
   esac
 done
 
-SITE_URL="${PUBLIC_SITE_URL:-https://aicrosswordmaker.com}"
+SITE_URL="${PUBLIC_SITE_URL:-https://crosswordmaker.app}"
 
 info "Deploy ($(cf_auth_status)) site=$SITE_URL"
 

@@ -532,7 +532,7 @@ export default function MakerApp({
                 title: state.title,
                 nameLinePreset,
                 showNameDate: nameLinePreset !== "none",
-                watermark: "aicrosswordmaker.com",
+                watermark: "crosswordmaker.app",
               },
             })
           : await buildAnswerKeyPdf({

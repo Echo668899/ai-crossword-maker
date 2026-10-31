@@ -8,7 +8,7 @@
 - **Anonymous AI Demo** — first visit can complete ≥1 Topic generate+preview (budget/Turnstile). No signup wall that kills SEO landing.
 - **Not a play portal** — no daily crossword / puzzle plaza. Share play pages are `noindex`.
 - GPT proposes words/clues only. **Program** owns grid, numbering, validation, entitlements, billing.
-- Default domain: `https://aicrosswordmaker.com` (`PUBLIC_SITE_URL`).
+- Default domain: `https://crosswordmaker.app` (`PUBLIC_SITE_URL`).
 
 ## Repo layout
 

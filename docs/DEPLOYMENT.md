@@ -1,6 +1,6 @@
 # Deployment (Cloudflare)
 
-Production domain default: **https://aicrosswordmaker.com** (`PUBLIC_SITE_URL`).
+Production domain default: **https://crosswordmaker.app** (`PUBLIC_SITE_URL`).
 
 ## Architecture
 
@@ -124,13 +124,13 @@ pnpm --filter @acm/api exec wrangler deploy
 
 Point Stripe/Creem webhooks to:
 
-- `https://aicrosswordmaker.com/api/v1/billing/webhooks/stripe`
-- `https://aicrosswordmaker.com/api/v1/billing/webhooks/creem`
+- `https://crosswordmaker.app/api/v1/billing/webhooks/stripe`
+- `https://crosswordmaker.app/api/v1/billing/webhooks/creem`
 
 5. **Build + deploy web** (or `./scripts/cf-deploy.sh`)
 
 ```bash
-PUBLIC_SITE_URL=https://aicrosswordmaker.com pnpm --filter @acm/web build
+PUBLIC_SITE_URL=https://crosswordmaker.app pnpm --filter @acm/web build
 pnpm --filter @acm/api exec wrangler pages deploy "$PWD/apps/web/dist" --project-name=acm-web
 ```
 
@@ -139,13 +139,29 @@ Alternative: Workers Static Assets (`apps/web/wrangler.toml`) on the same host.
 
 Same-origin API:
 
-- Route `/api/*` → `acm-api` Worker on `aicrosswordmaker.com`
+- Route `/api/*` → `acm-api` Worker on `crosswordmaker.app`
 
-6. **DNS**
+6. **DNS** (production host: `crosswordmaker.app`)
 
-- Apex + `www` → Cloudflare proxy (Pages custom domains)
-- Set `PUBLIC_SITE_URL=https://aicrosswordmaker.com` on both web build and API vars
-- Enable HTTPS (orange-cloud)
+Zone is expected in the same Cloudflare account as Pages `acm-web` / Worker `acm-api`.
+
+At the **registrar** (if nameservers are not already Cloudflare):
+
+- Set authoritative NS to the zone’s Cloudflare nameservers (dashboard → zone → Overview), e.g. pair shown for this zone: `nash.ns.cloudflare.com` + `raphaela.ns.cloudflare.com`.
+
+In **Cloudflare DNS** (orange-cloud / proxied), after Pages custom domains are attached:
+
+| Type | Name | Target | Proxy |
+| --- | --- | --- | --- |
+| CNAME | `@` (apex) | `acm-web.pages.dev` | Proxied |
+| CNAME | `www` | `acm-web.pages.dev` | Proxied |
+
+Notes:
+
+- Cloudflare flattens apex CNAMEs; do **not** point apex at a non-CF A record unless Pages instructs otherwise.
+- Worker routes `crosswordmaker.app/api/*` and `www.crosswordmaker.app/api/*` → `acm-api` (declared in `apps/api/wrangler.toml`).
+- Set `PUBLIC_SITE_URL=https://crosswordmaker.app` on both web build and API `[vars]`.
+- Wait for Pages domain status → **active** and HTTPS issued before smoke.
 
 7. **Hardening before wide anon AI**
 
@@ -163,9 +179,9 @@ Same-origin API:
 ## Post-deploy smoke
 
 ```bash
-curl -s https://aicrosswordmaker.com/api/v1/health
-curl -s https://aicrosswordmaker.com/examples/ | grep -o 'Crossword examples'
-curl -sI https://aicrosswordmaker.com/p/demo-token/ | tr -d '\r' | grep -i 'x-robots\|HTTP'
+curl -s https://crosswordmaker.app/api/v1/health
+curl -s https://crosswordmaker.app/examples/ | grep -o 'Crossword examples'
+curl -sI https://crosswordmaker.app/p/demo-token/ | tr -d '\r' | grep -i 'x-robots\|HTTP'
 # HTML play shell is noindex via meta robots on /p/_/
 ```
 
@@ -185,7 +201,7 @@ Use this as a go / no-go list. Mark real integrations **BLOCKED** until wired �
 | `CREEM_*` | API secrets | Fallback checkout | Optional when `BILLING_PROVIDER=auto` |
 | Webhook URLs live | Stripe/Creem dashboards | Entitlements | Point at `/api/v1/billing/webhooks/*` |
 | `ADMIN_EMAILS` | API secret/var | `/admin` console | Empty = deny-all |
-| `PUBLIC_SITE_URL` | API + web build | Canonical / auth redirects | `https://aicrosswordmaker.com` |
+| `PUBLIC_SITE_URL` | API + web build | Canonical / auth redirects | `https://crosswordmaker.app` |
 | D1 migrations remote | `wrangler d1 … --remote` | Persistence | Through `0007_admin_audit` |
 | R2 `FILES` private + Queue `JOBS` | CF bindings | Pack ZIP export | Consumer Worker deployed |
 | Legal entity on Privacy / Terms / Refund / Contact | Web pages | Charging cards | **Publish blocker — do not invent** |
@@ -194,7 +210,7 @@ Use this as a go / no-go list. Mark real integrations **BLOCKED** until wired �
 
 ### Operator confirmation (human)
 
-- [ ] Domain DNS + HTTPS on `aicrosswordmaker.com`
+- [ ] Domain DNS + HTTPS on `crosswordmaker.app`
 - [ ] No secrets in git / screenshots / client bundles
 - [ ] Privacy/Terms/Refund/Contact operator fields filled by a real person
 - [ ] Stripe/Creem test → live cutover plan + rollback

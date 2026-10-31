@@ -1,4 +1,4 @@
-# AI Crossword Maker (`aicrosswordmaker.com`)
+# AI Crossword Maker (`crosswordmaker.app`)
 
 English-only educational crossword maker: **topic → AI clues (optional) → program grid → print/PDF**.
 
@@ -58,7 +58,7 @@ pnpm cf:bootstrap -- --dry-run   # print exact wrangler commands
 pnpm cf:bootstrap                # D1 / R2 / Queue / Pages project
 pnpm cf:secrets                  # secret put from env (values redacted)
 pnpm cf:deploy                   # migrations + Workers + Pages
-pnpm cf:smoke                    # https://aicrosswordmaker.com
+pnpm cf:smoke                    # https://crosswordmaker.app
 ```
 
 Operator checklist: `docs/DEPLOY_CHECKLIST.md`. Full notes: `docs/DEPLOYMENT.md`.

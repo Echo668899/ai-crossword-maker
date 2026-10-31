@@ -11,7 +11,7 @@ English AI crossword maker for teachers and learners: topic or word list → edi
 - Hybrid monetization (Free quota + Pro + Credit Pack; Activity Pack retained)
 - Anonymous AI demo when configured (Turnstile/budget later)
 - GPT never owns grid/numbering/validation/billing
-- Domain default: `https://aicrosswordmaker.com`
+- Domain default: `https://crosswordmaker.app`
 
 ## MVP acceptance (engineering)
 

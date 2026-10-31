@@ -30,7 +30,7 @@ export const DEFAULT_PRINT_LAYOUT: PrintLayoutSettings = {
   showWordBank: false,
   showAnswerLengths: false,
   clueColumns: 2,
-  watermark: "aicrosswordmaker.com",
+  watermark: "crosswordmaker.app",
   largePrint: false,
 };
 

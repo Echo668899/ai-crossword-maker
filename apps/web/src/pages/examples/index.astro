@@ -44,7 +44,7 @@ const subjectJump = [...grouped.keys()].map((subject) => ({
   id: `subject-${subject}`,
   label: labels[subject] ?? subject,
 }));
-const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const site = import.meta.env.PUBLIC_SITE_URL || "https://crosswordmaker.app";
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "ItemList",
