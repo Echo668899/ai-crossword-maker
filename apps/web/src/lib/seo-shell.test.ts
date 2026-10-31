@@ -1,0 +1,54 @@
+import { readFileSync, readdirSync, statSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+import { EXAMPLES } from "./examples";
+
+const pagesRoot = join(import.meta.dirname, "../pages");
+
+function collectAstro(dir: string, out: string[] = []): string[] {
+  for (const name of readdirSync(dir)) {
+    const full = join(dir, name);
+    if (statSync(full).isDirectory()) collectAstro(full, out);
+    else if (name.endsWith(".astro")) out.push(full);
+  }
+  return out;
+}
+
+describe("SEO shell hardening", () => {
+  it("keeps robots disallowing app/login/play while allowing public SEO", () => {
+    const robots = readFileSync(join(import.meta.dirname, "../../public/robots.txt"), "utf8");
+    expect(robots).toContain("Disallow: /app/");
+    expect(robots).toContain("Disallow: /p/");
+    expect(robots).toContain("Disallow: /login/");
+    expect(robots).toContain("Allow: /");
+    expect(robots).toContain("Sitemap:");
+  });
+
+  it("rewrites share play URLs without indexing answers in HTML shell", () => {
+    const redirects = readFileSync(join(import.meta.dirname, "../../public/_redirects"), "utf8");
+    expect(redirects).toMatch(/\/p\/\*\s+\/p\/_\/index\.html\s+200/);
+    expect(redirects).toMatch(/\/app\/packs\/\*/);
+  });
+
+  it("has no Chinese locale marketing routes", () => {
+    const files = collectAstro(pagesRoot);
+    const rel = files.map((f) => f.slice(pagesRoot.length));
+    expect(rel.some((p) => /\/zh(\/|$)/i.test(p) || /chinese/i.test(p))).toBe(false);
+    for (const f of files) {
+      const src = readFileSync(f, "utf8");
+      expect(src).not.toMatch(/lang=["']zh/i);
+    }
+  });
+
+  it("examples index and detail pages carry canonical + sample labeling hooks", () => {
+    const indexSrc = readFileSync(join(pagesRoot, "examples/index.astro"), "utf8");
+    const detailSrc = readFileSync(join(pagesRoot, "examples/[slug].astro"), "utf8");
+    expect(indexSrc).toContain('canonicalPath="/examples/"');
+    expect(indexSrc).toContain("ItemList");
+    expect(detailSrc).toContain("FAQPage");
+    expect(detailSrc).toContain("BreadcrumbList");
+    expect(detailSrc).toContain("Make a variant with AI");
+    expect(detailSrc).toContain("Answer key");
+    expect(EXAMPLES.length).toBeGreaterThanOrEqual(20);
+  });
+});

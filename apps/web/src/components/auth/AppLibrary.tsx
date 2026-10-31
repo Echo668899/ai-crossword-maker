@@ -85,7 +85,7 @@ export default function AppLibrary() {
         {user ? (
           <>
             {" "}
-            · <a href="/app/billing/">Billing</a>
+            · <a href="/app/packs/">Activity packs</a> · <a href="/app/billing/">Billing</a>
           </>
         ) : null}
       </p>

@@ -14,6 +14,13 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 | GET | `/auth/google` + `/callback` | Live when Google OAuth env set |
 | POST | `/auth/logout` | Live |
 | GET | `/projects` | Live — signed-in cloud projects |
+| GET | `/projects/:id/versions` | Live — immutable version list (plan-capped) |
+| POST | `/projects/:id/versions` | Live — save snapshot version |
+| GET | `/projects/:id/versions/:versionId` | Live — load snapshot (owner only) |
+| GET | `/packs` | Live — activity packs + entitlement access summary |
+| POST | `/packs` | Live — create pack with A/B/C layout variants (Activity Pack / Pro) |
+| GET | `/packs/:id` | Live — pack detail + items |
+| POST | `/packs/:id/export` | Live — sync JSON export manifest (ZIP+R2 later) |
 | POST | `/shares` | Live — publish snapshot → unlisted share token |
 | POST | `/shares/:token/revoke` | Live — owner revoke |
 | GET | `/play/:token` | Live — play payload **without answers** |
@@ -41,6 +48,13 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 - Magic links: single-use, ~20 min TTL, hashed at rest, email/IP rate limits.
 - Share play HTML `/p/[token]/` is **noindex** and excluded from sitemap/robots; GET play never embeds answer letters.
 
+## Packs / versions
+
+- Creating packs requires `activity_pack` entitlement or Pro; Free gets `403 entitlement_required`.
+- Variants reuse the same clues with different seeds/layouts (A/B/C…).
+- Export returns a sync manifest (`students/`, `answer-keys/`, `instructions/`); student files omit answer grids.
+- Project versions are immutable snapshots with plan-based history caps.
+
 ## Billing (Hybrid)
 
 - SKUs (server whitelist): `pro_monthly`, `pro_yearly`, `credits_50`, `credits_100`, `activity_pack`.
@@ -48,6 +62,6 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 - Checkout creates a pending `orders` row, then redirects to provider Checkout; entitlements are granted only after verified webhooks (`payment_events` unique on provider+event id).
 - Secrets: `STRIPE_*` / `CREEM_*` from env only; missing keys → graceful `503` / Pricing UI disabled checkout (Free demo still works).
 
-Planned next: fuller project CRUD, packs/batch, admin.
+Planned next: ZIP+R2 consumer, admin.
 
 Errors: `{ error: { code, message } }` — no stacks/secrets.

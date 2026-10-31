@@ -12,8 +12,10 @@ import {
 import { consumeAnonQuota, getAnonQuota } from "./quota/anon";
 import { authRoutes } from "./routes/auth";
 import { billingRoutes } from "./routes/billing";
+import { packRoutes } from "./routes/packs";
 import { playRoutes } from "./routes/play";
 import { shareRoutes } from "./routes/shares";
+import { versionRoutes } from "./routes/versions";
 import { googleEnabled } from "./auth/google";
 import { getBillingStatus } from "./billing/provider";
 
@@ -61,6 +63,8 @@ app.route("/", authRoutes);
 app.route("/", billingRoutes);
 app.route("/", shareRoutes);
 app.route("/", playRoutes);
+app.route("/", packRoutes);
+app.route("/", versionRoutes);
 
 app.get("/api/v1/ai/quota", async (c) => {
   if (!isAnonDemoEnabled(c.env)) {

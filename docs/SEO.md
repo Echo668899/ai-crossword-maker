@@ -19,14 +19,16 @@
 ## Technical baseline
 
 - SSG HTML with unique title/description/canonical
-- FAQPage JSON-LD only when FAQ visible
+- FAQPage JSON-LD when FAQ visible (home, AI, teachers, each example)
+- ItemList on `/examples/`; BreadcrumbList on example detail
 - No AggregateRating fiction
-- `/app/`, `/admin/` noindex; `/p/*` noindex (when added)
+- `/app/`, `/admin/`, `/login/`, `/p/*` noindex; excluded from sitemap filter
 - Real 404; sitemap via `@astrojs/sitemap`
 - No Chinese routes
+- Sample vs Human-reviewed labeling; no false “fact verified” claims
 
 ## 90-day
 
-- **A:** P0 shells + maker demo + FAQ + sitemap (this build)
-- **B:** polish examples/internal links; ESL depth
+- **A:** P0 shells + maker demo + FAQ + sitemap (done)
+- **B:** polish examples/internal links; ESL depth (in progress)
 - **C:** GSC-driven long-tail; 1–2 how-tos; honest comparison pages

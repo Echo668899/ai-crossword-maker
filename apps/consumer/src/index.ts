@@ -1,5 +1,7 @@
 /**
- * Queue consumer stub — idempotent job processing lands with Phase 05/07.
+ * Queue consumer stub — ZIP/R2 pack export + async AI jobs.
+ * Sync pack export manifests are already served by the API; this worker
+ * will materialize private R2 ZIPs when FILES + acm-jobs are bound.
  * Messages must carry IDs only; payload snapshots live in D1.
  */
 export interface Env {

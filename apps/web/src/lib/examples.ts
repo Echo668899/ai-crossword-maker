@@ -95,7 +95,7 @@ export const EXAMPLES: ExamplePuzzle[] = [
       { answer: "LIGHT", clue: "Energy from the sun plants use" },
       { answer: "WATER", clue: "Liquid plants absorb through roots" },
       { answer: "OXYGEN", clue: "Gas plants release during photosynthesis" },
-      { answer: "CARBON", clue: "Element in carbon dioxide plants take in" },
+      { answer: "CARBON", clue: "Element in CO2 that plants take in" },
       { answer: "GREEN", clue: "Color associated with chlorophyll" },
       { answer: "ROOT", clue: "Part of a plant that absorbs water from soil" },
     ],
