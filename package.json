@@ -15,7 +15,11 @@
     "test:engine": "pnpm --filter @acm/crossword-engine test",
     "test:e2e": "pnpm --filter @acm/web build && playwright test",
     "typecheck": "pnpm -r typecheck",
-    "lint": "pnpm -r --if-present lint"
+    "lint": "pnpm -r --if-present lint",
+    "cf:bootstrap": "./scripts/cf-bootstrap.sh",
+    "cf:secrets": "./scripts/cf-put-secrets.sh",
+    "cf:deploy": "./scripts/cf-deploy.sh",
+    "cf:smoke": "./scripts/cf-smoke.sh"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

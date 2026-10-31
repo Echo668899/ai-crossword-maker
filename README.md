@@ -49,6 +49,20 @@ packages/crossword-engine packages/contracts packages/print-layout packages/ui p
 db/migrations docs/
 ```
 
+## Deploy (Cloudflare)
+
+Requires `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` (never commit).
+
+```bash
+pnpm cf:bootstrap -- --dry-run   # print exact wrangler commands
+pnpm cf:bootstrap                # D1 / R2 / Queue / Pages project
+pnpm cf:secrets                  # secret put from env (values redacted)
+pnpm cf:deploy                   # migrations + Workers + Pages
+pnpm cf:smoke                    # https://aicrosswordmaker.com
+```
+
+Operator checklist: `docs/DEPLOY_CHECKLIST.md`. Full notes: `docs/DEPLOYMENT.md`.
+
 ## Docs
 
 See `docs/PRD.md`, `docs/ARCHITECTURE.md`, `docs/SEO.md`, `docs/PROGRESS.md`, `AGENTS.md`.
