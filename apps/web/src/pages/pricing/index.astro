@@ -1,6 +1,6 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import { pricing } from "@acm/config/pricing";
+import PricingCheckout from "../../components/billing/PricingCheckout";
 ---
 
 <BaseLayout
@@ -11,49 +11,6 @@ import { pricing } from "@acm/config/pricing";
   <section class="container section" style="padding-top:1.5rem;">
     <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;"><a href="/">Home</a> / Pricing</nav>
     <h1 style="margin:0 0 0.5rem;">Pricing</h1>
-    <p style="max-width:60ch;margin:0 0 0.5rem;">
-      Pay for workflow — not for basic grid correctness. Manual building and structural validation stay available.
-      Checkout stays disabled until Stripe is configured. Plan version: <code>{pricing.planVersion}</code>.
-    </p>
-    <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-top:1.5rem;">
-      <article style="border:1px solid var(--color-border);border-radius:10px;background:#fff;padding:1.1rem;">
-        <h2 style="margin:0 0 0.35rem;font-size:1.25rem;">Free</h2>
-        <p style="margin:0;font-size:1.6rem;font-weight:700;">$0</p>
-        <ul style="padding-left:1.1rem;">
-          <li>{pricing.free.anonAiDemoPerDay} AI demo ops / day (experimental)</li>
-          <li>Manual maker + local draft</li>
-          <li>Watermarked PDF export</li>
-        </ul>
-        <p><a href="/#maker">Try Topic demo</a></p>
-      </article>
-      <article style="border:1px solid var(--color-primary);border-radius:10px;background:#fff;padding:1.1rem;">
-        <h2 style="margin:0 0 0.35rem;font-size:1.25rem;">Pro</h2>
-        <p style="margin:0;font-size:1.6rem;font-weight:700;">${pricing.proMonthly.priceUsd}/mo</p>
-        <p class="muted" style="margin:0.25rem 0 0;">or ${pricing.proYearly.priceUsd}/year</p>
-        <ul style="padding-left:1.1rem;">
-          <li>~{pricing.proMonthly.aiOpsPerPeriod} AI ops / period</li>
-          <li>{pricing.proMonthly.cloudProjects} cloud projects</li>
-          <li>Batch export, versions, no watermark</li>
-        </ul>
-      </article>
-      <article style="border:1px solid var(--color-border);border-radius:10px;background:#fff;padding:1.1rem;">
-        <h2 style="margin:0 0 0.35rem;font-size:1.25rem;">Credit Pack</h2>
-        <p style="margin:0;font-size:1.1rem;font-weight:700;">
-          ${pricing.creditPacks[0].priceUsd}/{pricing.creditPacks[0].aiOps} or ${pricing.creditPacks[1].priceUsd}/{pricing.creditPacks[1].aiOps}
-        </p>
-        <ul style="padding-left:1.1rem;">
-          <li>Pay-as-you-go AI operations</li>
-          <li>Does not remove watermark by default</li>
-        </ul>
-      </article>
-      <article style="border:1px solid var(--color-border);border-radius:10px;background:#fff;padding:1.1rem;">
-        <h2 style="margin:0 0 0.35rem;font-size:1.25rem;">Activity Pack</h2>
-        <p style="margin:0;font-size:1.6rem;font-weight:700;">${pricing.activityPack.priceUsd}</p>
-        <ul style="padding-left:1.1rem;">
-          <li>One project, up to {pricing.activityPack.layoutVariants} layout variants</li>
-          <li>+{pricing.activityPack.bonusAiOps} AI ops for that project</li>
-        </ul>
-      </article>
-    </div>
+    <PricingCheckout client:load />
   </section>
 </BaseLayout>

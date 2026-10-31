@@ -32,7 +32,11 @@ export default function AppLibrary() {
           return;
         }
         setProjects(data.projects ?? []);
-        setStatus((data.projects?.length ?? 0) === 0 ? "No cloud projects yet — share from the maker." : "");
+        setStatus(
+          (data.projects?.length ?? 0) === 0
+            ? "No cloud projects yet — share from the maker."
+            : "",
+        );
       } catch {
         if (!cancelled) setStatus("API unreachable. Start the Worker on :8787.");
       }
@@ -78,6 +82,12 @@ export default function AppLibrary() {
       ) : null}
       <p>
         <a href="/app/new/">Open full maker</a> · <a href="/">Home maker</a>
+        {user ? (
+          <>
+            {" "}
+            · <a href="/app/billing/">Billing</a>
+          </>
+        ) : null}
       </p>
     </div>
   );
