@@ -15,15 +15,54 @@ if (!example) {
 const built = buildExamplePuzzle(example);
 const related = EXAMPLES.filter((e) => e.slug !== example.slug && e.subject === example.subject).slice(0, 3);
 const more = EXAMPLES.filter((e) => e.slug !== example.slug && !related.includes(e)).slice(0, 2);
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const pageUrl = new URL(`/examples/${example.slug}/`, site).toString();
+const faq = [
+  {
+    q: `Is this ${example.title} crossword free to print?`,
+    a: `Yes. This sample ${example.topic.toLowerCase()} crossword includes a printable grid, clues, and an answer key. Marked as ${example.reviewState === "human_reviewed" ? "Human-reviewed" : "Sample"} content.`,
+  },
+  {
+    q: "Can I make a different layout with the same topic?",
+    a: "Use Make a variant with AI to open the Topic maker prefilled with this topic, then edit clues and shuffle the layout before printing.",
+  },
+  {
+    q: "Are the answers fact-checked?",
+    a: example.reviewState === "human_reviewed"
+      ? "This page is marked Human-reviewed. Always spot-check clues for your class."
+      : "This page is a Sample for inspiration — not a claim of curriculum certification or fact verification. Review clues before classroom use.",
+  },
+];
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: new URL("/", site).toString() },
+      { "@type": "ListItem", position: 2, name: "Examples", item: new URL("/examples/", site).toString() },
+      { "@type": "ListItem", position: 3, name: example.title, item: pageUrl },
+    ],
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faq.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  },
+];
 ---
 
 <BaseLayout
   title={`${example.title} Crossword Puzzle (Free Printable)`}
   description={`${example.blurb} Free printable ${example.topic.toLowerCase()} crossword with clues and answer key.`}
   canonicalPath={`/examples/${example.slug}/`}
+  jsonLd={jsonLd}
 >
   <section class="container section" style="padding-top:1.5rem;">
-    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;" aria-label="Breadcrumb">
       <a href="/">Home</a> / <a href="/examples/">Examples</a> / {example.title}
     </nav>
     <p style="margin:0 0 0.35rem;">
@@ -37,6 +76,7 @@ const more = EXAMPLES.filter((e) => e.slug !== example.slug && !related.includes
       <a href={`/ai-crossword-maker/?topic=${encodeURIComponent(example.topic)}`}>Make a variant with AI</a>
       · <a href="/crossword-maker-for-teachers/">For teachers</a>
       · <a href="/printable-crossword-maker/">Printable maker</a>
+      · <a href="/esl-crossword-generator/">ESL generator</a>
     </p>
 
     <div class="grid-two">
@@ -73,6 +113,16 @@ const more = EXAMPLES.filter((e) => e.slug !== example.slug && !related.includes
       <div set:html={built.svgAnswers} style="overflow:auto;margin-top:0.75rem;" />
     </details>
 
+    <section style="margin-top:2.5rem;">
+      <h2 class="section-title">FAQ</h2>
+      {faq.map((item) => (
+        <div style="margin-bottom:1rem;">
+          <h3 style="font-size:1.05rem;margin:0 0 0.35rem;">{item.q}</h3>
+          <p style="margin:0;max-width:65ch;">{item.a}</p>
+        </div>
+      ))}
+    </section>
+
     <div style="margin-top:2rem;">
       <h2 class="section-title">Related examples</h2>
       <ul>
@@ -80,6 +130,9 @@ const more = EXAMPLES.filter((e) => e.slug !== example.slug && !related.includes
           <li><a href={`/examples/${ex.slug}/`}>{ex.title}</a></li>
         ))}
       </ul>
+      <p class="muted" style="margin-top:0.75rem;">
+        Need classroom A/B/C layouts? See <a href="/crossword-maker-for-teachers/">teacher packs</a> and <a href="/pricing/">pricing</a>.
+      </p>
     </div>
   </section>
 </BaseLayout>

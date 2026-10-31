@@ -11,18 +11,38 @@ const labels: Record<string, string> = {
   classroom: "Classroom",
   arts: "Arts",
 };
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "Crossword examples",
+  numberOfItems: EXAMPLES.length,
+  itemListElement: EXAMPLES.map((ex, i) => ({
+    "@type": "ListItem",
+    position: i + 1,
+    name: `${ex.title} crossword`,
+    url: new URL(`/examples/${ex.slug}/`, site).toString(),
+  })),
+};
 ---
 
 <BaseLayout
   title="Crossword Examples — Free Printable Topic Puzzles"
   description="Browse free printable crossword examples by topic. Each page includes a grid, clues, answer key, and a make-a-variant CTA."
   canonicalPath="/examples/"
+  jsonLd={jsonLd}
 >
   <section class="container section" style="padding-top:1.5rem;">
     <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;"><a href="/">Home</a> / Examples</nav>
     <h1 style="margin:0 0 0.5rem;">Crossword examples</h1>
-    <p style="max-width:60ch;margin:0 0 1.5rem;">
+    <p style="max-width:60ch;margin:0 0 1rem;">
       {EXAMPLES.length} sample topic puzzles for classroom inspiration. Marked Sample until human-reviewed. Each page is independently generated HTML — not doorway pages.
+    </p>
+    <p style="margin:0 0 1.5rem;">
+      <a href="/ai-crossword-maker/">Make your own with AI</a>
+      · <a href="/crossword-maker-for-teachers/">Teacher workflows</a>
+      · <a href="/printable-crossword-maker/">Printable presets</a>
+      · <a href="/esl-crossword-generator/">ESL generator</a>
     </p>
     {
       [...grouped.entries()].map(([subject, list]) => (

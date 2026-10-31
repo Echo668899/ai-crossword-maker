@@ -1,0 +1,24 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import PackApp from "../../../components/packs/PackApp";
+
+/**
+ * Pack detail shell. Build emits `_`; CF Pages `_redirects` maps `/app/packs/*` → `/app/packs/_/` (200).
+ */
+export function getStaticPaths() {
+  return [{ params: { id: "_" } }];
+}
+
+const paramId = Astro.params.id ?? "";
+const initialPackId = paramId === "_" ? "" : paramId;
+---
+<BaseLayout
+  title="Activity pack — AI Crossword Maker"
+  description="View A/B/C layout variants for a classroom activity pack."
+  canonicalPath={`/app/packs/${paramId}/`}
+  noindex={true}
+>
+  <section class="container section" style="padding-top:1.5rem;">
+    <PackApp client:load initialPackId={initialPackId} />
+  </section>
+</BaseLayout>

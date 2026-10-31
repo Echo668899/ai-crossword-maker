@@ -182,6 +182,8 @@ export default function MakerApp({
   const [aiLoading, setAiLoading] = useState(false);
   const [shareBusy, setShareBusy] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [packBusy, setPackBusy] = useState(false);
+  const [packUrl, setPackUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -441,6 +443,67 @@ export default function MakerApp({
       dispatch({ type: "setStatus", statusMessage: "Share failed — is the API running?" });
     } finally {
       setShareBusy(false);
+    }
+  }
+
+  async function createActivityPack() {
+    if (!state.result || !state.entries.length) return;
+    setPackBusy(true);
+    setPackUrl(null);
+    try {
+      const me = await apiFetch("/api/v1/auth/me");
+      const meData = await me.json();
+      if (!meData.authenticated) {
+        dispatch({
+          type: "setStatus",
+          statusMessage: "Sign in to create an Activity Pack (A/B/C layouts).",
+        });
+        window.location.href = "/login/";
+        return;
+      }
+      const placed = new Set(state.result.placedEntryIds);
+      const entries = state.entries
+        .filter((e) => placed.has(e.id))
+        .map((e) => ({
+          id: e.id,
+          answerNormalized: e.answerNormalized,
+          clue: e.clue,
+          displayAnswer: e.displayAnswer,
+        }));
+      if (entries.length < 3) {
+        dispatch({
+          type: "setStatus",
+          statusMessage: "Need at least 3 placed words to create an activity pack.",
+        });
+        return;
+      }
+      const res = await apiFetch("/api/v1/packs", {
+        method: "POST",
+        body: JSON.stringify({
+          title: state.title || "Classroom pack",
+          baseSeed: state.result.seed,
+          entries,
+          reviewState: "needs_review",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        dispatch({
+          type: "setStatus",
+          statusMessage: data?.error?.message ?? "Could not create activity pack.",
+        });
+        return;
+      }
+      const path = typeof data.path === "string" ? data.path : `/app/packs/${data.packId}/`;
+      setPackUrl(`${window.location.origin}${path}`);
+      dispatch({
+        type: "setStatus",
+        statusMessage: `Activity pack ready with ${data.variants?.length ?? 0} layout versions.`,
+      });
+    } catch {
+      dispatch({ type: "setStatus", statusMessage: "Pack create failed — is the API running?" });
+    } finally {
+      setPackBusy(false);
     }
   }
 
@@ -915,11 +978,23 @@ export default function MakerApp({
               >
                 {shareBusy ? "Sharing…" : "Share play link"}
               </Button>
+              <Button
+                variant="secondary"
+                disabled={!state.result || packBusy}
+                onClick={() => void createActivityPack()}
+              >
+                {packBusy ? "Creating pack…" : "Activity pack (A/B/C)"}
+              </Button>
             </div>
           </div>
           {shareUrl ? (
             <p style={{ margin: "0.65rem 0 0", fontSize: "0.92rem" }}>
               Share (noindex): <a href={shareUrl}>{shareUrl}</a>
+            </p>
+          ) : null}
+          {packUrl ? (
+            <p style={{ margin: "0.65rem 0 0", fontSize: "0.92rem" }}>
+              Pack: <a href={packUrl}>{packUrl}</a>
             </p>
           ) : null}
 

@@ -1,3 +1,6 @@
 # Pretty share URLs on Cloudflare Pages (200 rewrite, not a redirect).
 # PlayApp reads the real pathname; answers never ship in HTML.
 /p/*  /p/_/index.html  200
+
+# App pack detail shell (noindex). PackApp reads the real pathname.
+/app/packs/*  /app/packs/_/index.html  200
