@@ -1,7 +1,12 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getBlogPost, relatedBlogPosts } from "../../../lib/blog-posts";
+import { getExample } from "../../../lib/examples";
 
 const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const meta = getBlogPost("how-to-make-a-crossword-puzzle")!;
+const relatedGuides = relatedBlogPosts(meta.slug);
+const featuredExamples = meta.exampleSlugs.map((s) => getExample(s)).filter(Boolean);
 const title = "How to Make a Crossword Puzzle — Topic, Clues, Print";
 const description =
   "Learn how to make a crossword puzzle from a topic or word list: draft clues, build an interlocking grid, edit answers, and print with an answer key.";
@@ -56,6 +61,16 @@ const description =
       Topic mode asks AI for candidate answers and clues. Word-list mode keeps your answers and can fill missing clues only.
       Teachers often start from spelling lists; see
       <a href="/crossword-maker-from-word-list/">crossword maker from a word list</a>.
+      Prefer a ready seed? Try
+      {
+        featuredExamples.map((ex, i) => (
+          <>
+            {i > 0 ? (i === featuredExamples.length - 1 ? ", or " : ", ") : ""}
+            <a href={`/examples/${ex!.slug}/`}>{ex!.title.toLowerCase()}</a>
+          </>
+        ))
+      }
+      .
     </p>
 
     <h2>2. Review every clue</h2>
@@ -92,10 +107,15 @@ const description =
 
     <h2>Related guides &amp; tools</h2>
     <ul>
-      <li><a href="/blog/how-to-make-esl-vocabulary-crosswords/">How to make ESL vocabulary crosswords</a></li>
-      <li><a href="/blog/how-to-print-crossword-worksheets/">How to print crossword worksheets with answer keys</a></li>
+      {
+        relatedGuides.map((g) => (
+          <li>
+            <a href={`/blog/${g.slug}/`}>{g.title}</a>
+          </li>
+        ))
+      }
       <li><a href="/esl-crossword-generator/">ESL crossword generator</a> · <a href="/cefr-crossword/">CEFR crossword</a></li>
-      <li><a href="/how-it-works/">How it works</a> · <a href="/pricing/">Pricing</a></li>
+      <li><a href="/examples/">Examples library</a> · <a href="/how-it-works/">How it works</a> · <a href="/pricing/">Pricing</a></li>
     </ul>
 
     <p style="margin-top:1.5rem;">

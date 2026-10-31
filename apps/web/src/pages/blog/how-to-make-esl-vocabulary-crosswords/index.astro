@@ -1,7 +1,10 @@
 ---
 import BaseLayout from "../../../layouts/BaseLayout.astro";
+import { getBlogPost, relatedBlogPosts } from "../../../lib/blog-posts";
 
 const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const meta = getBlogPost("how-to-make-esl-vocabulary-crosswords")!;
+const relatedGuides = relatedBlogPosts(meta.slug);
 const title = "How to Make ESL Vocabulary Crosswords (CEFR A1–C1)";
 const description =
   "Build printable ESL vocabulary crosswords by CEFR level: pick A1–C1 themes, edit learner-friendly clues, and export worksheets with answer keys.";
@@ -64,8 +67,9 @@ const description =
       Three to twelve letters, A–Z only. Skip multi-word phrases unless you can encode them as single tokens.
       Try sample pages like
       <a href="/examples/esl-food-vocabulary/">ESL food vocabulary</a>,
-      <a href="/examples/esl-daily-routines/">daily routines</a>, and
-      <a href="/examples/esl-jobs-and-work/">jobs and work</a>.
+      <a href="/examples/esl-daily-routines/">daily routines</a>,
+      <a href="/examples/esl-jobs-and-work/">jobs and work</a>, and
+      <a href="/examples/irregular-verbs/">irregular verbs</a>.
     </p>
 
     <h2>3. Write (or edit) learner-friendly clues</h2>
@@ -96,8 +100,13 @@ const description =
 
     <h2>Related</h2>
     <ul>
-      <li><a href="/blog/how-to-make-a-crossword-puzzle/">How to make a crossword puzzle</a></li>
-      <li><a href="/blog/how-to-print-crossword-worksheets/">How to print crossword worksheets with answer keys</a></li>
+      {
+        relatedGuides.map((g) => (
+          <li>
+            <a href={`/blog/${g.slug}/`}>{g.title}</a>
+          </li>
+        ))
+      }
       <li><a href="/examples/">Examples library</a> · <a href="/pricing/">Free vs Pro</a></li>
       <li><a href="/how-it-works/">How AI vs the grid engine works</a></li>
     </ul>

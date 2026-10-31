@@ -1,27 +1,8 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import { BLOG_POSTS } from "../../lib/blog-posts";
 
-const posts = [
-  {
-    slug: "how-to-make-a-crossword-puzzle",
-    title: "How to Make a Crossword Puzzle",
-    description:
-      "Step-by-step: pick a topic or word list, edit clues, build a grid, and print with an answer key.",
-  },
-  {
-    slug: "how-to-make-esl-vocabulary-crosswords",
-    title: "How to Make ESL Vocabulary Crosswords",
-    description:
-      "Use CEFR levels and classroom themes to build printable ESL crosswords with editable clues.",
-  },
-  {
-    slug: "how-to-print-crossword-worksheets",
-    title: "How to Print Crossword Worksheets with Answer Keys",
-    description:
-      "Choose Letter/A4, add name/class/date lines, and export student PDFs with a matching answer key.",
-  },
-];
-
+const posts = BLOG_POSTS;
 const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
 ---
 
@@ -67,6 +48,14 @@ const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
       <a href="/crossword-maker-for-teachers/">Teachers</a> ·
       <a href="/esl-crossword-generator/">ESL generator</a> ·
       <a href="/examples/">Examples</a>
+    </p>
+    <p class="muted" style="font-size:0.92rem;">
+      Fresh long-tail worksheets:
+      <a href="/examples/greek-mythology/">Greek mythology</a> ·
+      <a href="/examples/world-capitals/">world capitals</a> ·
+      <a href="/examples/irregular-verbs/">irregular verbs</a> ·
+      <a href="/examples/animal-habitats/">animal habitats</a> ·
+      <a href="/examples/renewable-energy/">renewable energy</a>
     </p>
   </section>
 </BaseLayout>
