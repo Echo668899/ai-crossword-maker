@@ -1,0 +1,188 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const title = "AI Crossword Maker vs Crossword Labs — Honest Comparison";
+const description =
+  "Feature-by-feature comparison of AI Crossword Maker and Crossword Labs for teachers who need printable worksheets with answer keys. Facts only — no invented ratings.";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath="/vs/crossword-labs/"
+  jsonLd={[
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: title,
+      description,
+      url: `${site}/vs/crossword-labs/`,
+      inLanguage: "en",
+      isPartOf: { "@type": "WebSite", name: "AI Crossword Maker", url: site },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
+        { "@type": "ListItem", position: 2, name: "Comparisons", item: `${site}/vs/crossword-labs/` },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: "vs Crossword Labs",
+          item: `${site}/vs/crossword-labs/`,
+        },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "Is AI Crossword Maker a Crossword Labs alternative?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes for teachers who want AI topic drafts, editable clues, dual-page PDF print with answer keys, and classroom name-line presets. Crossword Labs remains a strong free option for quick shareable web puzzles.",
+          },
+        },
+        {
+          "@type": "Question",
+          name: "Do you invent star ratings or review scores?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "No. This page lists product capabilities we ship today versus publicly known Crossword Labs workflows. We do not invent star ratings or fabricated review counts.",
+          },
+        },
+      ],
+    },
+  ]}
+>
+  <article class="container section prose" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / Comparisons / vs Crossword Labs
+    </nav>
+    <h1>AI Crossword Maker vs Crossword Labs</h1>
+    <p>
+      Looking for a
+      <strong>Crossword Labs alternative</strong>
+      that still feels free to try? Both tools help you turn a word list into a crossword. The fit depends on whether you mainly need a quick web share link, or a printable classroom worksheet with an answer key.
+    </p>
+    <p class="muted" style="font-size:0.92rem;">
+      This page compares capabilities we ship today against Crossword Labs’ well-known free maker workflow. No star ratings, no invented review counts.
+    </p>
+
+    <h2>Quick verdict</h2>
+    <ul>
+      <li>
+        Choose <strong>Crossword Labs</strong> when you want a fast free web puzzle to share online and you are fine editing in their maker UI.
+      </li>
+      <li>
+        Choose <strong>AI Crossword Maker</strong> when you want topic → AI clue drafts, editable entries, dual-page PDF print (puzzle + answer key), teacher name lines, and ESL/CEFR presets.
+      </li>
+    </ul>
+    <p>
+      <a href="/ai-crossword-maker/"><strong>Try AI Crossword Maker free</strong></a>
+      · <a href="/examples/">Browse printable examples</a>
+      · <a href="/pricing/">See Free vs Pro</a>
+    </p>
+
+    <h2>Feature comparison</h2>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Capability</th>
+            <th scope="col">AI Crossword Maker</th>
+            <th scope="col">Crossword Labs (typical free use)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Paste a word list</td>
+            <td>Yes — Words / Paste modes</td>
+            <td>Yes — core workflow</td>
+          </tr>
+          <tr>
+            <td>AI topic → words + clues</td>
+            <td>Yes — free daily demo quota</td>
+            <td>Not the primary path</td>
+          </tr>
+          <tr>
+            <td>Edit clues before print</td>
+            <td>Yes — full entry editor</td>
+            <td>Yes — in their maker</td>
+          </tr>
+          <tr>
+            <td>Printable PDF + answer key</td>
+            <td>Yes — dual-page layout; free PDFs include light branding</td>
+            <td>Web play / print options vary; answer-key classroom PDFs are not our focus claim for them</td>
+          </tr>
+          <tr>
+            <td>Teacher name / class / date lines</td>
+            <td>Yes — name-line presets</td>
+            <td>Not a documented classroom header preset in the free flow we compare here</td>
+          </tr>
+          <tr>
+            <td>ESL / CEFR landing presets</td>
+            <td>Yes — dedicated ESL + CEFR pages</td>
+            <td>General maker; no CEFR-specific product page claimed here</td>
+          </tr>
+          <tr>
+            <td>Share play link</td>
+            <td>Yes — <code>/p/…</code> (noindex)</td>
+            <td>Yes — shareable web puzzles</td>
+          </tr>
+          <tr>
+            <td>Activity packs / batch variants</td>
+            <td>Yes — A/B/C pack export (Pro / credits path)</td>
+            <td>Not part of this comparison claim</td>
+          </tr>
+          <tr>
+            <td>Price model</td>
+            <td>Free demo + Pro subscription + credit packs</td>
+            <td>Long-standing free web maker (check their site for current limits)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Where we are intentionally different</h2>
+    <p>
+      AI Crossword Maker is built for English classroom and ESL printable workflows:
+      topic or vocabulary list → editable clues → interlocking grid → print with answer key.
+      The language model drafts words and clues only; the program owns grid placement, numbering, validation, entitlements, and billing.
+    </p>
+    <p>
+      We are <strong>not</strong> a daily crossword play portal, and we do not claim professional NYT-style symmetry or cryptic construction.
+    </p>
+
+    <h2>Try the classroom path</h2>
+    <ol>
+      <li><a href="/ai-crossword-maker/">Generate from a topic</a> (free demo) or <a href="/crossword-maker-from-word-list/">paste a word list</a>.</li>
+      <li>Edit clues, then print puzzle + answer key from <a href="/printable-crossword-maker/">Printable</a> or <a href="/crossword-maker-for-teachers/">Teachers</a>.</li>
+      <li>Reuse a ready seed from <a href="/examples/states-of-matter/">states of matter</a>, <a href="/examples/food-chains/">food chains</a>, or <a href="/examples/synonyms/">synonyms</a>.</li>
+    </ol>
+
+    <h2 id="faq">FAQ</h2>
+    <h3>Is AI Crossword Maker a Crossword Labs alternative?</h3>
+    <p>
+      Yes for teachers who need AI drafts, editable clues, dual-page PDFs with answer keys, and classroom name lines.
+      Crossword Labs remains a strong free option for quick shareable web puzzles.
+    </p>
+    <h3>Do you invent star ratings or review scores?</h3>
+    <p>
+      No. We list product capabilities we ship today versus publicly known Crossword Labs workflows.
+      We do not publish AggregateRating schema or fabricated review counts.
+    </p>
+
+    <p style="margin-top:1.5rem;">
+      Related guides:
+      <a href="/blog/how-to-make-a-crossword-puzzle/">How to make a crossword</a>
+      · <a href="/blog/how-to-print-crossword-worksheets/">Print worksheets</a>
+      · <a href="/blog/how-to-make-a-crossword-from-a-word-list/">From a word list</a>
+      · <a href="/how-it-works/">How it works</a>
+    </p>
+  </article>
+</BaseLayout>

@@ -633,6 +633,106 @@ export const EXAMPLES: ExamplePuzzle[] = [
       { answer: "FOSSIL", clue: "Type of fuel formed from ancient plants and animals" },
     ],
   },
+  {
+    slug: "states-of-matter",
+    title: "States of Matter",
+    topic: "States of Matter",
+    subject: "science",
+    gradeBand: "Grades 3–6 physical science",
+    blurb:
+      "Free printable states of matter crossword — solid, liquid, gas, and phase-change vocabulary with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "SOLID", clue: "State of matter with a fixed shape and volume" },
+      { answer: "LIQUID", clue: "State of matter that takes the shape of its container" },
+      { answer: "GAS", clue: "State of matter that spreads to fill all available space" },
+      { answer: "MELT", clue: "Change from solid to liquid when heated" },
+      { answer: "FREEZE", clue: "Change from liquid to solid when cooled" },
+      { answer: "VAPOR", clue: "Gas form of a substance that is usually liquid" },
+      { answer: "HEAT", clue: "Energy that raises temperature and can change state" },
+      { answer: "VOLUME", clue: "Amount of space a sample of matter takes up" },
+    ],
+  },
+  {
+    slug: "food-chains",
+    title: "Food Chains",
+    topic: "Food Chains",
+    subject: "science",
+    gradeBand: "Grades 3–6 life science",
+    blurb:
+      "Free printable food chains crossword for life science — producers, prey, energy flow, and related vocabulary with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "PRODUCER", clue: "Plant that makes its own food using sunlight" },
+      { answer: "PREY", clue: "Animal hunted by another animal for food" },
+      { answer: "PREDATOR", clue: "Animal that hunts other animals for food" },
+      { answer: "ENERGY", clue: "What moves from one organism to the next in a chain" },
+      { answer: "PLANT", clue: "Living thing that usually starts a food chain" },
+      { answer: "HERBIVORE", clue: "Animal that eats mainly plants" },
+      { answer: "OMNIVORE", clue: "Animal that eats both plants and other animals" },
+      { answer: "DECOMPOSER", clue: "Organism that breaks down dead plants and animals" },
+    ],
+  },
+  {
+    slug: "continents-and-oceans",
+    title: "Continents and Oceans",
+    topic: "Continents and Oceans",
+    subject: "social",
+    gradeBand: "Grades 2–5 geography",
+    blurb:
+      "Free printable continents and oceans crossword for geography — world map vocabulary with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "ASIA", clue: "Largest continent by land area" },
+      { answer: "AFRICA", clue: "Continent home to the Sahara Desert" },
+      { answer: "EUROPE", clue: "Continent west of Asia across the Ural Mountains" },
+      { answer: "PACIFIC", clue: "Largest ocean on Earth" },
+      { answer: "ATLANTIC", clue: "Ocean between the Americas and Europe/Africa" },
+      { answer: "ARCTIC", clue: "Ocean near the North Pole" },
+      { answer: "ISLAND", clue: "Land completely surrounded by water" },
+      { answer: "EQUATOR", clue: "Imaginary line halfway between the poles" },
+    ],
+  },
+  {
+    slug: "synonyms",
+    title: "Synonyms",
+    topic: "Synonyms",
+    subject: "language",
+    gradeBand: "Grades 3–6 language arts / ESL",
+    blurb:
+      "Free printable synonyms crossword for language arts — matching meaning pairs to build vocabulary with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "HAPPY", clue: "Synonym for glad or joyful" },
+      { answer: "BIG", clue: "Synonym for large or huge" },
+      { answer: "FAST", clue: "Synonym for quick or speedy" },
+      { answer: "SMART", clue: "Synonym for clever or intelligent" },
+      { answer: "BEGIN", clue: "Synonym for start or commence" },
+      { answer: "HELP", clue: "Synonym for assist or aid" },
+      { answer: "QUIET", clue: "Synonym for silent or hushed" },
+      { answer: "ANGRY", clue: "Synonym for mad or furious" },
+    ],
+  },
+  {
+    slug: "telling-time",
+    title: "Telling Time",
+    topic: "Telling Time",
+    subject: "classroom",
+    gradeBand: "Grades 1–4 math / ESL",
+    blurb:
+      "Free printable telling-time crossword for early math or ESL — clock, hour, minute, and schedule words with answer key.",
+    reviewState: "human_reviewed",
+    entries: [
+      { answer: "CLOCK", clue: "Device that shows what time it is" },
+      { answer: "HOUR", clue: "Unit of time equal to sixty minutes" },
+      { answer: "MINUTE", clue: "Unit of time equal to sixty seconds" },
+      { answer: "NOON", clue: "Twelve o'clock in the middle of the day" },
+      { answer: "MIDNIGHT", clue: "Twelve o'clock at night" },
+      { answer: "WATCH", clue: "Small timepiece worn on the wrist" },
+      { answer: "SCHEDULE", clue: "Plan that lists when activities happen" },
+      { answer: "SECOND", clue: "Smallest common unit on most classroom clocks" },
+    ],
+  },
 ];
 
 /** High-intent classroom / ESL long-tail seeds prioritized for quality review. */
@@ -668,6 +768,15 @@ export const LONG_TAIL_EXPANSION_SLUGS = [
   "irregular-verbs",
   "animal-habitats",
   "renewable-energy",
+] as const;
+
+/** Second long-tail classroom batch (science / geography / language / early math). */
+export const LONG_TAIL_BATCH_2_SLUGS = [
+  "states-of-matter",
+  "food-chains",
+  "continents-and-oceans",
+  "synonyms",
+  "telling-time",
 ] as const;
 
 export function getExample(slug: string) {

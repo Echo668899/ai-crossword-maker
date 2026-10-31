@@ -14,6 +14,7 @@ import { Button } from "@acm/ui";
 import { StatusPill } from "@acm/ui";
 import { loadDraft, saveDraft } from "../../lib/maker-storage";
 import { SAMPLE_MANUAL_ENTRIES, TEACHER_CLASSROOM_ENTRIES } from "../../lib/sample-entries";
+import { getExample } from "../../lib/examples";
 import { apiFetch } from "../../lib/api";
 import { hydrateFromSnapshot, type CloudSnapshot } from "../../lib/snapshot-hydrate";
 import TurnstileField, { turnstileConfigured } from "../security/TurnstileField";
@@ -44,11 +45,19 @@ const NAME_LINE_OPTIONS: Array<{ id: NameLinePresetId; label: string }> = [
 
 /** Classroom long-tail chips — fill Topic without spending AI until Generate. */
 const TOPIC_QUICK_PICKS = [
-  "Greek Mythology for grade 6",
-  "World Capitals geography",
-  "Irregular verbs for ESL A2",
-  "Animal Habitats for grade 3",
-  "Renewable Energy for grade 7",
+  "States of Matter for grade 4",
+  "Food Chains for grade 5",
+  "Continents and Oceans for grade 3",
+  "Synonyms for ESL A2",
+  "Telling Time for grade 2",
+] as const;
+
+const EXAMPLE_SEED_SLUGS = [
+  "states-of-matter",
+  "food-chains",
+  "continents-and-oceans",
+  "synonyms",
+  "telling-time",
 ] as const;
 
 interface EntryRow {
@@ -1193,6 +1202,15 @@ export default function MakerApp({
                   );
                 })}
               </div>
+              <p className="muted" style={{ margin: 0, fontSize: "0.88rem" }}>
+                Prefer a ready printable?
+                {" "}
+                <a href="/examples/states-of-matter/">States of matter</a>
+                {" · "}
+                <a href="/examples/food-chains/">Food chains</a>
+                {" · "}
+                <a href="/examples/">All examples</a>
+              </p>
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
                 <label style={{ display: "grid", gap: "0.35rem" }}>
                   <span style={{ fontWeight: 650 }}>Words</span>
@@ -1253,6 +1271,26 @@ export default function MakerApp({
                   }}
                 >
                   Load sample words
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    const slug =
+                      EXAMPLE_SEED_SLUGS[Math.floor(Math.random() * EXAMPLE_SEED_SLUGS.length)] ??
+                      "states-of-matter";
+                    const ex = getExample(slug);
+                    if (!ex) return;
+                    pushHistory(ex.entries.map((e) => ({ answer: e.answer, clue: e.clue })));
+                    dispatch({ type: "setMode", mode: "manual" });
+                    dispatch({ type: "setTitle", title: `${ex.title} (Example seed)` });
+                    dispatch({ type: "setTopic", topic: ex.topic });
+                    dispatch({
+                      type: "setStatus",
+                      statusMessage: `Loaded “${ex.title}” example seed — edit clues, then Build grid (no AI).`,
+                    });
+                  }}
+                >
+                  Load example seed
                 </Button>
                 <Button
                   variant="ghost"
@@ -1328,11 +1366,24 @@ export default function MakerApp({
 
           {state.mode === "words" || state.mode === "manual" || state.mode === "topic" ? (
             <div style={{ marginTop: state.mode === "topic" ? "1rem" : 0 }}>
-              {state.mode === "words" ? (
+              {state.mode === "words" || state.mode === "manual" ? (
                 <div style={{ display: "grid", gap: "0.55rem", marginBottom: "0.85rem" }}>
                   <p className="muted" style={{ margin: 0, fontSize: "0.92rem" }}>
-                    Keep your answers. Add clues manually (or leave blank for later).{" "}
-                    <a href="/blog/how-to-make-a-crossword-from-a-word-list/">How to make a crossword from a word list</a>
+                    {state.mode === "words" ? (
+                      <>
+                        Keep your answers. Add clues manually (or leave blank for later).{" "}
+                        <a href="/blog/how-to-make-a-crossword-from-a-word-list/">
+                          How to make a crossword from a word list
+                        </a>
+                      </>
+                    ) : (
+                      <>
+                        Manual Words + clues — layout never spends AI credits.{" "}
+                        <a href="/examples/">Browse printable examples</a>
+                        {" · "}
+                        <a href="/vs/crossword-labs/">vs Crossword Labs</a>
+                      </>
+                    )}
                   </p>
                   <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap" }}>
                     <Button
@@ -1364,15 +1415,35 @@ export default function MakerApp({
                     <Button
                       variant="ghost"
                       onClick={() => {
-                        dispatch({ type: "setMode", mode: "paste" });
+                        const slug =
+                          EXAMPLE_SEED_SLUGS[Math.floor(Math.random() * EXAMPLE_SEED_SLUGS.length)] ??
+                          "synonyms";
+                        const ex = getExample(slug);
+                        if (!ex) return;
+                        pushHistory(ex.entries.map((e) => ({ answer: e.answer, clue: e.clue })));
+                        dispatch({ type: "setTitle", title: `${ex.title} (Example seed)` });
                         dispatch({
                           type: "setStatus",
-                          statusMessage: "Paste mode — one answer per line, then Parse into editor.",
+                          statusMessage: `Loaded “${ex.title}” example seed — edit, then Build grid.`,
                         });
                       }}
                     >
-                      Paste a list
+                      Load example seed
                     </Button>
+                    {state.mode === "words" ? (
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          dispatch({ type: "setMode", mode: "paste" });
+                          dispatch({
+                            type: "setStatus",
+                            statusMessage: "Paste mode — one answer per line, then Parse into editor.",
+                          });
+                        }}
+                      >
+                        Paste a list
+                      </Button>
+                    ) : null}
                   </div>
                 </div>
               ) : null}
@@ -1395,9 +1466,11 @@ export default function MakerApp({
                   Entries appear here after Generate with AI — or Add row to draft manually.
                 </p>
               ) : null}
-              {state.mode === "words" && state.rows.length === 0 ? (
+              {(state.mode === "words" || state.mode === "manual") && state.rows.length === 0 ? (
                 <p className="muted" style={{ margin: "0 0 0.65rem", fontSize: "0.9rem" }}>
-                  Add rows, load a sample, or Paste a list — then Build grid. No AI required for layout.
+                  {state.mode === "words"
+                    ? "Add rows, load a sample, or Paste a list — then Build grid. No AI required for layout."
+                    : "Add rows or Load example seed — then Build grid. No AI required for layout."}
                 </p>
               ) : null}
               {duplicateAnswers.length ? (
