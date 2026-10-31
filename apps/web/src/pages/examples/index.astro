@@ -4,6 +4,7 @@ import {
   EXAMPLES,
   examplesBySubject,
   HIGH_TRAFFIC_EXAMPLE_SLUGS,
+  LONG_TAIL_BATCH_2_SLUGS,
   LONG_TAIL_EXPANSION_SLUGS,
   getExample,
 } from "../../lib/examples";
@@ -11,9 +12,9 @@ import {
 const featured = HIGH_TRAFFIC_EXAMPLE_SLUGS.map((slug) => getExample(slug)).filter(
   (ex): ex is NonNullable<typeof ex> => Boolean(ex),
 );
-const longTail = LONG_TAIL_EXPANSION_SLUGS.map((slug) => getExample(slug)).filter(
-  (ex): ex is NonNullable<typeof ex> => Boolean(ex),
-);
+const longTail = [...LONG_TAIL_BATCH_2_SLUGS, ...LONG_TAIL_EXPANSION_SLUGS]
+  .map((slug) => getExample(slug))
+  .filter((ex): ex is NonNullable<typeof ex> => Boolean(ex));
 
 const grouped = examplesBySubject();
 const labels: Record<string, string> = {

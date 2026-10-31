@@ -15,14 +15,14 @@ Updated: 2026-10-31
 | 07 Packs / batch export | PARTIAL — A/B/C packs + ZIP/R2 export (queue + inline); consumer processes `pack_export` |
 | 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal APIs |
 | 09 Stripe / ledger / admin | PARTIAL — Hybrid Stripe/Creem + ledger; **admin skeleton** (`/admin`, `/api/v1/admin/*`, audit + ops flags) |
-| 10 SEO polish / deploy hardening | IN PROGRESS — word-list how-to + word-list landing FAQ/CTAs + Words-mode UX |
+| 10 SEO polish / deploy hardening | IN PROGRESS — long-tail batch-2 examples + honest `/vs/crossword-labs/` + maker example-seed UX |
 
 ## Latest slice (product iteration)
 
-- Merged long-tail examples + blog mesh + maker UX via PR #11 → `main` @ `772dc1c`
-- Blog: new how-to `/blog/how-to-make-a-crossword-from-a-word-list/` (catalog + Article/Breadcrumb JSON-LD)
-- Word-list landing: FAQPage schema, how-to CTA, starter example links
-- Maker UX (Words mode): classroom/solar sample loaders, paste shortcut, contextual empty-grid hint; paste import stays in Words when started from list
+- Merged word-list how-to + Words UX via PR #12 → `main` @ `79bc19b`
+- Examples: +5 human-reviewed long-tail seeds (`LONG_TAIL_BATCH_2_SLUGS`) — states of matter, food chains, continents & oceans, synonyms, telling time
+- SEO: honest `/vs/crossword-labs/` comparison (FAQPage, no AggregateRating fiction); blog/pricing/footer/how-it-works cross-links
+- Maker UX: Topic quick-picks refreshed; Load example seed (Topic + Words/Manual); Manual mode sample strip parity
 
 ## Open decisions
 

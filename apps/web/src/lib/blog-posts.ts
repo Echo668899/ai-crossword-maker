@@ -22,7 +22,14 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "/printable-crossword-maker/",
       "/crossword-maker-for-teachers/",
     ],
-    exampleSlugs: ["solar-system", "world-capitals", "greek-mythology", "parts-of-speech"],
+    exampleSlugs: [
+      "solar-system",
+      "world-capitals",
+      "greek-mythology",
+      "parts-of-speech",
+      "states-of-matter",
+      "synonyms",
+    ],
   },
   {
     slug: "how-to-make-esl-vocabulary-crosswords",
@@ -36,6 +43,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "esl-jobs-and-work",
       "irregular-verbs",
       "esl-travel-phrases",
+      "synonyms",
+      "telling-time",
     ],
   },
   {
@@ -49,6 +58,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "parts-of-speech",
       "animal-habitats",
       "renewable-energy",
+      "food-chains",
+      "continents-and-oceans",
     ],
   },
   {
@@ -67,6 +78,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "irregular-verbs",
       "esl-food-vocabulary",
       "fractions",
+      "telling-time",
+      "synonyms",
     ],
   },
 ];

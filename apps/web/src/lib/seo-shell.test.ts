@@ -129,7 +129,7 @@ describe("SEO shell hardening", () => {
     expect(blogIndex).toContain('canonicalPath="/blog/"');
     expect(blogIndex).toContain("ItemList");
     expect(blogIndex).toContain("BLOG_POSTS");
-    expect(blogIndex).toContain("/examples/irregular-verbs/");
+    expect(blogIndex).toContain("/examples/states-of-matter/");
     expect(blogIndex).toContain("/crossword-maker-from-word-list/");
     const blogCatalog = readFileSync(join(import.meta.dirname, "blog-posts.ts"), "utf8");
     expect(blogCatalog).toContain("how-to-print-crossword-worksheets");
@@ -158,6 +158,23 @@ describe("SEO shell hardening", () => {
     expect(EXAMPLES.some((e) => e.slug === "esl-jobs-and-work")).toBe(true);
     expect(EXAMPLES.some((e) => e.slug === "greek-mythology")).toBe(true);
     expect(EXAMPLES.some((e) => e.slug === "renewable-energy")).toBe(true);
+    expect(EXAMPLES.some((e) => e.slug === "states-of-matter")).toBe(true);
+    expect(EXAMPLES.some((e) => e.slug === "telling-time")).toBe(true);
+  });
+
+  it("ships an honest Crossword Labs comparison page without AggregateRating fiction", () => {
+    const vs = readFileSync(join(pagesRoot, "vs/crossword-labs/index.astro"), "utf8");
+    const blogIndex = readFileSync(join(pagesRoot, "blog/index.astro"), "utf8");
+    const pricing = readFileSync(join(pagesRoot, "pricing/index.astro"), "utf8");
+    const footer = readFileSync(join(import.meta.dirname, "../layouts/BaseLayout.astro"), "utf8");
+    expect(vs).toContain('canonicalPath="/vs/crossword-labs/"');
+    expect(vs).toContain("FAQPage");
+    expect(vs).toContain("Crossword Labs alternative");
+    expect(vs).not.toMatch(/"@type"\s*:\s*"AggregateRating"/);
+    expect(vs).not.toMatch(/ratingValue|reviewCount/i);
+    expect(blogIndex).toContain("/vs/crossword-labs/");
+    expect(pricing).toContain("/vs/crossword-labs/");
+    expect(footer).toContain("/vs/crossword-labs/");
   });
 
   it("wires example detail pages into the blog how-to mesh", () => {
@@ -170,9 +187,12 @@ describe("SEO shell hardening", () => {
     );
     expect(maker).toContain("TOPIC_QUICK_PICKS");
     expect(maker).toContain("Quick classroom topics");
+    expect(maker).toContain("EXAMPLE_SEED_SLUGS");
+    expect(maker).toContain("Load example seed");
     expect(maker).toContain("emptyHint");
     expect(maker).toContain("TEACHER_CLASSROOM_ENTRIES");
     expect(maker).toContain("Load classroom sample");
     expect(maker).toContain("/blog/how-to-make-a-crossword-from-a-word-list/");
+    expect(maker).toContain("/examples/states-of-matter/");
   });
 });

@@ -32,9 +32,10 @@
 - Teachers ↔ printable dedicated CTAs; print how-to post bridges both landings
 - Shared `blog-posts` catalog drives related guides; example pages link “Related how-tos”
 - Word-list landing FAQ + how-to `/blog/how-to-make-a-crossword-from-a-word-list/` bridges paste → print
+- Honest `/vs/crossword-labs/` comparison (facts only; no AggregateRating fiction)
 
 ## 90-day
 
 - **A:** P0 shells + maker demo + FAQ + sitemap (done)
 - **B:** examples≥25 + print/FAQ/related links polish (done); ESL/CEFR depth + how-tos (done)
-- **C:** first-pass high-traffic review + name-line presets (PR #9); second-pass examples + print how-to (PR #10); long-tail +5 + blog mesh (PR #11); word-list how-to + Words UX (this slice); GSC-driven long-tail next; honest `/vs/` comparison pages still open
+- **C:** first-pass high-traffic review + name-line presets (PR #9); second-pass examples + print how-to (PR #10); long-tail +5 + blog mesh (PR #11); word-list how-to + Words UX (PR #12); long-tail batch-2 + `/vs/crossword-labs/` (this slice); more `/vs/` alternatives + GSC-driven long-tail next
