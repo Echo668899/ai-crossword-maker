@@ -1,0 +1,108 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
+const title = "How to Print Crossword Worksheets with Answer Keys";
+const description =
+  "Print classroom crossword worksheets: choose Letter or A4, add name/class/date lines, export a student PDF, and keep a matching answer key separate.";
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath="/blog/how-to-print-crossword-worksheets/"
+  jsonLd={[
+    {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: "How to Print Crossword Worksheets with Answer Keys",
+      description,
+      inLanguage: "en",
+      mainEntityOfPage: `${site}/blog/how-to-print-crossword-worksheets/`,
+      author: { "@type": "Organization", name: "AI Crossword Maker" },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
+        { "@type": "ListItem", position: 2, name: "Blog", item: `${site}/blog/` },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: "How to print crossword worksheets",
+          item: `${site}/blog/how-to-print-crossword-worksheets/`,
+        },
+      ],
+    },
+  ]}
+>
+  <article class="container section prose" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / <a href="/blog/">Blog</a> / Print crossword worksheets
+    </nav>
+    <h1>How to Print Crossword Worksheets with Answer Keys</h1>
+    <p>
+      Teachers usually need two files: a student sheet without answers, and a matching answer key for grading.
+      This guide walks through paper size, name-line presets, and PDF export — then sends you into the live printable maker.
+    </p>
+    <p>
+      <a href="/printable-crossword-maker/"><strong>Open the printable crossword maker</strong></a>
+      or jump to the
+      <a href="/crossword-maker-for-teachers/">teachers classroom preset</a>
+      (Name + Class + Date already selected).
+    </p>
+
+    <h2>1. Build or load the puzzle first</h2>
+    <p>
+      Use AI Topic, paste a word list, or open a ready example such as
+      <a href="/examples/classroom-objects/">classroom objects</a>
+      or
+      <a href="/examples/parts-of-speech/">parts of speech</a>.
+      Edit clues before you print — PDF export locks the grid you see on screen.
+    </p>
+
+    <h2>2. Pick Letter or A4</h2>
+    <p>
+      US classrooms usually print Letter; many international schools prefer A4.
+      Choose the paper size in the export panel so margins and clue columns fit one page when possible.
+    </p>
+
+    <h2>3. Add a Name line for handouts</h2>
+    <p>
+      For packets, pick a Name line preset: Name + Date, Name + Class + Date, or Name + Period + Date.
+      Answer-key PDFs omit those blanks so keys stay clean for the teacher desk.
+      Details live on
+      <a href="/crossword-maker-for-teachers/">crossword maker for teachers</a>.
+    </p>
+
+    <h2>4. Export student sheet and answer key separately</h2>
+    <p>
+      Download the student PDF first, then the answer-key PDF with the same version/layout.
+      Free exports may include a light site footer watermark; Pro removes it.
+      See all print options on
+      <a href="/printable-crossword-maker/">printable crossword maker</a>.
+    </p>
+
+    <h2>5. Optional: browser print for quick copies</h2>
+    <p>
+      Example detail pages include a “Print puzzle” control that uses your browser print dialog.
+      For class sets with name lines and a separate key, prefer PDF export from the maker.
+    </p>
+
+    <h2>Quick checklist</h2>
+    <ul>
+      <li>Student sheet has no filled answers.</li>
+      <li>Answer key matches the same grid version.</li>
+      <li>Name/class/period lines match your roster needs.</li>
+      <li>You skimmed AI clues before handing out copies.</li>
+    </ul>
+
+    <h2>Related guides &amp; tools</h2>
+    <ul>
+      <li><a href="/blog/how-to-make-a-crossword-puzzle/">How to make a crossword puzzle</a></li>
+      <li><a href="/blog/how-to-make-esl-vocabulary-crosswords/">How to make ESL vocabulary crosswords</a></li>
+      <li><a href="/examples/">Examples library</a> · <a href="/pricing/">Free vs Pro</a></li>
+    </ul>
+  </article>
+</BaseLayout>

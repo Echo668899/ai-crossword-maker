@@ -15,14 +15,14 @@ Updated: 2026-10-31
 | 07 Packs / batch export | PARTIAL — A/B/C packs + ZIP/R2 export (queue + inline); consumer processes `pack_export` |
 | 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal APIs |
 | 09 Stripe / ledger / admin | PARTIAL — Hybrid Stripe/Creem + ledger; **admin skeleton** (`/admin`, `/api/v1/admin/*`, audit + ops flags) |
-| 10 SEO polish / deploy hardening | IN PROGRESS — teacher name-line presets + high-traffic examples review + sitemap/internal links |
+| 10 SEO polish / deploy hardening | IN PROGRESS — second-pass examples review + print how-to + teachers↔printable CTAs |
 
 ## Latest slice (product iteration)
 
-- Merged ESL/CEFR + how-to blog via PR #8 → `main` @ `a5928a0`
-- Teacher print: Name line presets (`name-date` / `name-class-date` / `name-period-date` / `none`) in `@acm/print-layout` + maker select; teachers page defaults to Class header
-- Examples: human-reviewed top classroom/ESL seeds (solar system, water cycle, weather, photosynthesis, parts of speech, classroom objects, ESL food, dinosaurs, seasons, ocean animals); clue polish + featured strip
-- Sitemap filter also excludes `/admin/` + `/404`; stronger internal links home ↔ teachers/printable/examples/blog/ESL
+- Merged teacher name-line presets + first-pass example QA via PR #9 → `main` @ `83ce8cd`
+- Examples second-pass human review (8): human body, fractions, ESL travel/routines/jobs, Earth Day, money math, plants & seeds
+- Blog: `/blog/how-to-print-crossword-worksheets/` (Article + Breadcrumb JSON-LD; links teachers + printable)
+- Teachers ↔ printable dedicated cross CTAs + printable FAQPage; print how-to linked from both landings
 
 ## Open decisions
 

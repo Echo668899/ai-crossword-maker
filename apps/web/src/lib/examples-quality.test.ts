@@ -1,7 +1,13 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { EXAMPLES, HIGH_TRAFFIC_EXAMPLE_SLUGS, getExample, relatedExamples } from "./examples";
+import {
+  EXAMPLES,
+  HIGH_TRAFFIC_EXAMPLE_SLUGS,
+  SECOND_PASS_REVIEWED_SLUGS,
+  getExample,
+  relatedExamples,
+} from "./examples";
 import { buildExamplePuzzle } from "./build-example";
 
 describe("examples quality", () => {
@@ -13,6 +19,16 @@ describe("examples quality", () => {
 
   it("marks high-traffic classroom seeds as human-reviewed with stronger blurbs", () => {
     for (const slug of HIGH_TRAFFIC_EXAMPLE_SLUGS) {
+      const ex = getExample(slug);
+      expect(ex, slug).toBeTruthy();
+      expect(ex!.reviewState).toBe("human_reviewed");
+      expect(ex!.blurb.toLowerCase()).toMatch(/print|crossword|vocabulary|answer/);
+      expect(ex!.entries.every((e) => e.clue.trim().length >= 12)).toBe(true);
+    }
+  });
+
+  it("marks second-pass classroom/ESL seeds as human-reviewed", () => {
+    for (const slug of SECOND_PASS_REVIEWED_SLUGS) {
       const ex = getExample(slug);
       expect(ex, slug).toBeTruthy();
       expect(ex!.reviewState).toBe("human_reviewed");

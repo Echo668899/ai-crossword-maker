@@ -35,14 +35,21 @@ describe("SEO shell hardening", () => {
     expect(cfg).toContain('"/404"');
   });
 
-  it("teachers and printable pages advertise name-line presets and blog/ESL links", () => {
+  it("teachers and printable pages advertise name-line presets and cross CTAs", () => {
     const teachers = readFileSync(join(pagesRoot, "crossword-maker-for-teachers/index.astro"), "utf8");
     const printable = readFileSync(join(pagesRoot, "printable-crossword-maker/index.astro"), "utf8");
     expect(teachers).toContain('initialNameLinePreset="name-class-date"');
     expect(teachers).toContain("/blog/how-to-make-a-crossword-puzzle/");
     expect(teachers).toContain("/esl-crossword-generator/");
+    expect(teachers).toContain("/printable-crossword-maker/");
+    expect(teachers).toContain("/blog/how-to-print-crossword-worksheets/");
+    expect(teachers).toContain("teachers-printable-cta");
     expect(printable).toContain("Name line presets");
     expect(printable).toContain("/blog/how-to-make-a-crossword-puzzle/");
+    expect(printable).toContain("/crossword-maker-for-teachers/");
+    expect(printable).toContain("/blog/how-to-print-crossword-worksheets/");
+    expect(printable).toContain("printable-teachers-cta");
+    expect(printable).toContain("FAQPage");
   });
 
   it("marks legal pages as operator-entity placeholders without inventing a company", () => {
@@ -98,6 +105,10 @@ describe("SEO shell hardening", () => {
       join(pagesRoot, "blog/how-to-make-esl-vocabulary-crosswords/index.astro"),
       "utf8",
     );
+    const printHowto = readFileSync(
+      join(pagesRoot, "blog/how-to-print-crossword-worksheets/index.astro"),
+      "utf8",
+    );
 
     expect(esl).toContain('canonicalPath="/esl-crossword-generator/"');
     expect(esl).toContain("CEFR_PRESETS");
@@ -112,10 +123,14 @@ describe("SEO shell hardening", () => {
 
     expect(blogIndex).toContain('canonicalPath="/blog/"');
     expect(blogIndex).toContain("ItemList");
+    expect(blogIndex).toContain("how-to-print-crossword-worksheets");
     expect(howto).toContain("/ai-crossword-maker/");
     expect(howto).toContain("@type\": \"Article\"");
     expect(eslHowto).toContain("/esl-crossword-generator/");
     expect(eslHowto).toContain("/examples/esl-daily-routines/");
+    expect(printHowto).toContain("/printable-crossword-maker/");
+    expect(printHowto).toContain("/crossword-maker-for-teachers/");
+    expect(printHowto).toContain("@type\": \"Article\"");
     expect(EXAMPLES.some((e) => e.slug === "esl-daily-routines")).toBe(true);
     expect(EXAMPLES.some((e) => e.slug === "esl-jobs-and-work")).toBe(true);
   });
