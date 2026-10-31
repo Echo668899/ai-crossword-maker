@@ -106,6 +106,8 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "life-cycles",
       "ecosystems",
       "magnets",
+      "volcanoes",
+      "biomes",
     ],
   },
   {
@@ -128,6 +130,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "place-value",
       "prefixes-and-suffixes",
       "figurative-language",
+      "compound-words",
     ],
   },
   {
@@ -149,6 +152,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "money-math",
       "telling-time",
       "decimals",
+      "area-and-perimeter",
     ],
   },
   {
@@ -169,6 +173,27 @@ export const BLOG_POSTS: BlogPostMeta[] = [
       "landforms",
       "continents-and-oceans",
       "world-capitals",
+      "thirteen-colonies",
+    ],
+  },
+  {
+    slug: "how-to-make-a-history-vocabulary-crossword",
+    title: "How to Make a History Vocabulary Crossword",
+    description:
+      "Turn a history unit word bank into a printable crossword with definition clues, interlocking grid, and answer key.",
+    toolPaths: [
+      "/ai-crossword-maker/",
+      "/crossword-maker-from-word-list/",
+      "/printable-crossword-maker/",
+      "/crossword-maker-for-teachers/",
+    ],
+    exampleSlugs: [
+      "thirteen-colonies",
+      "american-revolution",
+      "ancient-egypt",
+      "civil-rights-leaders",
+      "greek-mythology",
+      "branches-of-government",
     ],
   },
 ];

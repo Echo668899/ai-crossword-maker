@@ -32,14 +32,15 @@
 - Teachers ↔ printable dedicated CTAs; print how-to post bridges both landings
 - Shared `blog-posts` catalog drives related guides; example pages link “Related how-tos”
 - Word-list landing FAQ + how-to `/blog/how-to-make-a-crossword-from-a-word-list/` bridges paste → print
-- Honest `/vs/` hub + `/vs/crossword-labs/` + `/vs/my-crossword-maker/` + `/vs/eclipse-crossword/` + `/vs/discovery-education-puzzlemaker/` + `/vs/armored-penguin/` (facts only; no AggregateRating fiction)
+- Honest `/vs/` hub + `/vs/crossword-labs/` + `/vs/my-crossword-maker/` + `/vs/eclipse-crossword/` + `/vs/discovery-education-puzzlemaker/` + `/vs/armored-penguin/` + `/vs/easy-puzzle-maker/` (facts only; no AggregateRating fiction)
 - Science vocabulary how-to bridges AI/word-list → printable science examples
 - Spelling-list how-to bridges word-list landing → language/spelling example seeds
 - Math vocabulary how-to bridges AI/word-list → printable math example seeds
 - Social studies vocabulary how-to bridges AI/word-list → printable civics/geography example seeds
+- History vocabulary how-to bridges AI/word-list → printable history example seeds
 
 ## 90-day
 
 - **A:** P0 shells + crawler demo + FAQ + sitemap (done)
 - **B:** examples≥25 + print/FAQ/related links polish (done); ESL/CEFR depth + how-tos (done)
-- **C:** first-pass high-traffic review + name-line presets (PR #9); second-pass examples + print how-to (PR #10); long-tail +5 + blog mesh (PR #11); word-list how-to + Words UX (PR #12); long-tail batch-2 + `/vs/crossword-labs/` (PR #13); long-tail batch-3 + `/vs/my-crossword-maker/` + science how-to (PR #14); long-tail batch-4 + `/vs/eclipse-crossword/` + spelling-list how-to (PR #15); long-tail batch-5 + `/vs/discovery-education-puzzlemaker/` + math vocabulary how-to (PR #16); long-tail batch-6 + `/vs/armored-penguin/` + social studies vocabulary how-to (this slice); GSC-driven long-tail + more `/vs/` next
+- **C:** first-pass high-traffic review + name-line presets (PR #9); second-pass examples + print how-to (PR #10); long-tail +5 + blog mesh (PR #11); word-list how-to + Words UX (PR #12); long-tail batch-2 + `/vs/crossword-labs/` (PR #13); long-tail batch-3 + `/vs/my-crossword-maker/` + science how-to (PR #14); long-tail batch-4 + `/vs/eclipse-crossword/` + spelling-list how-to (PR #15); long-tail batch-5 + `/vs/discovery-education-puzzlemaker/` + math vocabulary how-to (PR #16); long-tail batch-6 + `/vs/armored-penguin/` + social studies vocabulary how-to (PR #17); long-tail batch-7 + `/vs/easy-puzzle-maker/` + history vocabulary how-to (this slice); GSC-driven long-tail + more `/vs/` next
