@@ -45,19 +45,19 @@ const NAME_LINE_OPTIONS: Array<{ id: NameLinePresetId; label: string }> = [
 
 /** Classroom long-tail chips — fill Topic without spending AI until Generate. */
 const TOPIC_QUICK_PICKS = [
-  "Simple Machines for grade 4",
-  "Landforms for grade 3",
-  "Homophones for ESL A2",
-  "Place Value for grade 3",
-  "Phases of the Moon for grade 4",
+  "Force and Motion for grade 4",
+  "Branches of Government for grade 5",
+  "Prefixes and Suffixes for grade 4",
+  "Measurement for grade 3",
+  "Life Cycles for grade 3",
 ] as const;
 
 const EXAMPLE_SEED_SLUGS = [
-  "simple-machines",
-  "landforms",
-  "homophones",
-  "place-value",
-  "phases-of-the-moon",
+  "force-and-motion",
+  "branches-of-government",
+  "prefixes-and-suffixes",
+  "measurement",
+  "life-cycles",
 ] as const;
 
 interface EntryRow {
@@ -1205,13 +1205,13 @@ export default function MakerApp({
               <p className="muted" style={{ margin: 0, fontSize: "0.88rem" }}>
                 Prefer a ready printable?
                 {" "}
-                <a href="/examples/simple-machines/">Simple machines</a>
+                <a href="/examples/force-and-motion/">Force and motion</a>
                 {" · "}
-                <a href="/examples/homophones/">Homophones</a>
+                <a href="/examples/measurement/">Measurement</a>
                 {" · "}
                 <a href="/examples/">All examples</a>
                 {" · "}
-                <a href="/blog/how-to-make-a-crossword-from-a-spelling-list/">Spelling-list how-to</a>
+                <a href="/blog/how-to-make-a-math-vocabulary-crossword/">Math how-to</a>
               </p>
               <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
                 <label style={{ display: "grid", gap: "0.35rem" }}>
@@ -1279,7 +1279,7 @@ export default function MakerApp({
                   onClick={() => {
                     const slug =
                       EXAMPLE_SEED_SLUGS[Math.floor(Math.random() * EXAMPLE_SEED_SLUGS.length)] ??
-                      "simple-machines";
+                      "force-and-motion";
                     const ex = getExample(slug);
                     if (!ex) return;
                     pushHistory(ex.entries.map((e) => ({ answer: e.answer, clue: e.clue })));
@@ -1419,7 +1419,7 @@ export default function MakerApp({
                       onClick={() => {
                         const slug =
                           EXAMPLE_SEED_SLUGS[Math.floor(Math.random() * EXAMPLE_SEED_SLUGS.length)] ??
-                          "simple-machines";
+                          "force-and-motion";
                         const ex = getExample(slug);
                         if (!ex) return;
                         pushHistory(ex.entries.map((e) => ({ answer: e.answer, clue: e.clue })));

@@ -15,15 +15,15 @@ Updated: 2026-10-31
 | 07 Packs / batch export | PARTIAL — A/B/C packs + ZIP/R2 export (queue + inline); consumer processes `pack_export` |
 | 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal APIs |
 | 09 Stripe / ledger / admin | PARTIAL — Hybrid Stripe/Creem + ledger; **admin skeleton** (`/admin`, `/api/v1/admin/*`, audit + ops flags) |
-| 10 SEO polish / deploy hardening | IN PROGRESS — long-tail batch-4 examples + `/vs/eclipse-crossword/` + spelling-list how-to |
+| 10 SEO polish / deploy hardening | IN PROGRESS — long-tail batch-5 examples + `/vs/discovery-education-puzzlemaker/` + math vocabulary how-to |
 
 ## Latest slice (product iteration)
 
-- Merged long-tail batch-3 + `/vs/` hub + My Crossword Maker + science how-to via PR #14 → `main` @ `2213317`
-- Examples: +5 human-reviewed long-tail seeds (`LONG_TAIL_BATCH_4_SLUGS`) — simple machines, landforms, homophones, place value, phases of the moon; examples index long-tail strip
-- Blog: `/blog/how-to-make-a-crossword-from-a-spelling-list/` + catalog mesh
-- SEO: honest `/vs/eclipse-crossword/` (FAQPage, no AggregateRating fiction); footer/pricing/blog/how-it-works/vs hub links
-- Maker UX: Topic quick-picks + example seeds refreshed to batch-4; spelling-list how-to deep link
+- Merged long-tail batch-4 + Eclipse Crossword + spelling how-to via PR #15 → `main` @ `6c87d8a`
+- Examples: +5 human-reviewed long-tail seeds (`LONG_TAIL_BATCH_5_SLUGS`) — force and motion, branches of government, prefixes and suffixes, measurement, life cycles; examples index long-tail strip
+- Blog: `/blog/how-to-make-a-math-vocabulary-crossword/` + catalog mesh
+- SEO: honest `/vs/discovery-education-puzzlemaker/` (FAQPage, no AggregateRating fiction); footer/pricing/blog/how-it-works/vs hub links
+- Maker UX: Topic quick-picks + example seeds refreshed to batch-5; math how-to deep link
 
 ## Open decisions
 
