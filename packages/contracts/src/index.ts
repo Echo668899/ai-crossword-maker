@@ -31,6 +31,29 @@ export const TopicGenerateRequestSchema = z.object({
 
 export type TopicGenerateRequest = z.infer<typeof TopicGenerateRequestSchema>;
 
+export const TopicGenerateResponseSchema = z.object({
+  title: z.string(),
+  themeBlurb: z.string().optional(),
+  entries: z.array(
+    z.object({
+      answer: z.string(),
+      clue: z.string(),
+    }),
+  ),
+  reviewState: z.literal("needs_review"),
+  quota: z
+    .object({
+      limit: z.number().int(),
+      remaining: z.number().int(),
+      day: z.string(),
+    })
+    .optional(),
+  model: z.string().optional(),
+  mock: z.boolean().optional(),
+});
+
+export type TopicGenerateResponse = z.infer<typeof TopicGenerateResponseSchema>;
+
 export const ApiErrorSchema = z.object({
   error: z.object({
     code: z.string(),

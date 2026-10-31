@@ -3,11 +3,12 @@ main = "src/index.ts"
 compatibility_date = "2025-10-01"
 compatibility_flags = ["nodejs_compat"]
 
-# Bindings are optional in local stub mode.
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "acm"
-# database_id = "00000000-0000-0000-0000-000000000000"
+# Local D1 for durable anon AI quota. Production: replace database_id after `wrangler d1 create acm`.
+[[d1_databases]]
+binding = "DB"
+database_name = "acm"
+database_id = "00000000-0000-0000-0000-000000000001"
+migrations_dir = "../../db/migrations"
 
 # [[r2_buckets]]
 # binding = "FILES"
@@ -21,4 +22,8 @@ compatibility_flags = ["nodejs_compat"]
 PUBLIC_SITE_URL = "https://aicrosswordmaker.com"
 AI_ENABLED = "false"
 AI_ANON_DEMO_ENABLED = "true"
+AI_MAX_RETRIES = "2"
 PLAN_VERSION = "2026-10-31.hybrid.v1"
+# Prefer secrets / .dev.vars for OPENAI_*; do not commit keys.
+OPENAI_MODEL_GENERATE = "gpt-4.1-mini"
+OPENAI_MODEL_REWRITE = "gpt-4.1-mini"

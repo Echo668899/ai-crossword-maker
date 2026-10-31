@@ -7,13 +7,14 @@
     "dev": "wrangler dev src/index.ts --port 8787",
     "deploy": "wrangler deploy",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run"
   },
   "dependencies": {
     "@acm/config": "workspace:*",
     "@acm/contracts": "workspace:*",
     "@acm/crossword-engine": "workspace:*",
     "hono": "^4.9.9",
+    "openai": "^7.47.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

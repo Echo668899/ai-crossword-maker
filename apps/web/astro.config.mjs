@@ -12,5 +12,14 @@ export default defineConfig({
     ssr: {
       noExternal: ["@acm/ui", "@acm/config", "@acm/contracts", "@acm/crossword-engine", "@acm/print-layout"],
     },
+    server: {
+      proxy: {
+        // Same-origin /api during `astro dev` → local Worker
+        "/api": {
+          target: process.env.PUBLIC_API_PROXY_TARGET || "http://127.0.0.1:8787",
+          changeOrigin: true,
+        },
+      },
+    },
   },
 });
