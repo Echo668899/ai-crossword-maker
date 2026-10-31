@@ -289,6 +289,7 @@ export default function MakerApp({
     unlimited?: boolean;
     isPro?: boolean;
   } | null>(null);
+  const [unwatermarkedExport, setUnwatermarkedExport] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [cloudProjects, setCloudProjects] = useState<
     Array<{ id: string; title: string; revision: number }>
@@ -482,13 +483,24 @@ export default function MakerApp({
           const ok = Boolean(me.authenticated);
           setSignedIn(ok);
           if (ok) {
-            const projectsRes = await apiFetch("/api/v1/projects");
+            const [projectsRes, entRes] = await Promise.all([
+              apiFetch("/api/v1/projects"),
+              apiFetch("/api/v1/billing/entitlements"),
+            ]);
             if (!cancelled && projectsRes.ok) {
               const data = (await projectsRes.json()) as {
                 projects?: Array<{ id: string; title: string; revision: number }>;
               };
               setCloudProjects(data.projects ?? []);
             }
+            if (!cancelled && entRes.ok) {
+              const ent = (await entRes.json()) as {
+                entitlements?: { unwatermarkedExport?: boolean };
+              };
+              setUnwatermarkedExport(Boolean(ent.entitlements?.unwatermarkedExport));
+            }
+          } else if (!cancelled) {
+            setUnwatermarkedExport(false);
           }
         }
       } catch {
@@ -630,7 +642,7 @@ export default function MakerApp({
                 title: state.title,
                 nameLinePreset,
                 showNameDate: nameLinePreset !== "none",
-                watermark: "crosswordmaker.app",
+                watermark: unwatermarkedExport ? null : "crosswordmaker.app",
               },
             })
           : await buildAnswerKeyPdf({
