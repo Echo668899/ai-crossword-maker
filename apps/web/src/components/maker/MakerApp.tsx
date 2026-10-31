@@ -93,11 +93,14 @@ interface EntryRow {
   clue: string;
 }
 
+type AiEntryStyle = "words_and_clues" | "words_only";
+
 interface State {
   mode: MakerMode;
   topic: string;
   wordCount: number;
   difficulty: "easy" | "medium" | "hard";
+  aiEntryStyle: AiEntryStyle;
   title: string;
   rows: EntryRow[];
   pasteText: string;
@@ -109,12 +112,69 @@ interface State {
   aiBlockedReason: string | null;
 }
 
+/** Map a UI row index → built entry id (`local-N` from non-empty answers). */
+function entryIdForRowIndex(rows: EntryRow[], index: number): string | null {
+  const row = rows[index];
+  if (!row?.answer.trim()) return null;
+  let cleanedIdx = 0;
+  for (let i = 0; i <= index; i += 1) {
+    if (rows[i]?.answer.trim()) cleanedIdx += 1;
+  }
+  return `local-${cleanedIdx}`;
+}
+
+function rowIndexForEntryId(rows: EntryRow[], entryId: string | null): number | null {
+  if (!entryId) return null;
+  const match = /^local-(\d+)$/.exec(entryId);
+  if (!match) return null;
+  const cleanedTarget = Number(match[1]);
+  let cleanedIdx = 0;
+  for (let i = 0; i < rows.length; i += 1) {
+    if (!rows[i]?.answer.trim()) continue;
+    cleanedIdx += 1;
+    if (cleanedIdx === cleanedTarget) return i;
+  }
+  return null;
+}
+
+function normalizeAnswerLetters(answer: string): string {
+  return answer.trim().toUpperCase().replace(/[^A-Z]/g, "");
+}
+
+/** Keep Across/Down + PDF source clues in sync while editing Entries. */
+function syncEntryCluesFromRows(entries: WordEntry[], rows: EntryRow[]): WordEntry[] {
+  if (!entries.length) return entries;
+  const cleaned = rows.filter((r) => r.answer.trim());
+  return entries.map((entry) => {
+    const match = /^local-(\d+)$/.exec(entry.id);
+    if (!match) return entry;
+    const row = cleaned[Number(match[1]) - 1];
+    if (!row) return entry;
+    if (normalizeAnswerLetters(row.answer) !== entry.answerNormalized) return entry;
+    if (row.clue === entry.clue) return entry;
+    return { ...entry, clue: row.clue };
+  });
+}
+
+function answersDriftFromBuild(entries: WordEntry[], rows: EntryRow[]): boolean {
+  if (!entries.length) return false;
+  const cleaned = rows.filter((r) => r.answer.trim());
+  return entries.some((entry) => {
+    const match = /^local-(\d+)$/.exec(entry.id);
+    if (!match) return false;
+    const row = cleaned[Number(match[1]) - 1];
+    if (!row) return true;
+    return normalizeAnswerLetters(row.answer) !== entry.answerNormalized;
+  });
+}
+
 type Action =
   | { type: "hydrate"; payload: Partial<State> }
   | { type: "setMode"; mode: MakerMode }
   | { type: "setTopic"; topic: string }
   | { type: "setWordCount"; wordCount: number }
   | { type: "setDifficulty"; difficulty: State["difficulty"] }
+  | { type: "setAiEntryStyle"; aiEntryStyle: AiEntryStyle }
   | { type: "setTitle"; title: string }
   | { type: "setPaste"; pasteText: string }
   | { type: "setRows"; rows: EntryRow[] }
@@ -126,18 +186,6 @@ type Action =
   | { type: "selectEntry"; id: string | null }
   | { type: "setStatus"; statusMessage: string }
   | { type: "setAiBlocked"; reason: string | null };
-
-/** Keep Across/Down + PDF source clues in sync while editing Entries. */
-function syncEntryClues(entries: WordEntry[], rows: EntryRow[]): WordEntry[] {
-  if (!entries.length) return entries;
-  return entries.map((entry) => {
-    const match = /^local-(\d+)$/.exec(entry.id);
-    const rowIndex = match ? Number(match[1]) - 1 : -1;
-    const row = rowIndex >= 0 ? rows[rowIndex] : undefined;
-    if (!row || row.clue === entry.clue) return entry;
-    return { ...entry, clue: row.clue };
-  });
-}
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -156,19 +204,20 @@ function reducer(state: State, action: Action): State {
       return { ...state, wordCount: action.wordCount };
     case "setDifficulty":
       return { ...state, difficulty: action.difficulty };
+    case "setAiEntryStyle":
+      return { ...state, aiEntryStyle: action.aiEntryStyle };
     case "setTitle":
       return { ...state, title: action.title };
     case "setPaste":
       return { ...state, pasteText: action.pasteText };
-    case "setRows":
-      return {
-        ...state,
-        rows: action.rows,
-        entries: syncEntryClues(state.entries, action.rows),
-      };
+    case "setRows": {
+      const entries = syncEntryCluesFromRows(state.entries, action.rows);
+      return { ...state, rows: action.rows, entries };
+    }
     case "updateRow": {
       const rows = state.rows.map((r, i) => (i === action.index ? { ...r, ...action.row } : r));
-      return { ...state, rows, entries: syncEntryClues(state.entries, rows) };
+      const entries = syncEntryCluesFromRows(state.entries, rows);
+      return { ...state, rows, entries };
     }
     case "addRow":
       return { ...state, rows: [...state.rows, { answer: "", clue: "" }] };
@@ -248,6 +297,7 @@ export default function MakerApp({
     topic: initialTopic,
     wordCount: 12,
     difficulty: initialDifficulty,
+    aiEntryStyle: "words_and_clues",
     title: "Untitled crossword",
     rows: initialEntries?.length
       ? initialEntries
@@ -273,6 +323,7 @@ export default function MakerApp({
   const [clueAiBusyIndex, setClueAiBusyIndex] = useState<number | "all" | null>(null);
   const entriesListRef = useRef<HTMLDivElement | null>(null);
   const pendingFocusRowRef = useRef<number | null>(null);
+  const entryRowRefs = useRef<Map<number, HTMLDivElement | null>>(new Map());
   const [shareBusy, setShareBusy] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [packBusy, setPackBusy] = useState(false);
@@ -623,8 +674,34 @@ export default function MakerApp({
     }
   }
 
+  function selectEntryFromUi(id: string | null, opts?: { scrollRow?: boolean }) {
+    dispatch({ type: "selectEntry", id });
+    if (!opts?.scrollRow || !id) return;
+    const rowIndex = rowIndexForEntryId(state.rows, id);
+    if (rowIndex == null) return;
+    const node = entryRowRefs.current.get(rowIndex);
+    node?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+
+  function selectRow(index: number) {
+    const id = entryIdForRowIndex(state.rows, index);
+    if (!id) {
+      dispatch({ type: "selectEntry", id: null });
+      return;
+    }
+    // Highlight even if not yet placed — GridView ignores unknown ids.
+    dispatch({ type: "selectEntry", id });
+  }
+
   async function exportPdf(kind: "student" | "answers") {
     if (!state.result || !state.entries.length) return;
+    if (answersDriftFromBuild(state.entries, state.rows)) {
+      dispatch({
+        type: "setStatus",
+        statusMessage: "Answers changed since the last build — click Build grid before exporting PDF.",
+      });
+      return;
+    }
     if (validation && !validation.ok && kind === "student") {
       dispatch({
         type: "setStatus",
@@ -1227,6 +1304,7 @@ export default function MakerApp({
           topic: state.topic,
           wordCount: state.wordCount,
           difficulty: state.difficulty,
+          entryStyle: state.aiEntryStyle,
           audience: "general",
           ...(turnstileToken ? { turnstileToken } : {}),
         }),
@@ -1305,21 +1383,34 @@ export default function MakerApp({
           isPro: prev?.isPro,
         }));
       }
-      pushHistory(data.entries);
+      const landingMode: MakerMode =
+        state.aiEntryStyle === "words_only" ? "words" : "manual";
+      const normalizedEntries =
+        state.aiEntryStyle === "words_only"
+          ? data.entries.map((e) => ({ answer: e.answer, clue: "" }))
+          : data.entries;
+      pushHistory(normalizedEntries);
       if (data.title) dispatch({ type: "setTitle", title: data.title });
-      // Stay on Topic path mentally: keep editing in place, then jump to grid preview.
-      dispatch({ type: "setMode", mode: "manual" });
+      // Land in the same Maker mode users expect for word list vs words+clues.
+      dispatch({ type: "setMode", mode: landingMode });
       const quotaNote =
         data.quota != null
           ? ` Demo remaining today: ${data.quota.remaining}/${data.quota.limit}.`
           : "";
       const mockNote = data.mock ? " (mock payload)" : "";
+      const styleNote =
+        state.aiEntryStyle === "words_only" ? " Word list only — add clues anytime." : "";
       dispatch({
         type: "setStatus",
-        statusMessage: `AI suggestions loaded${mockNote}.${quotaNote} Building preview grid…`,
+        statusMessage: `AI suggestions loaded${mockNote}.${quotaNote}${styleNote} Building preview grid…`,
       });
       // First-visit demo: generate + preview without an extra click.
-      buildFromRows(data.entries, "AI preview ready — edit clues, then print or Save to cloud.");
+      buildFromRows(
+        normalizedEntries,
+        state.aiEntryStyle === "words_only"
+          ? "AI word list ready — add optional clues, then print or Save to cloud."
+          : "AI preview ready — edit clues, then print or Save to cloud.",
+      );
       setMobileTab("grid");
     } catch (err) {
       dispatch({
@@ -1343,6 +1434,8 @@ export default function MakerApp({
   const across = state.result?.placements.filter((p) => p.direction === "across") ?? [];
   const down = state.result?.placements.filter((p) => p.direction === "down") ?? [];
   const entryMap = new Map(state.entries.map((e) => [e.id, e]));
+  const previewStale = Boolean(state.result && answersDriftFromBuild(state.entries, state.rows));
+  const selectedRowIndex = rowIndexForEntryId(state.rows, state.selectedEntryId);
   const emptyClueCount = state.rows.filter((r) => r.answer.trim() && !r.clue.trim()).length;
   const cluesUnlimited = Boolean(quota?.unlimited || quota?.isPro);
   const freeAiExhausted =
@@ -1484,7 +1577,7 @@ export default function MakerApp({
       >
         <div
           className="maker-pane-input"
-          data-active={mobileTab === "input" || mobileTab === "clues"}
+          data-active={mobileTab === "input"}
           style={{ padding: "1rem 1.1rem", borderRight: "1px solid var(--color-border)" }}
         >
           <label style={{ display: "grid", gap: "0.35rem", marginBottom: "0.85rem" }}>
@@ -1499,7 +1592,8 @@ export default function MakerApp({
           {state.mode === "topic" ? (
             <div style={{ display: "grid", gap: "0.75rem" }}>
               <p className="muted" style={{ margin: 0, fontSize: "0.92rem" }}>
-                1) Type a classroom topic → 2) Generate with AI → 3) Edit clues &amp; print. Grid layout never spends AI credits.
+                1) Type a classroom topic → 2) Choose word list or words + clues → 3) Generate with AI → 4) Edit &amp; print.
+                Grid layout never spends AI credits.
               </p>
               <label style={{ display: "grid", gap: "0.35rem" }}>
                 <span style={{ fontWeight: 650 }}>Topic</span>
@@ -1591,7 +1685,29 @@ export default function MakerApp({
                     <option value="hard">Hard</option>
                   </select>
                 </label>
+                <label style={{ display: "grid", gap: "0.35rem" }}>
+                  <span style={{ fontWeight: 650 }}>AI output</span>
+                  <select
+                    value={state.aiEntryStyle}
+                    onChange={(e) =>
+                      dispatch({
+                        type: "setAiEntryStyle",
+                        aiEntryStyle: e.target.value as AiEntryStyle,
+                      })
+                    }
+                    aria-label="AI output style — word list or words with clues"
+                    style={{ ...inputStyle, minWidth: 160 }}
+                  >
+                    <option value="words_and_clues">Words + clues</option>
+                    <option value="words_only">Word list only</option>
+                  </select>
+                </label>
               </div>
+              <p className="muted" style={{ margin: 0, fontSize: "0.88rem" }}>
+                {state.aiEntryStyle === "words_only"
+                  ? "Word list only returns answers — add clues yourself after generate (same as Word list mode)."
+                  : "Words + clues returns classroom hints with each answer (same as Words + clues mode)."}
+              </p>
               <TurnstileField onToken={setTurnstileToken} action="ai-topic" />
               <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                 <Button
@@ -1865,6 +1981,23 @@ export default function MakerApp({
                   <TurnstileField onToken={setTurnstileToken} action="ai-topic" />
                 </div>
               ) : null}
+              {state.result ? (
+                <p className="muted" style={{ margin: "0 0 0.55rem", fontSize: "0.85rem" }}>
+                  Click a row to highlight it on the grid. Edit clues live in Across/Down; rebuild after answer changes.
+                </p>
+              ) : null}
+              {previewStale ? (
+                <p
+                  role="status"
+                  style={{
+                    margin: "0 0 0.55rem",
+                    fontSize: "0.88rem",
+                    color: "var(--color-warn)",
+                  }}
+                >
+                  Answers changed since the last build — click Build grid to refresh the preview and PDF.
+                </p>
+              ) : null}
               {state.mode === "topic" && state.rows.length === 0 ? (
                 <p className="muted" style={{ margin: "0 0 0.65rem", fontSize: "0.9rem" }}>
                   Entries appear here after Generate with AI — or Add row to draft manually.
@@ -1910,22 +2043,47 @@ export default function MakerApp({
               ) : null}
               <div
                 ref={entriesListRef}
+                role="listbox"
+                aria-label="Crossword entries"
                 style={{ display: "grid", gap: "0.45rem", maxHeight: 320, overflow: "auto" }}
               >
                 {state.rows.map((row, index) => {
-                  const normalized = row.answer.trim().toUpperCase().replace(/[^A-Z]/g, "");
+                  const normalized = normalizeAnswerLetters(row.answer);
                   const isDup = normalized.length >= 3 && duplicateAnswers.includes(normalized);
                   const needsClue = Boolean(row.answer.trim() && !row.clue.trim());
                   const canAiClue = normalized.length >= 3;
                   const rowAiBusy = clueAiBusyIndex === index;
+                  const rowEntryId = entryIdForRowIndex(state.rows, index);
+                  const selected = selectedRowIndex === index;
                   return (
                     <div
                       key={index}
+                      ref={(el) => {
+                        entryRowRefs.current.set(index, el);
+                      }}
+                      role="option"
+                      aria-selected={selected}
+                      tabIndex={0}
+                      onClick={() => selectRow(index)}
+                      onKeyDown={(e) => {
+                        if (e.target !== e.currentTarget) return;
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          selectRow(index);
+                        }
+                      }}
                       style={{
                         display: "grid",
                         gridTemplateColumns: "0.85fr 1.15fr auto auto",
                         gap: "0.35rem",
                         alignItems: "center",
+                        padding: "0.2rem",
+                        borderRadius: "var(--radius-sm)",
+                        border: selected
+                          ? "1px solid var(--color-primary)"
+                          : "1px solid transparent",
+                        background: selected ? "rgba(47,92,143,0.1)" : "transparent",
+                        cursor: "pointer",
                       }}
                     >
                       <input
@@ -1938,10 +2096,15 @@ export default function MakerApp({
                             ),
                           )
                         }
+                        onFocus={() => selectRow(index)}
                         placeholder="ANSWER"
                         style={{
                           ...inputStyle,
-                          borderColor: isDup ? "var(--color-warn)" : undefined,
+                          borderColor: isDup
+                            ? "var(--color-warn)"
+                            : selected
+                              ? "var(--color-primary)"
+                              : undefined,
                           background: isDup ? "#fff8e8" : undefined,
                         }}
                       />
@@ -1955,12 +2118,17 @@ export default function MakerApp({
                             ),
                           )
                         }
+                        onFocus={() => selectRow(index)}
                         placeholder={
                           state.mode === "words" ? "Clue (optional — AI can fill)" : "Clue"
                         }
                         style={{
                           ...inputStyle,
-                          borderColor: needsClue ? "#c4a574" : undefined,
+                          borderColor: needsClue
+                            ? "#c4a574"
+                            : selected
+                              ? "var(--color-primary)"
+                              : undefined,
                           background: needsClue ? "#fffaf0" : undefined,
                         }}
                       />
@@ -1975,7 +2143,10 @@ export default function MakerApp({
                           (turnstileConfigured() && !turnstileToken) ||
                           freeAiExhausted
                         }
-                        onClick={() => void runClueAi(index)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void runClueAi(index);
+                        }}
                         style={{ padding: "0.45rem 0.55rem", minWidth: 44 }}
                       >
                         {rowAiBusy ? "…" : "AI"}
@@ -1983,7 +2154,13 @@ export default function MakerApp({
                       <Button
                         variant="ghost"
                         aria-label={`Remove row ${index + 1}`}
-                        onClick={() => pushHistory(state.rows.filter((_, i) => i !== index))}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          pushHistory(state.rows.filter((_, i) => i !== index));
+                          if (rowEntryId && state.selectedEntryId === rowEntryId) {
+                            dispatch({ type: "selectEntry", id: null });
+                          }
+                        }}
                       >
                         ×
                       </Button>
@@ -2050,6 +2227,43 @@ export default function MakerApp({
         </div>
 
         <div
+          className="maker-pane-clues"
+          data-active={mobileTab === "clues"}
+          style={{ padding: "1rem 1.1rem", background: "rgba(245,247,250,0.55)" }}
+        >
+          <strong>Across &amp; Down</strong>
+          {state.result ? (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "1rem",
+                marginTop: "0.75rem",
+              }}
+            >
+              <ClueColumn
+                title="Across"
+                items={across}
+                entryMap={entryMap}
+                selectedEntryId={state.selectedEntryId}
+                onSelect={(id) => selectEntryFromUi(id, { scrollRow: true })}
+              />
+              <ClueColumn
+                title="Down"
+                items={down}
+                entryMap={entryMap}
+                selectedEntryId={state.selectedEntryId}
+                onSelect={(id) => selectEntryFromUi(id, { scrollRow: true })}
+              />
+            </div>
+          ) : (
+            <p className="muted" style={{ margin: "0.75rem 0 0", fontSize: "0.92rem" }}>
+              Build a grid first — numbered clues appear here and stay linked to Entries.
+            </p>
+          )}
+        </div>
+
+        <div
           className="maker-pane-grid"
           data-active={mobileTab === "grid" || mobileTab === "export"}
           style={{ padding: "1rem 1.1rem", background: "rgba(245,247,250,0.65)" }}
@@ -2086,10 +2300,17 @@ export default function MakerApp({
                   ))}
                 </select>
               </label>
-              <Button variant="secondary" disabled={!state.result} onClick={() => void exportPdf("student")}>
-                Export PDF
+              <Button
+                variant="secondary"
+                disabled={!state.result || previewStale}
+                onClick={() => void exportPdf("student")}
+              >                Export PDF
               </Button>
-              <Button variant="secondary" disabled={!state.result} onClick={() => void exportPdf("answers")}>
+              <Button
+                variant="secondary"
+                disabled={!state.result || previewStale}
+                onClick={() => void exportPdf("answers")}
+              >
                 Answer key PDF
               </Button>
               <Button variant="ghost" disabled={!state.result} onClick={() => exportSvg(false)}>
@@ -2223,14 +2444,14 @@ export default function MakerApp({
                 <GridView
                   result={state.result}
                   selectedEntryId={state.selectedEntryId}
-                  onSelectEntry={(id) => dispatch({ type: "selectEntry", id })}
+                  onSelectEntry={(id) => selectEntryFromUi(id, { scrollRow: true })}
                 />
               </ContentEnter>
             ) : (
               <GridView
                 result={state.result}
                 selectedEntryId={state.selectedEntryId}
-                onSelectEntry={(id) => dispatch({ type: "selectEntry", id })}
+                onSelectEntry={(id) => selectEntryFromUi(id, { scrollRow: true })}
                 emptyHint={
                   state.mode === "topic" && !state.rows.length
                     ? "Pick a topic chip (or type one), Generate with AI, then preview here — or Load sample words."
@@ -2272,14 +2493,14 @@ export default function MakerApp({
                   items={across}
                   entryMap={entryMap}
                   selectedEntryId={state.selectedEntryId}
-                  onSelect={(id) => dispatch({ type: "selectEntry", id })}
+                  onSelect={(id) => selectEntryFromUi(id, { scrollRow: true })}
                 />
                 <ClueColumn
                   title="Down"
                   items={down}
                   entryMap={entryMap}
                   selectedEntryId={state.selectedEntryId}
-                  onSelect={(id) => dispatch({ type: "selectEntry", id })}
+                  onSelect={(id) => selectEntryFromUi(id, { scrollRow: true })}
                 />
               </div>
             </ContentEnter>
@@ -2299,14 +2520,17 @@ export default function MakerApp({
       </div>
 
       <style>{`
+        .maker-pane-clues { display: none; }
         @media (max-width: 860px) {
           .maker-mobile-tabs { display: flex !important; }
           .maker-workspace { grid-template-columns: 1fr !important; }
-          .maker-pane-input, .maker-pane-grid { border-right: none !important; }
+          .maker-pane-input, .maker-pane-grid, .maker-pane-clues { border-right: none !important; }
           .maker-pane-input { display: none; }
           .maker-pane-grid { display: none; }
+          .maker-pane-clues { display: none; }
           .maker-pane-input[data-active="true"],
-          .maker-pane-grid[data-active="true"] { display: block !important; }
+          .maker-pane-grid[data-active="true"],
+          .maker-pane-clues[data-active="true"] { display: block !important; }
         }
       `}</style>
     </section>

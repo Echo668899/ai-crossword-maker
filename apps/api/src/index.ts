@@ -208,7 +208,7 @@ app.post("/api/v1/ai/topic", async (c) => {
     if (allowMock) {
       const topic = parsed.data.topic;
       const count = parsed.data.wordCount;
-      const mock = mockTopicEntries(topic, count);
+      const mock = mockTopicEntries(topic, count, parsed.data.entryStyle);
       const quota = await consumeAnonQuota(c.env, c.req.raw);
       if (!quota) {
         return c.json(
@@ -508,7 +508,11 @@ app.onError((err, c) => {
 
 export default app;
 
-function mockTopicEntries(topic: string, count: number) {
+function mockTopicEntries(
+  topic: string,
+  count: number,
+  entryStyle: "words_and_clues" | "words_only" = "words_and_clues",
+) {
   const bank = [
     { answer: "TOPIC", clue: `Subject word related to ${topic}` },
     { answer: "LEARN", clue: "Gain knowledge" },
@@ -523,7 +527,11 @@ function mockTopicEntries(topic: string, count: number) {
     { answer: "TEACH", clue: "Help others learn" },
     { answer: "SKILL", clue: "Ability gained by practice" },
   ];
-  return bank.slice(0, Math.min(count, bank.length));
+  const slice = bank.slice(0, Math.min(count, bank.length));
+  if (entryStyle === "words_only") {
+    return slice.map((row) => ({ answer: row.answer, clue: "" }));
+  }
+  return slice;
 }
 
 function mockCluesForAnswers(answers: string[]) {
