@@ -13,13 +13,15 @@
     "dev:api": "pnpm --filter @acm/api dev",
     "test": "pnpm -r --filter=./packages/* test",
     "test:engine": "pnpm --filter @acm/crossword-engine test",
+    "test:e2e": "pnpm --filter @acm/web build && playwright test",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r --if-present lint"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^22.18.12",
     "typescript": "^5.9.3",
-    "vitest": "^3.2.4",
-    "@types/node": "^22.18.12"
+    "vitest": "^3.2.4"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

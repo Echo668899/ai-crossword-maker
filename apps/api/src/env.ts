@@ -12,12 +12,21 @@ export type ApiEnv = {
   PLAN_VERSION?: string;
   /** Optional D1 for durable anon quota, auth sessions, shares, billing ledger. */
   DB?: D1Database;
+  /** Private pack export ZIPs — never public. */
+  FILES?: R2Bucket;
+  /** Async job producer (pack ZIP, future AI jobs). */
+  JOBS?: Queue<{ jobId: string; type?: string }>;
   /** Session / cookie hardening */
   AUTH_COOKIE_SECURE?: string;
   AUTH_DEV_LOG_LINKS?: string;
   AUTH_DEV_RETURN_LINK?: string;
   GOOGLE_CLIENT_ID?: string;
   GOOGLE_CLIENT_SECRET?: string;
+  /** Turnstile Siteverify secret (Worker secret). */
+  TURNSTILE_SECRET_KEY?: string;
+  TURNSTILE_REQUIRED?: string;
+  TURNSTILE_HOSTNAMES?: string;
+  TURNSTILE_ACTION?: string;
   /** Billing: `auto` (Stripe if ready else Creem), `stripe`, or `creem`. */
   BILLING_PROVIDER?: string;
   STRIPE_SECRET_KEY?: string;

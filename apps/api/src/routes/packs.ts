@@ -5,6 +5,7 @@ import { validateSession } from "../auth/session";
 import { PuzzleSnapshotSchema } from "../play/snapshot";
 import { resolvePackAccess } from "../packs/access";
 import { buildExportManifest, buildLayoutVariants } from "../packs/variants";
+import { processPackExportJob } from "../export/process-pack-export";
 
 export const packRoutes = new Hono<{ Bindings: ApiEnv }>();
 
@@ -320,7 +321,7 @@ packRoutes.post("/api/v1/packs/:id/export", async (c) => {
     snapshot: PuzzleSnapshotSchema.parse(JSON.parse(row.snapshot_json)),
   }));
 
-  const manifest = buildExportManifest({
+  const previewManifest = buildExportManifest({
     packId: pack.id,
     title: pack.title,
     items: parsedItems,
@@ -328,24 +329,83 @@ packRoutes.post("/api/v1/packs/:id/export", async (c) => {
 
   const now = new Date().toISOString();
   const jobId = crypto.randomUUID();
-  const manifestId = crypto.randomUUID();
+  const wantSync = c.req.query("sync") === "1" || !c.env.JOBS;
 
-  await c.env.DB.batch([
-    c.env.DB.prepare(
-      `INSERT INTO jobs (id, owner_id, project_id, type, status, stage, payload_ref, error_code, created_at, updated_at)
-       VALUES (?, ?, NULL, 'pack_export', 'completed', 'manifest', ?, NULL, ?, ?)`,
-    ).bind(jobId, session.user.id, manifestId, now, now),
-    c.env.DB.prepare(
-      `INSERT INTO export_manifests (id, owner_id, pack_id, job_id, manifest_json, created_at)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-    ).bind(manifestId, session.user.id, pack.id, jobId, JSON.stringify(manifest), now),
-  ]);
+  await c.env.DB.prepare(
+    `INSERT INTO jobs (id, owner_id, project_id, type, status, stage, payload_ref, error_code, created_at, updated_at)
+     VALUES (?, ?, NULL, 'pack_export', 'queued', 'queued', ?, NULL, ?, ?)`,
+  )
+    .bind(jobId, session.user.id, pack.id, now, now)
+    .run();
+
+  if (c.env.JOBS && !wantSync) {
+    try {
+      await c.env.JOBS.send({ jobId, type: "pack_export" });
+      return c.json({
+        jobId,
+        status: "queued",
+        pollPath: `/api/v1/jobs/${jobId}`,
+        downloadPath: `/api/v1/jobs/${jobId}/download`,
+        previewManifest,
+        note: "ZIP export queued; poll job status then download when completed.",
+      });
+    } catch (err) {
+      console.error(
+        JSON.stringify({
+          event: "pack_export_enqueue_failed",
+          jobId,
+          name: err instanceof Error ? err.name : "error",
+        }),
+      );
+      // Fall through to inline processing when queue send fails.
+    }
+  }
+
+  if (!c.env.FILES) {
+    // Dev fallback: return JSON manifest only (no R2).
+    const manifestId = crypto.randomUUID();
+    await c.env.DB.batch([
+      c.env.DB.prepare(
+        `INSERT INTO export_manifests (id, owner_id, pack_id, job_id, manifest_json, created_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      ).bind(manifestId, session.user.id, pack.id, jobId, JSON.stringify(previewManifest), now),
+      c.env.DB.prepare(
+        `UPDATE jobs SET status = 'completed', stage = 'manifest_only', payload_ref = ?, updated_at = ? WHERE id = ?`,
+      ).bind(manifestId, now, jobId),
+    ]);
+    return c.json({
+      jobId,
+      manifestId,
+      status: "completed",
+      mode: "manifest_only",
+      note: "FILES R2 binding missing — returned JSON manifest only. Bind FILES for ZIP.",
+      manifest: previewManifest,
+    });
+  }
+
+  const result = await processPackExportJob(
+    { DB: c.env.DB, FILES: c.env.FILES },
+    jobId,
+  );
+  if (!result.ok) {
+    return c.json(
+      {
+        error: { code: result.errorCode, message: result.message },
+        jobId: result.jobId,
+        previewManifest,
+      },
+      500,
+    );
+  }
 
   return c.json({
-    jobId,
-    manifestId,
+    jobId: result.jobId,
+    manifestId: result.manifestId,
     status: "completed",
-    note: "Sync JSON manifest for now; ZIP+R2 queue export lands with private FILES binding.",
-    manifest,
+    mode: "inline_zip",
+    downloadPath: `/api/v1/jobs/${result.jobId}/download`,
+    byteSize: result.byteSize,
+    sha256: result.sha256,
+    previewManifest,
   });
 });

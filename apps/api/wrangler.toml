@@ -10,13 +10,14 @@ database_name = "acm"
 database_id = "00000000-0000-0000-0000-000000000001"
 migrations_dir = "../../db/migrations"
 
-# [[r2_buckets]]
-# binding = "FILES"
-# bucket_name = "acm-private"
+# Private pack ZIP exports (local Miniflare simulates the bucket).
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "acm-private"
 
-# [[queues.producers]]
-# binding = "JOBS"
-# queue = "acm-jobs"
+[[queues.producers]]
+binding = "JOBS"
+queue = "acm-jobs"
 
 [vars]
 PUBLIC_SITE_URL = "https://aicrosswordmaker.com"
@@ -27,3 +28,7 @@ PLAN_VERSION = "2026-10-31.hybrid.v1"
 # Prefer secrets / .dev.vars for OPENAI_*; do not commit keys.
 OPENAI_MODEL_GENERATE = "gpt-4.1-mini"
 OPENAI_MODEL_REWRITE = "gpt-4.1-mini"
+# Turnstile: set TURNSTILE_SECRET_KEY in secrets; hostnames for siteverify checks.
+TURNSTILE_REQUIRED = "false"
+TURNSTILE_HOSTNAMES = "aicrosswordmaker.com,localhost,127.0.0.1"
+TURNSTILE_ACTION = "ai-topic"

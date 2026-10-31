@@ -12,12 +12,16 @@ import {
 import { consumeAnonQuota, getAnonQuota } from "./quota/anon";
 import { authRoutes } from "./routes/auth";
 import { billingRoutes } from "./routes/billing";
+import { jobRoutes } from "./routes/jobs";
 import { packRoutes } from "./routes/packs";
 import { playRoutes } from "./routes/play";
+import { projectRoutes } from "./routes/projects";
 import { shareRoutes } from "./routes/shares";
 import { versionRoutes } from "./routes/versions";
 import { googleEnabled } from "./auth/google";
 import { getBillingStatus } from "./billing/provider";
+import { clientIp, verifyTurnstile } from "./security/turnstile";
+import { consumeRateLimit } from "./security/rate-limit";
 
 const app = new Hono<{ Bindings: ApiEnv }>();
 
@@ -26,7 +30,7 @@ app.use(
   cors({
     // Reflect request origin (required when credentials: true). Same-origin Vite proxy needs no CORS.
     origin: (origin) => origin || "http://127.0.0.1:4321",
-    allowMethods: ["GET", "POST", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PATCH", "OPTIONS"],
     allowHeaders: ["Content-Type", "Authorization"],
     credentials: true,
   }),
@@ -49,6 +53,14 @@ app.get("/api/v1/health", (c) => {
       checkoutEnabled: billing.checkoutEnabled,
       activeProvider: billing.activeProvider,
     },
+    export: {
+      files: Boolean(c.env.FILES),
+      jobs: Boolean(c.env.JOBS),
+    },
+    turnstile: {
+      configured: Boolean(c.env.TURNSTILE_SECRET_KEY?.trim()),
+      required: c.env.TURNSTILE_REQUIRED === "true",
+    },
   });
 });
 
@@ -62,9 +74,11 @@ app.get("/api/v1/pricing", (c) =>
 app.route("/", authRoutes);
 app.route("/", billingRoutes);
 app.route("/", shareRoutes);
+app.route("/", projectRoutes);
 app.route("/", playRoutes);
 app.route("/", packRoutes);
 app.route("/", versionRoutes);
+app.route("/", jobRoutes);
 
 app.get("/api/v1/ai/quota", async (c) => {
   if (!isAnonDemoEnabled(c.env)) {
@@ -99,6 +113,37 @@ app.post("/api/v1/ai/topic", async (c) => {
     return c.json(
       { error: { code: "invalid_request", message: "Invalid topic request." } },
       400,
+    );
+  }
+
+  const ip = clientIp(c.req.raw);
+  const burst = await consumeRateLimit(
+    c.env,
+    `ai-topic:${ip || "unknown"}`,
+    20,
+    60_000,
+  );
+  if (!burst.allowed) {
+    return c.json(
+      {
+        error: {
+          code: "rate_limited",
+          message: "Too many AI requests. Slow down and try again.",
+        },
+        resetAt: burst.resetAt,
+      },
+      429,
+    );
+  }
+
+  const turnstile = await verifyTurnstile(c.env, parsed.data.turnstileToken, {
+    ip,
+    action: "ai-topic",
+  });
+  if (!turnstile.ok) {
+    return c.json(
+      { error: { code: turnstile.code, message: turnstile.message } },
+      403,
     );
   }
 

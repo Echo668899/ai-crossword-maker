@@ -15,6 +15,7 @@ import { StatusPill } from "@acm/ui";
 import { loadDraft, saveDraft } from "../../lib/maker-storage";
 import { SAMPLE_MANUAL_ENTRIES } from "../../lib/sample-entries";
 import { apiFetch } from "../../lib/api";
+import TurnstileField, { turnstileConfigured } from "../security/TurnstileField";
 import { GridView } from "./GridView";
 
 export type MakerMode = "topic" | "words" | "manual" | "paste" | "import";
@@ -184,6 +185,9 @@ export default function MakerApp({
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [packBusy, setPackBusy] = useState(false);
   const [packUrl, setPackUrl] = useState<string | null>(null);
+  const [cloudBusy, setCloudBusy] = useState(false);
+  const [cloudPath, setCloudPath] = useState<string | null>(null);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -552,8 +556,78 @@ export default function MakerApp({
     }
   }
 
+  function currentSnapshot() {
+    if (!state.result || !state.entries.length) return null;
+    const placed = new Set(state.result.placedEntryIds);
+    return {
+      title: state.title,
+      seed: state.result.seed,
+      engineVersion: state.result.engineVersion,
+      reviewState: "needs_review",
+      size: state.result.size,
+      grid: cellsToAscii(state.result.cells),
+      placements: state.result.placements,
+      entries: state.entries
+        .filter((e) => placed.has(e.id))
+        .map((e) => ({
+          id: e.id,
+          answerNormalized: e.answerNormalized,
+          clue: e.clue,
+          displayAnswer: e.displayAnswer,
+        })),
+    };
+  }
+
+  async function saveToCloud() {
+    const snapshot = currentSnapshot();
+    if (!snapshot) return;
+    setCloudBusy(true);
+    setCloudPath(null);
+    try {
+      const me = await apiFetch("/api/v1/auth/me");
+      const meData = await me.json();
+      if (!meData.authenticated) {
+        dispatch({
+          type: "setStatus",
+          statusMessage: "Sign in to save a cloud puzzle.",
+        });
+        window.location.href = "/login/";
+        return;
+      }
+      const res = await apiFetch("/api/v1/projects", {
+        method: "POST",
+        body: JSON.stringify({ title: state.title, snapshot }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        dispatch({
+          type: "setStatus",
+          statusMessage: data?.error?.message ?? "Cloud save failed.",
+        });
+        return;
+      }
+      const path = typeof data.path === "string" ? data.path : `/app/puzzles/${data.id}/edit/`;
+      setCloudPath(path);
+      dispatch({
+        type: "setStatus",
+        statusMessage: `Saved to cloud (revision ${data.revision ?? 1}).`,
+      });
+    } catch {
+      dispatch({ type: "setStatus", statusMessage: "Cloud save failed — is the API running?" });
+    } finally {
+      setCloudBusy(false);
+    }
+  }
+
   async function runTopicAi() {
     dispatch({ type: "setAiBlocked", reason: null });
+    if (turnstileConfigured() && !turnstileToken) {
+      dispatch({
+        type: "setStatus",
+        statusMessage: "Complete the bot check before generating with AI.",
+      });
+      return;
+    }
     dispatch({ type: "setStatus", statusMessage: "Requesting AI Topic demo…" });
     setAiLoading(true);
     try {
@@ -565,9 +639,20 @@ export default function MakerApp({
           wordCount: state.wordCount,
           difficulty: state.difficulty,
           audience: "general",
+          ...(turnstileToken ? { turnstileToken } : {}),
         }),
       });
       const body = await res.json().catch(() => null);
+
+      if (res.status === 403 && String(body?.error?.code || "").startsWith("turnstile")) {
+        setTurnstileToken(null);
+        dispatch({
+          type: "setAiBlocked",
+          reason: body?.error?.message || "Bot check failed. Refresh the check and retry.",
+        });
+        dispatch({ type: "setStatus", statusMessage: "Bot check required for AI Topic." });
+        return;
+      }
 
       if (res.status === 404 || res.status === 501 || res.status === 503) {
         dispatch({
@@ -801,8 +886,16 @@ export default function MakerApp({
                   </select>
                 </label>
               </div>
+              <TurnstileField onToken={setTurnstileToken} action="ai-topic" />
               <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                <Button onClick={() => void runTopicAi()} disabled={!state.topic.trim() || aiLoading}>
+                <Button
+                  onClick={() => void runTopicAi()}
+                  disabled={
+                    !state.topic.trim() ||
+                    aiLoading ||
+                    (turnstileConfigured() && !turnstileToken)
+                  }
+                >
                   {aiLoading ? "Generating…" : "Generate with AI"}
                 </Button>
                 <Button
@@ -985,6 +1078,13 @@ export default function MakerApp({
               >
                 {packBusy ? "Creating pack…" : "Activity pack (A/B/C)"}
               </Button>
+              <Button
+                variant="secondary"
+                disabled={!state.result || cloudBusy}
+                onClick={() => void saveToCloud()}
+              >
+                {cloudBusy ? "Saving…" : "Save to cloud"}
+              </Button>
             </div>
           </div>
           {shareUrl ? (
@@ -995,6 +1095,11 @@ export default function MakerApp({
           {packUrl ? (
             <p style={{ margin: "0.65rem 0 0", fontSize: "0.92rem" }}>
               Pack: <a href={packUrl}>{packUrl}</a>
+            </p>
+          ) : null}
+          {cloudPath ? (
+            <p style={{ margin: "0.65rem 0 0", fontSize: "0.92rem" }}>
+              Cloud puzzle: <a href={cloudPath}>{cloudPath}</a>
             </p>
           ) : null}
 

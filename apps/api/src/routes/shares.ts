@@ -136,25 +136,4 @@ shareRoutes.post("/api/v1/shares/:token/revoke", async (c) => {
   return c.json({ ok: true, token, revoked: true });
 });
 
-shareRoutes.get("/api/v1/projects", async (c) => {
-  if (!c.env.DB) {
-    return c.json({ error: { code: "db_required", message: "D1 required." } }, 503);
-  }
-  const session = await validateSession(c.env, c.req.raw);
-  if (!session) {
-    return c.json({ error: { code: "unauthorized", message: "Sign in required." } }, 401);
-  }
-  const rows = await c.env.DB.prepare(
-    `SELECT id, title, revision, created_at, updated_at FROM projects
-     WHERE owner_id = ? AND archived = 0 ORDER BY updated_at DESC LIMIT 50`,
-  )
-    .bind(session.user.id)
-    .all<{
-      id: string;
-      title: string;
-      revision: number;
-      created_at: string;
-      updated_at: string;
-    }>();
-  return c.json({ projects: rows.results ?? [] });
-});
+/** Project list/CRUD lives in routes/projects.ts */

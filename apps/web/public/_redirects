@@ -4,3 +4,5 @@
 
 # App pack detail shell (noindex). PackApp reads the real pathname.
 /app/packs/*  /app/packs/_/index.html  200
+/app/puzzles/*/edit/  /app/puzzles/_/edit/index.html  200
+/app/puzzles/*/edit  /app/puzzles/_/edit/index.html  200
