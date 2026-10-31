@@ -1,7 +1,11 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import MakerApp from "../components/maker/MakerApp";
-import { EXAMPLES } from "../lib/examples";
+import { EXAMPLES, HIGH_TRAFFIC_EXAMPLE_SLUGS, getExample } from "../lib/examples";
+
+const featuredExamples = HIGH_TRAFFIC_EXAMPLE_SLUGS.map((slug) => getExample(slug)).filter(
+  (ex): ex is NonNullable<typeof ex> => Boolean(ex),
+).slice(0, 6);
 
 const site = import.meta.env.PUBLIC_SITE_URL || "https://aicrosswordmaker.com";
 const faqs = [
@@ -82,10 +86,15 @@ const jsonLd = [
 
   <section class="container section">
     <h2 class="section-title">Try a ready example</h2>
-    <p class="muted" style="margin-top:0;">Sample puzzles you can print or remix with AI.</p>
+    <p class="muted" style="margin-top:0;">
+      Popular classroom topics you can print or remix with AI. Also see
+      <a href="/crossword-maker-for-teachers/">teacher worksheets</a>,
+      <a href="/esl-crossword-generator/">ESL generator</a>, and
+      <a href="/blog/how-to-make-a-crossword-puzzle/">how to make a crossword</a>.
+    </p>
     <div style="display:grid;gap:0.75rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));">
       {
-        EXAMPLES.slice(0, 6).map((ex) => (
+        featuredExamples.map((ex) => (
           <a
             href={`/examples/${ex.slug}/`}
             style="display:block;padding:0.9rem 1rem;border:1px solid var(--color-border);border-radius:8px;background:#fff;text-decoration:none;color:var(--color-ink);"
@@ -98,7 +107,11 @@ const jsonLd = [
         ))
       }
     </div>
-    <p style="margin-top:1rem;"><a href="/examples/">Browse all examples</a></p>
+    <p style="margin-top:1rem;">
+      <a href="/examples/">Browse all {EXAMPLES.length} examples</a>
+      · <a href="/printable-crossword-maker/">Printable maker</a>
+      · <a href="/blog/">Blog</a>
+    </p>
   </section>
 
   <section class="container section faq" id="faq">

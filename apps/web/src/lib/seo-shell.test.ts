@@ -25,6 +25,26 @@ describe("SEO shell hardening", () => {
     expect(robots).toContain("Sitemap:");
   });
 
+  it("excludes app/admin/login/play/404 from the sitemap integration filter", () => {
+    const cfg = readFileSync(join(import.meta.dirname, "../../astro.config.mjs"), "utf8");
+    expect(cfg).toContain("@astrojs/sitemap");
+    expect(cfg).toContain('"/admin/"');
+    expect(cfg).toContain('"/app/"');
+    expect(cfg).toContain('"/login/"');
+    expect(cfg).toContain('"/p/"');
+    expect(cfg).toContain('"/404"');
+  });
+
+  it("teachers and printable pages advertise name-line presets and blog/ESL links", () => {
+    const teachers = readFileSync(join(pagesRoot, "crossword-maker-for-teachers/index.astro"), "utf8");
+    const printable = readFileSync(join(pagesRoot, "printable-crossword-maker/index.astro"), "utf8");
+    expect(teachers).toContain('initialNameLinePreset="name-class-date"');
+    expect(teachers).toContain("/blog/how-to-make-a-crossword-puzzle/");
+    expect(teachers).toContain("/esl-crossword-generator/");
+    expect(printable).toContain("Name line presets");
+    expect(printable).toContain("/blog/how-to-make-a-crossword-puzzle/");
+  });
+
   it("marks legal pages as operator-entity placeholders without inventing a company", () => {
     for (const page of ["privacy", "terms", "refund-policy", "contact"]) {
       const src = readFileSync(join(pagesRoot, `${page}/index.astro`), "utf8");

@@ -21,15 +21,26 @@ import { GridView } from "./GridView";
 
 export type MakerMode = "topic" | "words" | "manual" | "paste" | "import";
 
+export type NameLinePresetId = "name-date" | "name-class-date" | "name-period-date" | "none";
+
 export interface MakerAppProps {
   initialMode?: MakerMode;
   initialTopic?: string;
   initialDifficulty?: "easy" | "medium" | "hard";
   initialEntries?: Array<{ answer: string; clue: string }>;
+  /** Teacher worksheet header blanks for student PDF export. */
+  initialNameLinePreset?: NameLinePresetId;
   heading?: string;
   showModeTabs?: boolean;
   compact?: boolean;
 }
+
+const NAME_LINE_OPTIONS: Array<{ id: NameLinePresetId; label: string }> = [
+  { id: "name-date", label: "Name + Date" },
+  { id: "name-class-date", label: "Name + Class + Date" },
+  { id: "name-period-date", label: "Name + Period + Date" },
+  { id: "none", label: "No name line" },
+];
 
 interface EntryRow {
   answer: string;
@@ -161,6 +172,7 @@ export default function MakerApp({
   initialTopic = "",
   initialDifficulty = "medium",
   initialEntries,
+  initialNameLinePreset = "name-date",
   heading = "Create your crossword",
   showModeTabs = true,
 }: MakerAppProps) {
@@ -208,6 +220,7 @@ export default function MakerApp({
   >([]);
   const [loadProjectId, setLoadProjectId] = useState("");
   const [cloudLoadBusy, setCloudLoadBusy] = useState(false);
+  const [nameLinePreset, setNameLinePreset] = useState<NameLinePresetId>(initialNameLinePreset);
 
   useEffect(() => {
     let cancelled = false;
@@ -496,12 +509,21 @@ export default function MakerApp({
           ? await buildStudentPdf({
               result: state.result,
               entries: state.entries,
-              settings: { title: state.title, showNameDate: true, watermark: "aicrosswordmaker.com" },
+              settings: {
+                title: state.title,
+                nameLinePreset,
+                showNameDate: nameLinePreset !== "none",
+                watermark: "aicrosswordmaker.com",
+              },
             })
           : await buildAnswerKeyPdf({
               result: state.result,
               entries: state.entries,
-              settings: { title: `${state.title} — Answer Key` },
+              settings: {
+                title: `${state.title} — Answer Key`,
+                nameLinePreset: "none",
+                showNameDate: false,
+              },
             });
       downloadBlob(
         kind === "student" ? `${slugify(state.title)}.pdf` : `${slugify(state.title)}-answers.pdf`,
@@ -1343,7 +1365,22 @@ export default function MakerApp({
         >
           <div style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
             <strong>Grid & print preview</strong>
-            <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
+              <label style={{ display: "flex", gap: "0.35rem", alignItems: "center", fontSize: "0.9rem" }}>
+                <span className="muted">Name line</span>
+                <select
+                  value={nameLinePreset}
+                  onChange={(e) => setNameLinePreset(e.target.value as NameLinePresetId)}
+                  aria-label="Student PDF name line preset"
+                  style={{ ...inputStyle, width: "auto", minWidth: 160 }}
+                >
+                  {NAME_LINE_OPTIONS.map((opt) => (
+                    <option key={opt.id} value={opt.id}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
               <Button variant="secondary" disabled={!state.result} onClick={() => void exportPdf("student")}>
                 Export PDF
               </Button>
