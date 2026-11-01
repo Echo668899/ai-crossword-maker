@@ -68,6 +68,10 @@ export function generateModel(env: ApiEnv): string {
   return env.OPENAI_MODEL_GENERATE?.trim() || "gpt-4.1-mini";
 }
 
+export function rewriteModel(env: ApiEnv): string {
+  return env.OPENAI_MODEL_REWRITE?.trim() || generateModel(env);
+}
+
 export function maxRetries(env: ApiEnv): number {
   const n = Number(env.AI_MAX_RETRIES ?? "2");
   if (!Number.isFinite(n) || n < 0) return 2;

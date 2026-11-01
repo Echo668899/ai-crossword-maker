@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { sanitizeTopicOutput, TopicModelOutputSchema } from "./schema";
+import {
+  sanitizeClueOutput,
+  sanitizeTopicOutput,
+  TopicModelOutputSchema,
+} from "./schema";
 
 describe("TopicModelOutputSchema", () => {
   it("accepts a valid model payload", () => {
@@ -63,5 +67,26 @@ describe("sanitizeTopicOutput", () => {
       5,
     );
     expect(result.entries).toHaveLength(5);
+  });
+});
+
+describe("sanitizeClueOutput", () => {
+  it("keeps clues that match requested answers and drops extras", () => {
+    const result = sanitizeClueOutput(
+      {
+        clues: [
+          { answer: "mars", clue: "The red planet" },
+          { answer: "PLUTO", clue: "Not requested" },
+          { answer: "EARTH", clue: "" },
+          { answer: "venus", clue: "Second planet" },
+        ],
+      },
+      ["MARS", "VENUS", "EARTH"],
+    );
+    expect(result.clues).toEqual([
+      { answer: "MARS", clue: "The red planet" },
+      { answer: "VENUS", clue: "Second planet" },
+    ]);
+    expect(result.dropped).toBe(2);
   });
 });

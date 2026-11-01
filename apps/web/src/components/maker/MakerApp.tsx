@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState, type CSSProperties } from "react";
 import {
   buildGrid,
   cellsToAscii,
@@ -99,10 +99,27 @@ type Action =
   | { type: "setStatus"; statusMessage: string }
   | { type: "setAiBlocked"; reason: string | null };
 
+/** Keep Across/Down + PDF source clues in sync while editing Entries. */
+function syncEntryClues(entries: WordEntry[], rows: EntryRow[]): WordEntry[] {
+  if (!entries.length) return entries;
+  return entries.map((entry) => {
+    const match = /^local-(\d+)$/.exec(entry.id);
+    const rowIndex = match ? Number(match[1]) - 1 : -1;
+    const row = rowIndex >= 0 ? rows[rowIndex] : undefined;
+    if (!row || row.clue === entry.clue) return entry;
+    return { ...entry, clue: row.clue };
+  });
+}
+
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case "hydrate":
-      return { ...state, ...action.payload };
+    case "hydrate": {
+      // IndexedDB restore may omit rows; never write `undefined` over live state.
+      const payload = Object.fromEntries(
+        Object.entries(action.payload).filter(([, value]) => value !== undefined),
+      ) as Partial<State>;
+      return { ...state, ...payload };
+    }
     case "setMode":
       return { ...state, mode: action.mode };
     case "setTopic":
@@ -116,10 +133,14 @@ function reducer(state: State, action: Action): State {
     case "setPaste":
       return { ...state, pasteText: action.pasteText };
     case "setRows":
-      return { ...state, rows: action.rows };
+      return {
+        ...state,
+        rows: action.rows,
+        entries: syncEntryClues(state.entries, action.rows),
+      };
     case "updateRow": {
       const rows = state.rows.map((r, i) => (i === action.index ? { ...r, ...action.row } : r));
-      return { ...state, rows };
+      return { ...state, rows, entries: syncEntryClues(state.entries, rows) };
     }
     case "addRow":
       return { ...state, rows: [...state.rows, { answer: "", clue: "" }] };
@@ -221,6 +242,9 @@ export default function MakerApp({
   const [future, setFuture] = useState<EntryRow[][]>([]);
   const [draftReady, setDraftReady] = useState(Boolean(initialEntries?.length));
   const [aiLoading, setAiLoading] = useState(false);
+  const [clueAiBusyIndex, setClueAiBusyIndex] = useState<number | "all" | null>(null);
+  const entriesListRef = useRef<HTMLDivElement | null>(null);
+  const pendingFocusRowRef = useRef<number | null>(null);
   const [shareBusy, setShareBusy] = useState(false);
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [packBusy, setPackBusy] = useState(false);
@@ -345,7 +369,7 @@ export default function MakerApp({
               wordCount: draft.wordCount,
               difficulty: draft.difficulty,
               title: draft.title,
-              rows: usable.length >= 2 ? draft.rawEntries : undefined,
+              ...(usable.length >= 2 ? { rows: draft.rawEntries } : {}),
               seed: draft.seed,
               statusMessage: "Restored local draft from this browser.",
             },
@@ -436,6 +460,29 @@ export default function MakerApp({
     setFuture([]);
     dispatch({ type: "setRows", rows: nextRows });
   }
+
+  function addEntryRow() {
+    const nextIndex = state.rows.length;
+    pendingFocusRowRef.current = nextIndex;
+    pushHistory([...state.rows, { answer: "", clue: "" }]);
+    dispatch({
+      type: "setStatus",
+      statusMessage: `Added empty row ${nextIndex + 1}. Type an answer, then Build grid.`,
+    });
+  }
+
+  useEffect(() => {
+    const index = pendingFocusRowRef.current;
+    if (index == null) return;
+    pendingFocusRowRef.current = null;
+    const root = entriesListRef.current;
+    if (!root) return;
+    const answerInput = root.querySelector<HTMLInputElement>(
+      `input[aria-label="Answer ${index + 1}"]`,
+    );
+    answerInput?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    answerInput?.focus();
+  }, [state.rows.length]);
 
   function undo() {
     const prev = history[history.length - 1];
@@ -888,6 +935,165 @@ export default function MakerApp({
       dispatch({ type: "setStatus", statusMessage: "Cloud save failed — is the API running?" });
     } finally {
       setCloudBusy(false);
+    }
+  }
+
+  function normalizeAnswerKey(answer: string): string {
+    return answer.trim().toUpperCase().replace(/[^A-Z]/g, "");
+  }
+
+  async function runClueAi(targets: "empty" | number) {
+    dispatch({ type: "setAiBlocked", reason: null });
+    const rowsNeedingClues =
+      typeof targets === "number"
+        ? state.rows
+            .map((row, index) => ({ row, index }))
+            .filter(({ row, index }) => index === targets && normalizeAnswerKey(row.answer).length >= 3)
+        : state.rows
+            .map((row, index) => ({ row, index }))
+            .filter(({ row }) => normalizeAnswerKey(row.answer).length >= 3 && !row.clue.trim());
+
+    if (!rowsNeedingClues.length) {
+      dispatch({
+        type: "setStatus",
+        statusMessage:
+          typeof targets === "number"
+            ? "Enter a valid answer (3+ letters) before generating a clue."
+            : "No empty clues to fill — every answered row already has a clue.",
+      });
+      return;
+    }
+
+    if (turnstileConfigured() && !turnstileToken) {
+      dispatch({
+        type: "setStatus",
+        statusMessage: "Complete the bot check before generating clues with AI.",
+      });
+      return;
+    }
+
+    const answers = rowsNeedingClues.map(({ row }) => normalizeAnswerKey(row.answer));
+    setClueAiBusyIndex(typeof targets === "number" ? targets : "all");
+    dispatch({
+      type: "setStatus",
+      statusMessage:
+        typeof targets === "number"
+          ? `Generating AI clue for ${answers[0]}…`
+          : `Generating AI clues for ${answers.length} entr${answers.length === 1 ? "y" : "ies"}…`,
+    });
+
+    try {
+      const res = await fetch(apiUrl("/api/v1/ai/clues"), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          answers,
+          difficulty: state.difficulty,
+          topic: state.topic.trim() || state.title.trim() || undefined,
+          audience: "general",
+          ...(turnstileToken ? { turnstileToken } : {}),
+        }),
+      });
+      const body = await res.json().catch(() => null);
+
+      if (res.status === 403 && String(body?.error?.code || "").startsWith("turnstile")) {
+        setTurnstileToken(null);
+        dispatch({
+          type: "setAiBlocked",
+          reason: body?.error?.message || "Bot check failed. Refresh the check and retry.",
+        });
+        dispatch({ type: "setStatus", statusMessage: "Bot check required for AI clues." });
+        return;
+      }
+
+      if (res.status === 404 || res.status === 501 || res.status === 503) {
+        dispatch({
+          type: "setAiBlocked",
+          reason:
+            body?.error?.message ||
+            "AI clue generation is not connected yet. Enter clues manually.",
+        });
+        dispatch({
+          type: "setStatus",
+          statusMessage: "AI clues unavailable — type clues manually for now.",
+        });
+        return;
+      }
+
+      if (res.status === 429) {
+        const exhausted = body?.quota as { remaining?: number; limit?: number } | undefined;
+        if (exhausted?.limit != null) {
+          setQuota({ remaining: 0, limit: exhausted.limit });
+        } else if (quota) {
+          setQuota({ remaining: 0, limit: quota.limit });
+        }
+        dispatch({
+          type: "setAiBlocked",
+          reason:
+            body?.error?.message ||
+            "Daily free AI demo limit reached. Enter clues manually or try again tomorrow.",
+        });
+        dispatch({
+          type: "setStatus",
+          statusMessage: "AI quota exhausted for today — clues can still be typed manually.",
+        });
+        return;
+      }
+
+      if (!res.ok) {
+        throw new Error(body?.error?.message || `AI clue request failed (${res.status})`);
+      }
+
+      const data = body as {
+        clues?: Array<{ answer: string; clue: string }>;
+        quota?: { remaining: number; limit: number };
+        mock?: boolean;
+      };
+      const clueMap = new Map(
+        (data.clues ?? []).map((c) => [normalizeAnswerKey(c.answer), c.clue.trim()] as const),
+      );
+      if (!clueMap.size) {
+        throw new Error("AI returned no clues.");
+      }
+
+      if (data.quota) setQuota({ remaining: data.quota.remaining, limit: data.quota.limit });
+
+      let applied = 0;
+      const nextRows = state.rows.map((row, index) => {
+        const shouldFill =
+          typeof targets === "number"
+            ? index === targets
+            : Boolean(normalizeAnswerKey(row.answer) && !row.clue.trim());
+        if (!shouldFill) return row;
+        const clue = clueMap.get(normalizeAnswerKey(row.answer));
+        if (!clue) return row;
+        applied += 1;
+        return { ...row, clue };
+      });
+
+      if (!applied) {
+        throw new Error("AI clues did not match any entries.");
+      }
+
+      pushHistory(nextRows);
+      const mockNote = data.mock ? " (mock)" : "";
+      const quotaNote =
+        data.quota != null ? ` Demo remaining today: ${data.quota.remaining}/${data.quota.limit}.` : "";
+      dispatch({
+        type: "setStatus",
+        statusMessage: `Filled ${applied} AI clue${applied === 1 ? "" : "s"}${mockNote}. Review before printing.${quotaNote}`,
+      });
+    } catch (err) {
+      dispatch({
+        type: "setAiBlocked",
+        reason: err instanceof Error ? err.message : "AI clue request failed",
+      });
+      dispatch({
+        type: "setStatus",
+        statusMessage: "AI clue generation failed — you can still type clues manually.",
+      });
+    } finally {
+      setClueAiBusyIndex(null);
     }
   }
 
@@ -1449,20 +1655,51 @@ export default function MakerApp({
                   </div>
                 </div>
               ) : null}
-              <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem", marginBottom: "0.5rem" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: "0.5rem", marginBottom: "0.5rem", flexWrap: "wrap" }}>
                 <strong>Entries{state.rows.length ? ` (${state.rows.length})` : ""}</strong>
-                <div style={{ display: "flex", gap: "0.35rem" }}>
+                <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
                   <Button variant="ghost" onClick={undo} disabled={!history.length}>
                     Undo
                   </Button>
                   <Button variant="ghost" onClick={redo} disabled={!future.length}>
                     Redo
                   </Button>
-                  <Button variant="secondary" onClick={() => dispatch({ type: "addRow" })}>
+                  <Button
+                    variant="secondary"
+                    onClick={addEntryRow}
+                    disabled={Boolean(aiLoading) || clueAiBusyIndex != null}
+                  >
                     Add row
                   </Button>
+                  {state.rows.some((r) => r.answer.trim().replace(/[^A-Za-z]/g, "").length >= 3) ? (
+                    <Button
+                      variant="secondary"
+                      onClick={() => void runClueAi("empty")}
+                      disabled={
+                        emptyClueCount === 0 ||
+                        Boolean(aiLoading) ||
+                        clueAiBusyIndex != null ||
+                        (turnstileConfigured() && !turnstileToken) ||
+                        (quota != null && quota.remaining <= 0)
+                      }
+                      title={
+                        emptyClueCount === 0
+                          ? "All answers already have clues"
+                          : "Fill empty clues with AI (keeps your answers)"
+                      }
+                    >
+                      {clueAiBusyIndex === "all" ? "Generating clues…" : "Generate clues"}
+                    </Button>
+                  ) : null}
                 </div>
               </div>
+              {state.mode !== "topic" &&
+              turnstileConfigured() &&
+              state.rows.some((r) => r.answer.trim().replace(/[^A-Za-z]/g, "").length >= 3) ? (
+                <div style={{ marginBottom: "0.65rem" }}>
+                  <TurnstileField onToken={setTurnstileToken} action="ai-topic" />
+                </div>
+              ) : null}
               {state.mode === "topic" && state.rows.length === 0 ? (
                 <p className="muted" style={{ margin: "0 0 0.65rem", fontSize: "0.9rem" }}>
                   Entries appear here after Generate with AI — or Add row to draft manually.
@@ -1490,21 +1727,27 @@ export default function MakerApp({
               {emptyClueCount > 0 ? (
                 <p className="muted" style={{ margin: "0 0 0.55rem", fontSize: "0.88rem" }}>
                   {emptyClueCount} entr{emptyClueCount === 1 ? "y needs" : "ies need"} a clue — highlighted
-                  below. Layout still works; fill clues before classroom handouts.
+                  below. Use Generate clues / per-row AI, or type manually before handouts.
                 </p>
               ) : null}
-              <div style={{ display: "grid", gap: "0.45rem", maxHeight: 320, overflow: "auto" }}>
+              <div
+                ref={entriesListRef}
+                style={{ display: "grid", gap: "0.45rem", maxHeight: 320, overflow: "auto" }}
+              >
                 {state.rows.map((row, index) => {
                   const normalized = row.answer.trim().toUpperCase().replace(/[^A-Z]/g, "");
                   const isDup = normalized.length >= 3 && duplicateAnswers.includes(normalized);
                   const needsClue = Boolean(row.answer.trim() && !row.clue.trim());
+                  const canAiClue = normalized.length >= 3;
+                  const rowAiBusy = clueAiBusyIndex === index;
                   return (
                     <div
                       key={index}
                       style={{
                         display: "grid",
-                        gridTemplateColumns: "0.9fr 1.3fr auto",
+                        gridTemplateColumns: "0.85fr 1.15fr auto auto",
                         gap: "0.35rem",
+                        alignItems: "center",
                       }}
                     >
                       <input
@@ -1535,7 +1778,7 @@ export default function MakerApp({
                           )
                         }
                         placeholder={
-                          state.mode === "words" ? "Clue (optional — AI can fill later)" : "Clue"
+                          state.mode === "words" ? "Clue (optional — AI can fill)" : "Clue"
                         }
                         style={{
                           ...inputStyle,
@@ -1543,6 +1786,22 @@ export default function MakerApp({
                           background: needsClue ? "#fffaf0" : undefined,
                         }}
                       />
+                      <Button
+                        variant="ghost"
+                        aria-label={`Generate AI clue for row ${index + 1}`}
+                        title="Generate AI clue"
+                        disabled={
+                          !canAiClue ||
+                          Boolean(aiLoading) ||
+                          clueAiBusyIndex != null ||
+                          (turnstileConfigured() && !turnstileToken) ||
+                          (quota != null && quota.remaining <= 0)
+                        }
+                        onClick={() => void runClueAi(index)}
+                        style={{ padding: "0.45rem 0.55rem", minWidth: 44 }}
+                      >
+                        {rowAiBusy ? "…" : "AI"}
+                      </Button>
                       <Button
                         variant="ghost"
                         aria-label={`Remove row ${index + 1}`}

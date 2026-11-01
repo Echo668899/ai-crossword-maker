@@ -52,6 +52,68 @@ export type SanitizeResult = {
   dropped: number;
 };
 
+/** Model-facing schema for filling clues against a fixed answer list. */
+export const ClueModelOutputSchema = z.object({
+  clues: z
+    .array(
+      z.object({
+        answer: z.string().min(1).max(64),
+        clue: z.string().min(1).max(280),
+      }),
+    )
+    .min(1)
+    .max(limits.maxWords),
+});
+
+export type ClueModelOutput = z.infer<typeof ClueModelOutputSchema>;
+
+export type SanitizeClueResult = {
+  clues: SanitizedEntry[];
+  dropped: number;
+};
+
+/** Keep only clues that match requested answers (normalized A–Z). */
+export function sanitizeClueOutput(
+  raw: ClueModelOutput,
+  requestedAnswers: string[],
+): SanitizeClueResult {
+  const wanted = new Map<string, string>();
+  for (const answer of requestedAnswers) {
+    const key = answer
+      .toUpperCase()
+      .replace(/[^A-Z]/g, "")
+      .slice(0, limits.maxAnswerLen);
+    if (
+      key.length >= limits.minAnswerLen &&
+      key.length <= limits.maxAnswerLen &&
+      ANSWER_RE.test(key) &&
+      !wanted.has(key)
+    ) {
+      wanted.set(key, key);
+    }
+  }
+
+  const clues: SanitizedEntry[] = [];
+  const seen = new Set<string>();
+  let dropped = 0;
+
+  for (const row of raw.clues) {
+    const answer = row.answer
+      .toUpperCase()
+      .replace(/[^A-Z]/g, "")
+      .slice(0, limits.maxAnswerLen);
+    const clue = row.clue.trim().replace(/\s+/g, " ").slice(0, 280);
+    if (!wanted.has(answer) || !clue || seen.has(answer)) {
+      dropped += 1;
+      continue;
+    }
+    seen.add(answer);
+    clues.push({ answer, clue });
+  }
+
+  return { clues, dropped };
+}
+
 /** Server-side business validation after Structured Outputs parse. */
 export function sanitizeTopicOutput(
   raw: TopicModelOutput,
