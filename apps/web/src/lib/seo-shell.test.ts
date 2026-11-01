@@ -54,13 +54,22 @@ describe("SEO shell hardening", () => {
     expect(printable).toContain("FAQPage");
   });
 
-  it("marks legal pages as operator-entity placeholders without inventing a company", () => {
+  it("fills legal pages with individual-operator copy without inventing a company", () => {
     for (const page of ["privacy", "terms", "refund-policy", "contact"]) {
       const src = readFileSync(join(pagesRoot, `${page}/index.astro`), "utf8");
-      expect(src).toMatch(/TO BE FILLED/);
-      expect(src).toMatch(/Do not invent/i);
-      expect(src).not.toMatch(/Acme Legal LLC|Fake Corp|Example Inc\./i);
+      expect(src).not.toMatch(/TO BE FILLED/);
+      expect(src).toMatch(/support@crosswordmaker\.app/);
+      expect(src).toMatch(/individual operator|operator of crosswordmaker\.app/i);
+      expect(src).toMatch(/Last updated:\s*2026-11-01/);
+      expect(src).not.toMatch(/Acme Legal LLC|Fake Corp|Example Inc\.|Delaware LLC/i);
     }
+    const refund = readFileSync(join(pagesRoot, "refund-policy/index.astro"), "utf8");
+    expect(refund).toMatch(/generation fail/i);
+    expect(refund).toMatch(/non-refundable/i);
+    const contact = readFileSync(join(pagesRoot, "contact/index.astro"), "utf8");
+    expect(contact).toMatch(/email only/i);
+    const terms = readFileSync(join(pagesRoot, "terms/index.astro"), "utf8");
+    expect(terms).toMatch(/consumer-protection|consumer law/i);
     const admin = readFileSync(join(pagesRoot, "admin/index.astro"), "utf8");
     expect(admin).toContain("noindex={true}");
   });
