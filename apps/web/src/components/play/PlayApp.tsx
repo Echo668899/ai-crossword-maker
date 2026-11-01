@@ -630,7 +630,7 @@ function ClueList({
   return (
     <div>
       <strong>{title}</strong>
-      <ol style={{ margin: "0.4rem 0 0", paddingLeft: "1.2rem", fontSize: "0.92rem" }}>
+      <ul style={{ margin: "0.4rem 0 0", paddingLeft: 0, listStyle: "none", fontSize: "0.92rem" }}>
         {clues.map((c) => (
           <li key={c.entryId} style={{ marginBottom: "0.35rem" }}>
             <button
@@ -645,13 +645,14 @@ function ClueList({
                 cursor: "pointer",
                 font: "inherit",
                 color: "inherit",
+                width: "100%",
               }}
             >
               <span style={{ fontWeight: 650 }}>{c.number}.</span> {c.clue}
             </button>
           </li>
         ))}
-      </ol>
+      </ul>
     </div>
   );
 }
