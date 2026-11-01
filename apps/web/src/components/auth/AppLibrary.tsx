@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Button } from "@acm/ui";
+import { Button, ContentEnter } from "@acm/ui";
 import { apiFetch } from "../../lib/api";
+import { LibraryListSkeleton } from "../ui/AsyncSkeletons";
 
 type User = { id: string; email: string | null; name: string | null };
 type Project = {
@@ -12,9 +13,12 @@ type Project = {
   archived?: boolean;
 };
 
+type Phase = "checking" | "loading" | "ready";
+
 export default function AppLibrary() {
   const [user, setUser] = useState<User | null>(null);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [phase, setPhase] = useState<Phase>("checking");
   const [status, setStatus] = useState("Checking session…");
   const [busyId, setBusyId] = useState<string | null>(null);
 
@@ -23,6 +27,7 @@ export default function AppLibrary() {
     const data = await res.json();
     if (!res.ok) {
       setStatus(data?.error?.message ?? "Could not load projects.");
+      setPhase("ready");
       return;
     }
     setProjects(data.projects ?? []);
@@ -31,6 +36,7 @@ export default function AppLibrary() {
         ? "No cloud projects yet — use Save to cloud in the maker."
         : "",
     );
+    setPhase("ready");
   }
 
   useEffect(() => {
@@ -43,13 +49,18 @@ export default function AppLibrary() {
         if (!meData.authenticated) {
           setUser(null);
           setStatus("Sign in to sync cloud puzzles. Local drafts still autosave in this browser.");
+          setPhase("ready");
           return;
         }
         setUser(meData.user);
+        setPhase("loading");
         setStatus("Loading projects…");
         await loadProjects();
       } catch {
-        if (!cancelled) setStatus("API unreachable. Start the Worker on :8787.");
+        if (!cancelled) {
+          setStatus("API unreachable. Start the Worker on :8787.");
+          setPhase("ready");
+        }
       }
     })();
     return () => {
@@ -90,58 +101,69 @@ export default function AppLibrary() {
     }
   }
 
+  const showSkeleton = phase === "checking" || phase === "loading";
+
   return (
     <div style={{ display: "grid", gap: "1rem" }}>
-      {user ? (
-        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
-          <span>
-            Signed in as <strong>{user.email ?? user.name ?? user.id}</strong>
-          </span>
-          <Button variant="ghost" onClick={() => void logout()}>
-            Sign out
-          </Button>
-        </div>
+      {phase === "checking" ? (
+        <LibraryListSkeleton count={3} />
+      ) : user ? (
+        <ContentEnter>
+          <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", alignItems: "center" }}>
+            <span>
+              Signed in as <strong>{user.email ?? user.name ?? user.id}</strong>
+            </span>
+            <Button variant="ghost" onClick={() => void logout()}>
+              Sign out
+            </Button>
+          </div>
+        </ContentEnter>
       ) : (
-        <p>
-          <a href="/login/">Sign in</a> to create share links and list cloud projects.
-        </p>
+        <ContentEnter>
+          <p>
+            <a href="/login/">Sign in</a> to create share links and list cloud projects.
+          </p>
+        </ContentEnter>
       )}
-      {status ? <p className="muted">{status}</p> : null}
-      {projects.length ? (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "0.65rem" }}>
-          {projects.map((p) => (
-            <li
-              key={p.id}
-              style={{
-                display: "flex",
-                gap: "0.75rem",
-                flexWrap: "wrap",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "0.75rem 0.9rem",
-                border: "1px solid var(--color-border)",
-                borderRadius: 8,
-                background: "#fff",
-              }}
-            >
-              <div>
-                <a href={p.path ?? `/app/puzzles/${p.id}/edit/`}>
-                  <strong>{p.title}</strong>
-                </a>
-                <div className="muted" style={{ fontSize: "0.85rem" }}>
-                  rev {p.revision} · updated {new Date(p.updated_at).toLocaleString()}
-                </div>
-              </div>
-              <Button
-                variant="ghost"
-                disabled={busyId === p.id}
-                onClick={() => void archiveProject(p)}
+      {status && !showSkeleton ? <p className="muted">{status}</p> : null}
+      {phase === "loading" ? <LibraryListSkeleton count={4} /> : null}
+      {phase === "ready" && projects.length ? (
+        <ContentEnter>
+          <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "0.65rem" }}>
+            {projects.map((p) => (
+              <li
+                key={p.id}
+                style={{
+                  display: "flex",
+                  gap: "0.75rem",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "0.75rem 0.9rem",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: 8,
+                  background: "#fff",
+                }}
               >
-                {busyId === p.id ? "Archiving…" : "Archive"}
-              </Button>
-            </li>
-          ))}
-        </ul>
+                <div>
+                  <a href={p.path ?? `/app/puzzles/${p.id}/edit/`}>
+                    <strong>{p.title}</strong>
+                  </a>
+                  <div className="muted" style={{ fontSize: "0.85rem" }}>
+                    rev {p.revision} · updated {new Date(p.updated_at).toLocaleString()}
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  disabled={busyId === p.id}
+                  onClick={() => void archiveProject(p)}
+                >
+                  {busyId === p.id ? "Archiving…" : "Archive"}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </ContentEnter>
       ) : null}
       <p>
         <a href="/app/new/">Open full maker</a> · <a href="/">Home maker</a>

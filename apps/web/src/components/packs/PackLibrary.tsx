@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { Button } from "@acm/ui";
+import { Button, ContentEnter } from "@acm/ui";
 import { apiFetch } from "../../lib/api";
+import { LibraryListSkeleton } from "../ui/AsyncSkeletons";
 
 type PackRow = {
   id: string;
@@ -23,6 +24,7 @@ type Access = {
 export default function PackLibrary() {
   const [packs, setPacks] = useState<PackRow[]>([]);
   const [access, setAccess] = useState<Access | null>(null);
+  const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("Loading packs…");
 
   useEffect(() => {
@@ -34,6 +36,7 @@ export default function PackLibrary() {
         if (cancelled) return;
         if (!meData.authenticated) {
           setStatus("Sign in to manage activity packs.");
+          setLoading(false);
           return;
         }
         const res = await apiFetch("/api/v1/packs");
@@ -41,13 +44,18 @@ export default function PackLibrary() {
         if (cancelled) return;
         if (!res.ok) {
           setStatus(data?.error?.message ?? "Could not load packs.");
+          setLoading(false);
           return;
         }
         setPacks(data.packs ?? []);
         setAccess(data.access ?? null);
         setStatus((data.packs?.length ?? 0) === 0 ? "No activity packs yet." : "");
+        setLoading(false);
       } catch {
-        if (!cancelled) setStatus("API unreachable. Start the Worker on :8787.");
+        if (!cancelled) {
+          setStatus("API unreachable. Start the Worker on :8787.");
+          setLoading(false);
+        }
       }
     })();
     return () => {
@@ -57,36 +65,48 @@ export default function PackLibrary() {
 
   return (
     <div style={{ display: "grid", gap: "1rem" }}>
-      {access && !access.canCreatePack ? (
-        <p className="muted">
-          {access.reason}{" "}
-          <a href="/pricing/">View pricing</a>.
-        </p>
-      ) : null}
-      {status ? <p className="muted">{status}</p> : null}
-      {packs.length ? (
-        <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "0.65rem" }}>
-          {packs.map((p) => (
-            <li
-              key={p.id}
-              style={{
-                padding: "0.85rem 1rem",
-                border: "1px solid var(--color-border)",
-                borderRadius: 8,
-                background: "#fff",
-              }}
-            >
-              <a href={`/app/packs/${p.id}/`} style={{ fontWeight: 700 }}>
-                {p.title}
-              </a>
-              <div className="muted" style={{ fontSize: "0.9rem", marginTop: "0.25rem" }}>
-                {p.item_count} version{p.item_count === 1 ? "" : "s"} · updated{" "}
-                {new Date(p.updated_at).toLocaleString()}
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : null}
+      {loading ? (
+        <>
+          <p className="muted" style={{ margin: 0 }}>
+            Loading packs…
+          </p>
+          <LibraryListSkeleton count={4} />
+        </>
+      ) : (
+        <ContentEnter>
+          <div style={{ display: "grid", gap: "1rem" }}>
+            {access && !access.canCreatePack ? (
+              <p className="muted">
+                {access.reason} <a href="/pricing/">View pricing</a>.
+              </p>
+            ) : null}
+            {status ? <p className="muted">{status}</p> : null}
+            {packs.length ? (
+              <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "0.65rem" }}>
+                {packs.map((p) => (
+                  <li
+                    key={p.id}
+                    style={{
+                      padding: "0.85rem 1rem",
+                      border: "1px solid var(--color-border)",
+                      borderRadius: 8,
+                      background: "#fff",
+                    }}
+                  >
+                    <a href={`/app/packs/${p.id}/`} style={{ fontWeight: 700 }}>
+                      {p.title}
+                    </a>
+                    <div className="muted" style={{ fontSize: "0.9rem", marginTop: "0.25rem" }}>
+                      {p.item_count} version{p.item_count === 1 ? "" : "s"} · updated{" "}
+                      {new Date(p.updated_at).toLocaleString()}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        </ContentEnter>
+      )}
       <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
         <Button variant="secondary" onClick={() => (window.location.href = "/app/new/")}>
           Build in maker

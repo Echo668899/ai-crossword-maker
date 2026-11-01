@@ -204,6 +204,69 @@ h3 {
   }
 }
 
+/* Cool paper-blue skeleton bones + light-sweep shimmer (async fetch UI). */
+:root {
+  --color-skeleton: #e8eef5;
+  --color-skeleton-shine: rgba(255, 255, 255, 0.72);
+}
+
+.acm-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-skeleton);
+  isolation: isolate;
+}
+
+.acm-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-120%);
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 38%,
+    var(--color-skeleton-shine) 50%,
+    transparent 62%,
+    transparent 100%
+  );
+  animation: acm-shimmer 1.35s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.acm-skeleton--static,
+.acm-skeleton--static::after {
+  animation: none !important;
+}
+
+.acm-skeleton--static::after {
+  content: none;
+}
+
+@keyframes acm-shimmer {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+.acm-content-enter {
+  animation: acm-content-enter 0.38s ease-out both;
+}
+
+@keyframes acm-content-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.45rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -212,6 +275,15 @@ h3 {
   * {
     animation: none !important;
     transition: none !important;
+  }
+
+  .acm-skeleton::after {
+    content: none;
+  }
+
+  .acm-content-enter {
+    opacity: 1;
+    transform: none;
   }
 }
 
