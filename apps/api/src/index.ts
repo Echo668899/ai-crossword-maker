@@ -4,6 +4,12 @@ import { ClueGenerateRequestSchema, TopicGenerateRequestSchema } from "@acm/cont
 import { pricing } from "@acm/config/pricing";
 import { generateCluesForAnswers, generateTopicEntries } from "./ai/provider";
 import {
+  clueQuotaExceededMessage,
+  clueQuotaResponse,
+  consumeClueDailyQuota,
+  resolveClueQuotaPolicy,
+} from "./ai/clue-quota";
+import {
   generateModel,
   isAiEnabled,
   isAnonDemoEnabled,
@@ -90,17 +96,38 @@ app.route("/", jobRoutes);
 app.route("/", adminRoutes);
 
 app.get("/api/v1/ai/quota", async (c) => {
-  if (!isAnonDemoEnabled(c.env)) {
+  const cluePolicy = await resolveClueQuotaPolicy(c.env, c.req.raw);
+
+  // Topic / shared free pool (Pro still sees this for Topic demo ops).
+  const freePool = isAnonDemoEnabled(c.env)
+    ? await getAnonQuota(c.env, c.req.raw, pricing.free.aiOpsPerDay)
+    : null;
+
+  if (cluePolicy.kind === "unlimited") {
+    return c.json({
+      unlimited: true,
+      isPro: true,
+      // Keep numeric counters for Topic UI; Generate clues ignores them when unlimited.
+      limit: freePool?.limit ?? null,
+      remaining: freePool?.remaining ?? null,
+      day: freePool?.day ?? cluePolicy.day,
+      cluesUnlimited: true,
+    });
+  }
+
+  if (!freePool) {
     return c.json(
       { error: { code: "demo_disabled", message: "Anonymous AI demo is disabled." } },
       403,
     );
   }
-  const quota = await getAnonQuota(c.env, c.req.raw);
   return c.json({
-    limit: quota.limit,
-    remaining: quota.remaining,
-    day: quota.day,
+    limit: freePool.limit,
+    remaining: freePool.remaining,
+    day: freePool.day,
+    unlimited: false,
+    isPro: false,
+    cluesUnlimited: false,
   });
 });
 
@@ -281,10 +308,13 @@ app.post("/api/v1/ai/topic", async (c) => {
 
 /**
  * Clue AI — fill classroom clues for an existing answer list (Word list / per-entry).
- * Same anon quota + Turnstile gates as Topic AI.
+ * Free / anon: daily AI ops cap. Paid Pro: unlimited (no daily consume).
  */
 app.post("/api/v1/ai/clues", async (c) => {
-  if (!isAnonDemoEnabled(c.env)) {
+  const cluePolicy = await resolveClueQuotaPolicy(c.env, c.req.raw);
+  const paidUnlimited = cluePolicy.kind === "unlimited";
+
+  if (!paidUnlimited && !isAnonDemoEnabled(c.env)) {
     return c.json(
       { error: { code: "demo_disabled", message: "Anonymous AI demo is disabled." } },
       403,
@@ -304,7 +334,7 @@ app.post("/api/v1/ai/clues", async (c) => {
   const burst = await consumeRateLimit(
     c.env,
     `ai-clues:${ip || "unknown"}`,
-    20,
+    paidUnlimited ? 60 : 20,
     60_000,
   );
   if (!burst.allowed) {
@@ -332,19 +362,14 @@ app.post("/api/v1/ai/clues", async (c) => {
     );
   }
 
-  const preQuota = await getAnonQuota(c.env, c.req.raw);
-  if (preQuota.remaining <= 0) {
+  if (!paidUnlimited && cluePolicy.snapshot.remaining <= 0) {
     return c.json(
       {
         error: {
           code: "quota_exceeded",
-          message: `Daily anonymous AI demo limit reached (${preQuota.limit}/day). Fill clues manually or try again tomorrow.`,
+          message: clueQuotaExceededMessage(cluePolicy.snapshot.limit),
         },
-        quota: {
-          limit: preQuota.limit,
-          remaining: 0,
-          day: preQuota.day,
-        },
+        quota: clueQuotaResponse(cluePolicy),
       },
       429,
     );
@@ -352,18 +377,39 @@ app.post("/api/v1/ai/clues", async (c) => {
 
   const enabled = isAiEnabled(c.env);
   const allowMock = c.req.query("mock") === "1";
+  const dailySnapshot = cluePolicy.kind === "daily" ? cluePolicy.snapshot : null;
+  const dailyLimit = dailySnapshot?.limit ?? pricing.free.aiOpsPerDay;
+
+  async function finalizeClueQuota() {
+    if (paidUnlimited || !dailySnapshot) {
+      return { ok: true as const, quota: clueQuotaResponse(cluePolicy) };
+    }
+    const consumed = await consumeClueDailyQuota(c.env, c.req.raw);
+    if (!consumed) {
+      return {
+        ok: false as const,
+        quota: clueQuotaResponse(cluePolicy, {
+          ...dailySnapshot,
+          remaining: 0,
+          used: dailySnapshot.limit,
+        }),
+      };
+    }
+    return { ok: true as const, quota: clueQuotaResponse(cluePolicy, consumed) };
+  }
 
   if (!enabled) {
     if (allowMock) {
       const mock = mockCluesForAnswers(parsed.data.answers);
-      const quota = await consumeAnonQuota(c.env, c.req.raw);
-      if (!quota) {
+      const finalized = await finalizeClueQuota();
+      if (!finalized.ok) {
         return c.json(
           {
             error: {
               code: "quota_exceeded",
-              message: `Daily anonymous AI demo limit reached (${preQuota.limit}/day).`,
+              message: clueQuotaExceededMessage(dailyLimit),
             },
+            quota: finalized.quota,
           },
           429,
         );
@@ -371,7 +417,7 @@ app.post("/api/v1/ai/clues", async (c) => {
       return c.json({
         clues: mock,
         reviewState: "needs_review",
-        quota: { limit: quota.limit, remaining: quota.remaining, day: quota.day },
+        quota: finalized.quota,
         mock: true,
       });
     }
@@ -395,6 +441,7 @@ app.post("/api/v1/ai/clues", async (c) => {
         code: result.error.code,
         retryable: result.error.retryable,
         model: generateModel(c.env),
+        paidUnlimited,
       }),
     );
     const status =
@@ -414,15 +461,15 @@ app.post("/api/v1/ai/clues", async (c) => {
     );
   }
 
-  const quota = await consumeAnonQuota(c.env, c.req.raw);
-  if (!quota) {
+  const finalized = await finalizeClueQuota();
+  if (!finalized.ok) {
     return c.json(
       {
         error: {
           code: "quota_exceeded",
-          message: `Daily anonymous AI demo limit reached (${preQuota.limit}/day). Fill clues manually.`,
+          message: clueQuotaExceededMessage(dailyLimit),
         },
-        quota: { limit: preQuota.limit, remaining: 0, day: preQuota.day },
+        quota: finalized.quota,
       },
       429,
     );
@@ -436,14 +483,15 @@ app.post("/api/v1/ai/clues", async (c) => {
       latencyMs: result.value.latencyMs,
       clueCount: result.value.clues.length,
       dropped: result.value.dropped,
-      quotaRemaining: quota.remaining,
+      paidUnlimited,
+      quotaRemaining: finalized.quota.remaining,
     }),
   );
 
   return c.json({
     clues: result.value.clues,
     reviewState: "needs_review",
-    quota: { limit: quota.limit, remaining: quota.remaining, day: quota.day },
+    quota: finalized.quota,
     model: result.value.model,
     mock: false,
   });
