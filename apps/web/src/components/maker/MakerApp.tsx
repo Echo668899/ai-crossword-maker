@@ -543,8 +543,9 @@ export default function MakerApp({
     dispatch({ type: "setStatus", statusMessage: `Imported ${parsed.length} rows from paste.` });
   }
 
-  function runBuild() {
+  function runBuild(seedOverride?: number) {
     try {
+      const seed = seedOverride ?? state.seed;
       dispatch({ type: "setStatus", statusMessage: "Building grid…" });
       const sourceRows =
         state.mode === "paste" && state.pasteText.trim() ? parsePaste(state.pasteText) : state.rows;
@@ -568,7 +569,7 @@ export default function MakerApp({
       const leaks = entries.filter((e) => clueLeaksAnswer(e.clue, e.answerNormalized));
       let result = buildGrid({
         entries,
-        seed: state.seed,
+        seed,
         size: "auto",
         nodeBudget: 25_000,
       });
@@ -1944,12 +1945,15 @@ export default function MakerApp({
                 style={{ ...inputStyle, width: 88 }}
               />
             </label>
-            <Button onClick={runBuild}>Build grid</Button>
+            <Button onClick={() => runBuild()}>Build grid</Button>
             <Button
               variant="secondary"
               onClick={() => {
-                dispatch({ type: "setSeed", seed: state.seed + 1 });
-                window.setTimeout(runBuild, 0);
+                // Pass next seed explicitly — setTimeout(runBuild) would rebuild with a stale
+                // closure seed, so the first Shuffle after Build looked like a no-op.
+                const nextSeed = state.seed + 1;
+                dispatch({ type: "setSeed", seed: nextSeed });
+                runBuild(nextSeed);
               }}
             >
               Shuffle layout
