@@ -708,7 +708,7 @@ export default function MakerApp({
         body: JSON.stringify({
           title: state.title,
           allowCheck: true,
-          allowReveal: false,
+          allowReveal: true,
           snapshot,
         }),
       });
@@ -725,12 +725,25 @@ export default function MakerApp({
       setShareUrl(absolute);
       dispatch({
         type: "setStatus",
-        statusMessage: `Share link ready (noindex): ${path}`,
+        statusMessage: `Play link ready (noindex) — open or copy below.`,
       });
     } catch {
       dispatch({ type: "setStatus", statusMessage: "Share failed — is the API running?" });
     } finally {
       setShareBusy(false);
+    }
+  }
+
+  async function copyShareUrl() {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      dispatch({ type: "setStatus", statusMessage: "Play link copied." });
+    } catch {
+      dispatch({
+        type: "setStatus",
+        statusMessage: "Could not copy — select the link below instead.",
+      });
     }
   }
 
@@ -2145,9 +2158,30 @@ export default function MakerApp({
             </p>
           )}
           {shareUrl ? (
-            <p style={{ margin: "0.65rem 0 0", fontSize: "0.92rem" }}>
-              Share (noindex): <a href={shareUrl}>{shareUrl}</a>
-            </p>
+            <div
+              style={{
+                marginTop: "0.75rem",
+                padding: "0.75rem 0.9rem",
+                border: "1px solid var(--color-border)",
+                borderRadius: 8,
+                background: "#fff",
+              }}
+            >
+              <p style={{ margin: 0, fontSize: "0.92rem" }}>
+                Play link ready (noindex) — solvers open it in the browser with Check &amp; Reveal.
+              </p>
+              <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap", marginTop: "0.55rem" }}>
+                <Button variant="secondary" onClick={() => window.open(shareUrl, "_blank", "noopener,noreferrer")}>
+                  Open play
+                </Button>
+                <Button variant="ghost" onClick={() => void copyShareUrl()}>
+                  Copy link
+                </Button>
+              </div>
+              <p className="muted" style={{ margin: "0.55rem 0 0", fontSize: "0.85rem", wordBreak: "break-all" }}>
+                <a href={shareUrl}>{shareUrl}</a>
+              </p>
+            </div>
           ) : null}
           {packUrl ? (
             <p style={{ margin: "0.65rem 0 0", fontSize: "0.92rem" }}>

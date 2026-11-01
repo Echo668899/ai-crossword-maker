@@ -1,0 +1,32 @@
+---
+import BaseLayout from "../../../../layouts/BaseLayout.astro";
+import PlayApp from "../../../../components/play/PlayApp";
+import { EXAMPLES, getExample } from "../../../../lib/examples";
+import { buildExamplePuzzle } from "../../../../lib/build-example";
+import { exampleToLocalPlay } from "../../../../lib/example-play";
+
+/**
+ * Sample play demos are noindex — not a play plaza.
+ * Progress stays in localStorage; check/reveal run client-side against the SSG solution.
+ */
+export function getStaticPaths() {
+  return EXAMPLES.map((ex) => ({ params: { slug: ex.slug } }));
+}
+
+const slug = Astro.params.slug!;
+const example = getExample(slug);
+if (!example) {
+  return Astro.redirect("/examples/");
+}
+const built = buildExamplePuzzle(example);
+const localDemo = exampleToLocalPlay(example, built);
+---
+
+<BaseLayout
+  title={`${example.title} — Sample play — AI Crossword Maker`}
+  description={`Play this ${example.title} sample crossword in the browser. Demo only — not indexed.`}
+  canonicalPath={`/examples/${example.slug}/play/`}
+  noindex={true}
+>
+  <PlayApp client:load localDemo={localDemo} />
+</BaseLayout>

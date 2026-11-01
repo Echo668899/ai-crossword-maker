@@ -5,6 +5,7 @@ Disallow: /app/
 Disallow: /admin/
 Disallow: /api/
 Disallow: /p/
+Disallow: /examples/*/play/
 Disallow: /login/
 
 Sitemap: https://crosswordmaker.app/sitemap-index.xml

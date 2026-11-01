@@ -12,6 +12,7 @@ export default defineConfig({
     sitemap({
       filter: (page) =>
         !page.includes("/p/") &&
+        !page.includes("/play/") &&
         !page.includes("/login/") &&
         !page.includes("/app/") &&
         !page.includes("/admin/") &&

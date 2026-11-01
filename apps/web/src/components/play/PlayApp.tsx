@@ -24,6 +24,11 @@ type PlayPayload = {
   expiresAt: string | null;
 };
 
+export type LocalPlayDemo = {
+  payload: PlayPayload;
+  solutionGrid: string[];
+};
+
 function tokenFromLocation(fallback = ""): string {
   if (typeof window === "undefined") return fallback;
   const m = window.location.pathname.match(/\/p\/([^/]+)/);
@@ -31,21 +36,81 @@ function tokenFromLocation(fallback = ""): string {
   return raw === "_" ? "" : raw;
 }
 
-export default function PlayApp({ initialToken = "" }: { initialToken?: string }) {
-  const [token, setToken] = useState(initialToken);
-  const [payload, setPayload] = useState<PlayPayload | null>(null);
+function keyOf(r: number, c: number) {
+  return `${r},${c}`;
+}
+
+function countFillable(cells: PlayCell[][]): number {
+  let n = 0;
+  for (const row of cells) {
+    for (const cell of row) {
+      if (!cell.isBlock) n += 1;
+    }
+  }
+  return n;
+}
+
+function lettersMatchSolution(
+  letters: Record<string, string>,
+  cells: PlayCell[][],
+  solutionGrid: string[],
+): boolean {
+  for (let r = 0; r < cells.length; r++) {
+    const row = cells[r]!;
+    const line = solutionGrid[r] ?? "";
+    for (let c = 0; c < row.length; c++) {
+      const cell = row[c]!;
+      if (cell.isBlock) continue;
+      const expected = (line[c] ?? "").toUpperCase();
+      if (!expected || expected === "#") continue;
+      if ((letters[keyOf(r, c)] ?? "") !== expected) return false;
+    }
+  }
+  return true;
+}
+
+export default function PlayApp({
+  initialToken = "",
+  localDemo,
+}: {
+  initialToken?: string;
+  localDemo?: LocalPlayDemo;
+}) {
+  const isLocal = Boolean(localDemo);
+  const [token, setToken] = useState(localDemo?.payload.token ?? initialToken);
+  const [payload, setPayload] = useState<PlayPayload | null>(localDemo?.payload ?? null);
+  const [solutionGrid, setSolutionGrid] = useState<string[] | null>(localDemo?.solutionGrid ?? null);
   const [error, setError] = useState<string | null>(null);
   const [letters, setLetters] = useState<Record<string, string>>({});
   const [marks, setMarks] = useState<Record<string, boolean | undefined>>({});
   const [active, setActive] = useState<{ row: number; col: number } | null>(null);
   const [direction, setDirection] = useState<"across" | "down">("across");
   const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
+    if (localDemo) {
+      setToken(localDemo.payload.token);
+      setPayload(localDemo.payload);
+      setSolutionGrid(localDemo.solutionGrid);
+      return;
+    }
     setToken(tokenFromLocation(initialToken));
-  }, [initialToken]);
+  }, [initialToken, localDemo]);
 
   useEffect(() => {
+    if (localDemo) {
+      const storageKey = `acm-play:${localDemo.payload.token}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          setLetters(JSON.parse(saved) as Record<string, string>);
+        } catch {
+          /* ignore */
+        }
+      }
+      return;
+    }
     if (!token) {
       setError("Missing share token in the URL.");
       return;
@@ -77,7 +142,7 @@ export default function PlayApp({ initialToken = "" }: { initialToken?: string }
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, localDemo]);
 
   useEffect(() => {
     if (!token) return;
@@ -86,6 +151,28 @@ export default function PlayApp({ initialToken = "" }: { initialToken?: string }
     }, 250);
     return () => window.clearTimeout(handle);
   }, [letters, token]);
+
+  const fillableCount = useMemo(
+    () => (payload ? countFillable(payload.cells) : 0),
+    [payload],
+  );
+  const filledCount = useMemo(() => Object.keys(letters).filter((k) => letters[k]).length, [letters]);
+
+  const solved = useMemo(() => {
+    if (!payload) return false;
+    if (solutionGrid) {
+      return filledCount === fillableCount && lettersMatchSolution(letters, payload.cells, solutionGrid);
+    }
+    if (fillableCount === 0 || filledCount < fillableCount) return false;
+    let correct = 0;
+    for (const cellRow of payload.cells) {
+      for (const cell of cellRow) {
+        if (cell.isBlock) continue;
+        if (marks[keyOf(cell.row, cell.col)] === true) correct += 1;
+      }
+    }
+    return correct === fillableCount;
+  }, [payload, solutionGrid, letters, filledCount, fillableCount, marks]);
 
   const activeClue = useMemo(() => {
     if (!payload || !active) return null;
@@ -98,10 +185,6 @@ export default function PlayApp({ initialToken = "" }: { initialToken?: string }
     });
     return candidates[0] ?? null;
   }, [payload, active, direction]);
-
-  function keyOf(r: number, c: number) {
-    return `${r},${c}`;
-  }
 
   function move(row: number, col: number, dir: "across" | "down", delta: number) {
     if (!payload) return;
@@ -188,6 +271,18 @@ export default function PlayApp({ initialToken = "" }: { initialToken?: string }
         setError("Fill at least one letter before checking.");
         return;
       }
+
+      if (solutionGrid) {
+        const next: Record<string, boolean | undefined> = {};
+        for (const g of guesses) {
+          const expected = (solutionGrid[g.row]?.[g.col] ?? "").toUpperCase();
+          next[keyOf(g.row, g.col)] = Boolean(expected && expected !== "#" && g.letter === expected);
+        }
+        setError(null);
+        setMarks(next);
+        return;
+      }
+
       const res = await apiFetch(`/api/v1/play/${encodeURIComponent(payload.token)}/check`, {
         method: "POST",
         body: JSON.stringify({ guesses }),
@@ -212,6 +307,21 @@ export default function PlayApp({ initialToken = "" }: { initialToken?: string }
     if (!payload || !payload.allowReveal) return;
     setBusy(true);
     try {
+      if (solutionGrid) {
+        const next: Record<string, string> = {};
+        for (let r = 0; r < solutionGrid.length; r++) {
+          const line = solutionGrid[r] ?? "";
+          for (let c = 0; c < line.length; c++) {
+            const ch = line[c]!;
+            if (ch !== "#") next[keyOf(r, c)] = ch.toUpperCase();
+          }
+        }
+        setLetters(next);
+        setMarks({});
+        setError(null);
+        return;
+      }
+
       const res = await apiFetch(`/api/v1/play/${encodeURIComponent(payload.token)}/reveal`, {
         method: "POST",
         body: "{}",
@@ -232,6 +342,7 @@ export default function PlayApp({ initialToken = "" }: { initialToken?: string }
       }
       setLetters(next);
       setMarks({});
+      setError(null);
     } finally {
       setBusy(false);
     }
@@ -240,7 +351,18 @@ export default function PlayApp({ initialToken = "" }: { initialToken?: string }
   function reset() {
     setLetters({});
     setMarks({});
+    setError(null);
     if (token) localStorage.removeItem(`acm-play:${token}`);
+  }
+
+  async function copyPageLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError("Could not copy link — copy from the address bar.");
+    }
   }
 
   if (error && !payload) {
@@ -267,15 +389,24 @@ export default function PlayApp({ initialToken = "" }: { initialToken?: string }
   const cellPx = Math.min(36, Math.floor(420 / Math.max(payload.size.cols, payload.size.rows)));
   const across = payload.clues.filter((c) => c.direction === "across");
   const down = payload.clues.filter((c) => c.direction === "down");
+  const modeLabel = isLocal ? "Sample play · not indexed" : "Shared play · not indexed";
+  const backHref = isLocal
+    ? `/examples/${payload.token.replace(/^example:/, "")}/`
+    : "/";
+  const backLabel = isLocal ? "Back to example" : "Make your own";
 
   return (
     <section className="container section" style={{ paddingTop: "1.25rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
         <div>
           <p className="muted" style={{ margin: 0, fontSize: "0.85rem" }}>
-            Shared play · not indexed
+            {modeLabel}
           </p>
           <h1 style={{ margin: "0.25rem 0 0" }}>{payload.title}</h1>
+          <p className="muted" style={{ margin: "0.35rem 0 0", fontSize: "0.9rem" }}>
+            {filledCount} / {fillableCount} filled
+            {solved ? " · Solved!" : ""}
+          </p>
         </div>
         <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "start" }}>
           {payload.allowCheck ? (
@@ -291,8 +422,34 @@ export default function PlayApp({ initialToken = "" }: { initialToken?: string }
           <Button variant="ghost" onClick={reset}>
             Reset
           </Button>
+          <Button variant="ghost" onClick={() => void copyPageLink()}>
+            {copied ? "Copied" : "Copy link"}
+          </Button>
         </div>
       </div>
+
+      {solved ? (
+        <div
+          role="status"
+          style={{
+            marginTop: "0.85rem",
+            padding: "0.75rem 1rem",
+            borderRadius: 8,
+            background: "rgba(40, 140, 80, 0.12)",
+            border: "1px solid rgba(40, 140, 80, 0.35)",
+          }}
+        >
+          <strong>Solved!</strong> Nice work.{" "}
+          <a href={isLocal ? "/ai-crossword-maker/" : "/"}>{isLocal ? "Make your own with AI" : "Make another"}</a>
+          {isLocal ? (
+            <>
+              {" · "}
+              <a href={backHref}>{backLabel}</a>
+            </>
+          ) : null}
+        </div>
+      ) : null}
+
       {error ? (
         <p role="alert" style={{ color: "var(--color-warn)" }}>
           {error}
@@ -439,6 +596,15 @@ export default function PlayApp({ initialToken = "" }: { initialToken?: string }
               }}
             />
           </div>
+          <p className="muted" style={{ margin: 0, fontSize: "0.88rem" }}>
+            <a href={backHref}>{backLabel}</a>
+            {isLocal ? (
+              <>
+                {" · "}
+                <a href="/ai-crossword-maker/">Make a variant with AI</a>
+              </>
+            ) : null}
+          </p>
         </div>
       </div>
       <style>{`
@@ -464,7 +630,7 @@ function ClueList({
   return (
     <div>
       <strong>{title}</strong>
-      <ol style={{ margin: "0.4rem 0 0", paddingLeft: "1.2rem", fontSize: "0.92rem" }}>
+      <ul style={{ margin: "0.4rem 0 0", paddingLeft: 0, listStyle: "none", fontSize: "0.92rem" }}>
         {clues.map((c) => (
           <li key={c.entryId} style={{ marginBottom: "0.35rem" }}>
             <button
@@ -479,13 +645,14 @@ function ClueList({
                 cursor: "pointer",
                 font: "inherit",
                 color: "inherit",
+                width: "100%",
               }}
             >
               <span style={{ fontWeight: 650 }}>{c.number}.</span> {c.clue}
             </button>
           </li>
         ))}
-      </ol>
+      </ul>
     </div>
   );
 }

@@ -13,12 +13,14 @@ Updated: 2026-10-31
 | 05 AI provider + jobs + anon demo | DONE (sync Topic + anon quota; Turnstile wired) |
 | 06 Auth + cloud save | PARTIAL — magic link + Google OAuth; project CRUD + revision; **in-maker cloud Save/Load picker** |
 | 07 Packs / batch export | PARTIAL — A/B/C packs + ZIP/R2 export (queue + inline); consumer processes `pack_export` |
-| 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal APIs |
+| 08 Share play | PARTIAL — `/p/[token]/` noindex player + check/reveal; example `/examples/*/play/` local demos |
 | 09 Stripe / ledger / admin | PARTIAL — Hybrid Creem-primary / Stripe-fallback + ledger; **admin skeleton** (`/admin`, `/api/v1/admin/*`, audit + ops flags); production CREEM_* secrets still operator-gated |
 | 10 SEO polish / deploy hardening | IN PROGRESS — long-tail batch-8 examples + `/vs/teachers-corner/` + geography vocabulary how-to |
 
 ## Latest slice (product iteration)
 
+- Share play UX: Maker Open play / Copy link; default allowReveal; progress + Solved banner
+- Example sample play: `/examples/[slug]/play/` noindex local demos (Play this sample CTAs)
 - Merged long-tail batch-7 + Easy Puzzle Maker + history how-to via PR #18 → `main` @ `75d4b95`
 - Examples: +5 human-reviewed long-tail seeds (`LONG_TAIL_BATCH_8_SLUGS`) — electricity, westward-expansion, root-words, multiplication, fossils; examples index long-tail strip
 - Blog: `/blog/how-to-make-a-geography-vocabulary-crossword/` + catalog mesh

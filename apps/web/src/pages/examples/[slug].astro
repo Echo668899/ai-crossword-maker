@@ -40,7 +40,7 @@ const faq = [
   },
   {
     q: "Can students solve this online?",
-    a: "This example page is a printable worksheet. After you create a variant in the maker, you can share a noindex play link so students solve in the browser without signing up.",
+    a: `Yes. Open Play this sample for a browser demo of this puzzle (check/reveal stay on-device; the play page is noindex). After you create a variant in the maker, share a noindex play link so students solve without signing up.`,
   },
 ];
 const jsonLd = [
@@ -84,7 +84,8 @@ const jsonLd = [
     <h1 style="margin:0 0 0.5rem;">{example.title} Crossword Puzzle</h1>
     <p style="max-width:62ch;margin:0 0 1rem;">{example.blurb}</p>
     <p class="no-print example-actions" style="margin:0 0 1.25rem;display:flex;flex-wrap:wrap;gap:0.65rem;align-items:center;">
-      <button type="button" class="print-btn" onclick="window.print()">Print puzzle</button>
+      <a class="print-btn" href={`/examples/${example.slug}/play/`}>Play this sample</a>
+      <button type="button" class="print-btn print-btn-secondary" onclick="window.print()">Print puzzle</button>
       <a class="print-btn print-btn-secondary" href={`/ai-crossword-maker/?topic=${encodeURIComponent(example.topic)}`}>Make a variant with AI</a>
       <span class="muted" style="font-size:0.92rem;">
         <a href="/crossword-maker-for-teachers/">For teachers</a>
