@@ -54,6 +54,38 @@ export const TopicGenerateResponseSchema = z.object({
 
 export type TopicGenerateResponse = z.infer<typeof TopicGenerateResponseSchema>;
 
+/** Fill classroom clues for an existing answer list (Word list / per-entry AI). */
+export const ClueGenerateRequestSchema = z.object({
+  answers: z.array(z.string().min(1).max(64)).min(1).max(30),
+  difficulty: z.enum(["easy", "medium", "hard"]).default("medium"),
+  topic: z.string().max(120).optional(),
+  audience: z.enum(["general", "teachers", "esl", "kids"]).default("general"),
+  turnstileToken: z.string().optional(),
+});
+
+export type ClueGenerateRequest = z.infer<typeof ClueGenerateRequestSchema>;
+
+export const ClueGenerateResponseSchema = z.object({
+  clues: z.array(
+    z.object({
+      answer: z.string(),
+      clue: z.string(),
+    }),
+  ),
+  reviewState: z.literal("needs_review"),
+  quota: z
+    .object({
+      limit: z.number().int(),
+      remaining: z.number().int(),
+      day: z.string(),
+    })
+    .optional(),
+  model: z.string().optional(),
+  mock: z.boolean().optional(),
+});
+
+export type ClueGenerateResponse = z.infer<typeof ClueGenerateResponseSchema>;
+
 export const ApiErrorSchema = z.object({
   error: z.object({
     code: z.string(),

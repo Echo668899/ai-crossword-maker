@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { TopicGenerateRequestSchema } from "@acm/contracts";
+import { ClueGenerateRequestSchema, TopicGenerateRequestSchema } from "@acm/contracts";
 import { pricing } from "@acm/config/pricing";
-import { generateTopicEntries } from "./ai/provider";
+import { generateCluesForAnswers, generateTopicEntries } from "./ai/provider";
 import {
   generateModel,
   isAiEnabled,
@@ -279,6 +279,176 @@ app.post("/api/v1/ai/topic", async (c) => {
   });
 });
 
+/**
+ * Clue AI — fill classroom clues for an existing answer list (Word list / per-entry).
+ * Same anon quota + Turnstile gates as Topic AI.
+ */
+app.post("/api/v1/ai/clues", async (c) => {
+  if (!isAnonDemoEnabled(c.env)) {
+    return c.json(
+      { error: { code: "demo_disabled", message: "Anonymous AI demo is disabled." } },
+      403,
+    );
+  }
+
+  const body = await c.req.json().catch(() => null);
+  const parsed = ClueGenerateRequestSchema.safeParse(body);
+  if (!parsed.success) {
+    return c.json(
+      { error: { code: "invalid_request", message: "Invalid clue request." } },
+      400,
+    );
+  }
+
+  const ip = clientIp(c.req.raw);
+  const burst = await consumeRateLimit(
+    c.env,
+    `ai-clues:${ip || "unknown"}`,
+    20,
+    60_000,
+  );
+  if (!burst.allowed) {
+    return c.json(
+      {
+        error: {
+          code: "rate_limited",
+          message: "Too many AI requests. Slow down and try again.",
+        },
+        resetAt: burst.resetAt,
+      },
+      429,
+    );
+  }
+
+  // Same Turnstile action as Topic so one widget token covers both AI ops.
+  const turnstile = await verifyTurnstile(c.env, parsed.data.turnstileToken, {
+    ip,
+    action: "ai-topic",
+  });
+  if (!turnstile.ok) {
+    return c.json(
+      { error: { code: turnstile.code, message: turnstile.message } },
+      403,
+    );
+  }
+
+  const preQuota = await getAnonQuota(c.env, c.req.raw);
+  if (preQuota.remaining <= 0) {
+    return c.json(
+      {
+        error: {
+          code: "quota_exceeded",
+          message: `Daily anonymous AI demo limit reached (${preQuota.limit}/day). Fill clues manually or try again tomorrow.`,
+        },
+        quota: {
+          limit: preQuota.limit,
+          remaining: 0,
+          day: preQuota.day,
+        },
+      },
+      429,
+    );
+  }
+
+  const enabled = isAiEnabled(c.env);
+  const allowMock = c.req.query("mock") === "1";
+
+  if (!enabled) {
+    if (allowMock) {
+      const mock = mockCluesForAnswers(parsed.data.answers);
+      const quota = await consumeAnonQuota(c.env, c.req.raw);
+      if (!quota) {
+        return c.json(
+          {
+            error: {
+              code: "quota_exceeded",
+              message: `Daily anonymous AI demo limit reached (${preQuota.limit}/day).`,
+            },
+          },
+          429,
+        );
+      }
+      return c.json({
+        clues: mock,
+        reviewState: "needs_review",
+        quota: { limit: quota.limit, remaining: quota.remaining, day: quota.day },
+        mock: true,
+      });
+    }
+    return c.json(
+      {
+        error: {
+          code: "ai_not_configured",
+          message:
+            "AI clues are not configured on this server (set AI_ENABLED=true and OPENAI_API_KEY). Enter clues manually.",
+        },
+      },
+      503,
+    );
+  }
+
+  const result = await generateCluesForAnswers(c.env, parsed.data);
+  if (!result.ok) {
+    console.error(
+      JSON.stringify({
+        event: "ai_clues_failed",
+        code: result.error.code,
+        retryable: result.error.retryable,
+        model: generateModel(c.env),
+      }),
+    );
+    const status =
+      result.error.code === "rate_limited"
+        ? 429
+        : result.error.code === "refusal"
+          ? 422
+          : 502;
+    return c.json(
+      {
+        error: {
+          code: result.error.code,
+          message: result.error.message,
+        },
+      },
+      status,
+    );
+  }
+
+  const quota = await consumeAnonQuota(c.env, c.req.raw);
+  if (!quota) {
+    return c.json(
+      {
+        error: {
+          code: "quota_exceeded",
+          message: `Daily anonymous AI demo limit reached (${preQuota.limit}/day). Fill clues manually.`,
+        },
+        quota: { limit: preQuota.limit, remaining: 0, day: preQuota.day },
+      },
+      429,
+    );
+  }
+
+  console.log(
+    JSON.stringify({
+      event: "ai_clues_completed",
+      model: result.value.model,
+      requestId: result.value.requestId,
+      latencyMs: result.value.latencyMs,
+      clueCount: result.value.clues.length,
+      dropped: result.value.dropped,
+      quotaRemaining: quota.remaining,
+    }),
+  );
+
+  return c.json({
+    clues: result.value.clues,
+    reviewState: "needs_review",
+    quota: { limit: quota.limit, remaining: quota.remaining, day: quota.day },
+    model: result.value.model,
+    mock: false,
+  });
+});
+
 app.notFound((c) =>
   c.json({ error: { code: "not_found", message: "API route not found" } }, 404),
 );
@@ -306,4 +476,19 @@ function mockTopicEntries(topic: string, count: number) {
     { answer: "SKILL", clue: "Ability gained by practice" },
   ];
   return bank.slice(0, Math.min(count, bank.length));
+}
+
+function mockCluesForAnswers(answers: string[]) {
+  const seen = new Set<string>();
+  const out: Array<{ answer: string; clue: string }> = [];
+  for (const raw of answers) {
+    const answer = raw.toUpperCase().replace(/[^A-Z]/g, "");
+    if (answer.length < 3 || answer.length > 24 || seen.has(answer)) continue;
+    seen.add(answer);
+    out.push({
+      answer,
+      clue: `Classroom clue for ${answer.charAt(0)}${"·".repeat(Math.min(answer.length - 1, 6))}`,
+    });
+  }
+  return out;
 }
