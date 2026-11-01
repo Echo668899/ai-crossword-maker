@@ -34,12 +34,27 @@ authRoutes.post("/api/v1/auth/magic-link", async (c) => {
   if (!result.ok) {
     const status =
       result.code === "rate_limited" ? 429 : result.code === "db_required" ? 503 : 400;
-    return c.json({ error: { code: result.code, message: result.message } }, status);
+    const headers: Record<string, string> = {};
+    if (result.code === "rate_limited" && result.retryAfterSeconds) {
+      headers["Retry-After"] = String(result.retryAfterSeconds);
+    }
+    return c.json(
+      {
+        error: {
+          code: result.code,
+          message: result.message,
+          ...(result.retryAfterSeconds ? { retryAfterSeconds: result.retryAfterSeconds } : {}),
+        },
+      },
+      status,
+      headers,
+    );
   }
   return c.json({
     ok: true,
     message: "If that email can receive mail, a sign-in link is on its way.",
     email: result.email,
+    retryAfterSeconds: result.retryAfterSeconds,
     ...(result.devLink ? { devLink: result.devLink } : {}),
   });
 });

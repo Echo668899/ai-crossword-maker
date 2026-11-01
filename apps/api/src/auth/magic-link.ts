@@ -1,13 +1,21 @@
 import type { ApiEnv } from "../env";
 import { clientIp, generateId, generateToken, hashIp, sha256Hex } from "./crypto";
 import { mailConfigured, sendMagicLinkEmail } from "./mailer";
-import { consumeRateLimit } from "./rate-limit";
+import { consumeRateLimit as consumeDailyRateLimit } from "./rate-limit";
+import { consumeRateLimit as consumeWindowRateLimit } from "../security/rate-limit";
 import { createSession, upsertUserByEmail } from "./session";
 import { siteOrigin } from "../env";
 
 const MAGIC_TTL_MS = 1000 * 60 * 20; // 20 minutes
 const MAGIC_TTL_MINUTES = 20;
+/** Min gap between magic-link emails to the same address (stops double-click spam). */
+export const EMAIL_COOLDOWN_MS = 60_000;
+const EMAIL_COOLDOWN_LIMIT = 1;
+/** Burst cap per IP across all addresses in the same window. */
+const IP_BURST_WINDOW_MS = 60_000;
+const IP_BURST_LIMIT = 5;
 const EMAIL_DAILY_LIMIT = 8;
+const IP_DAILY_LIMIT = 20;
 
 function requireDb(env: ApiEnv): D1Database {
   if (!env.DB) throw new Error("DB_REQUIRED");
@@ -24,10 +32,21 @@ export type MagicLinkCreateResult =
   | {
       ok: true;
       email: string;
+      /** Client should wait this long before another send (matches email cooldown). */
+      retryAfterSeconds: number;
       /** Only present when AUTH_DEV_RETURN_LINK=true — never enable in production. */
       devLink?: string;
     }
-  | { ok: false; code: "invalid_email" | "rate_limited" | "db_required"; message: string };
+  | {
+      ok: false;
+      code: "invalid_email" | "rate_limited" | "db_required";
+      message: string;
+      retryAfterSeconds?: number;
+    };
+
+function retryAfterFromReset(resetAt: string): number {
+  return Math.max(1, Math.ceil((Date.parse(resetAt) - Date.now()) / 1000));
+}
 
 export async function requestMagicLink(
   env: ApiEnv,
@@ -47,13 +66,47 @@ export async function requestMagicLink(
   }
 
   const ip = clientIp(request);
-  const emailLimit = await consumeRateLimit(env, `magic:email:${email}`, EMAIL_DAILY_LIMIT);
-  const ipLimit = await consumeRateLimit(env, `magic:ip:${await hashIp(ip)}`, 20);
+  const ipHash = await hashIp(ip);
+
+  // Short windows first — do not burn daily quota on double-clicks.
+  const emailCooldown = await consumeWindowRateLimit(
+    env,
+    `magic-cd:email:${email}`,
+    EMAIL_COOLDOWN_LIMIT,
+    EMAIL_COOLDOWN_MS,
+  );
+  if (!emailCooldown.allowed) {
+    return {
+      ok: false,
+      code: "rate_limited",
+      message: "Please wait before requesting another sign-in email.",
+      retryAfterSeconds: retryAfterFromReset(emailCooldown.resetAt),
+    };
+  }
+
+  const ipBurst = await consumeWindowRateLimit(
+    env,
+    `magic-cd:ip:${ipHash}`,
+    IP_BURST_LIMIT,
+    IP_BURST_WINDOW_MS,
+  );
+  if (!ipBurst.allowed) {
+    return {
+      ok: false,
+      code: "rate_limited",
+      message: "Too many sign-in emails from this network. Try again shortly.",
+      retryAfterSeconds: retryAfterFromReset(ipBurst.resetAt),
+    };
+  }
+
+  const emailLimit = await consumeDailyRateLimit(env, `magic:email:${email}`, EMAIL_DAILY_LIMIT);
+  const ipLimit = await consumeDailyRateLimit(env, `magic:ip:${ipHash}`, IP_DAILY_LIMIT);
   if (!emailLimit.ok || !ipLimit.ok) {
     return {
       ok: false,
       code: "rate_limited",
       message: "Too many sign-in emails. Try again later.",
+      retryAfterSeconds: 3600,
     };
   }
 
@@ -70,7 +123,7 @@ export async function requestMagicLink(
         (id, email, token_hash, expires_at, consumed_at, created_at, request_ip_hash)
        VALUES (?, ?, ?, ?, NULL, ?, ?)`,
     )
-    .bind(id, email, tokenHash, expiresAt, now.toISOString(), await hashIp(ip))
+    .bind(id, email, tokenHash, expiresAt, now.toISOString(), ipHash)
     .run();
 
   // Verify hits the API Worker; post-login redirect uses the web origin (AUTH_PUBLIC_ORIGIN).
@@ -117,7 +170,11 @@ export async function requestMagicLink(
     );
   }
 
-  const result: MagicLinkCreateResult = { ok: true, email };
+  const result: MagicLinkCreateResult = {
+    ok: true,
+    email,
+    retryAfterSeconds: Math.ceil(EMAIL_COOLDOWN_MS / 1000),
+  };
   if (env.AUTH_DEV_RETURN_LINK === "true") {
     return { ...result, devLink: verifyUrlStr };
   }
