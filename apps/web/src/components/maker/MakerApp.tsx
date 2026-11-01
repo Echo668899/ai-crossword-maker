@@ -60,6 +60,15 @@ const EXAMPLE_SEED_SLUGS = [
   "fossils",
 ] as const;
 
+/** Free Generate clues exhausted — steer to Pro unlimited. */
+const CLUE_QUOTA_BLOCKED =
+  "You've used today's free Generate clues. Upgrade to Pro for unlimited AI clues — or keep typing clues yourself.";
+const CLUE_QUOTA_STATUS =
+  "Free Generate clues used up for today. Upgrade to Pro for unlimited clues, or type them manually.";
+const CLUE_QUOTA_PRO_NOTE = " Pro: Generate clues is unlimited.";
+const CLUE_QUOTA_REMAINING = (remaining: number, limit: number) =>
+  ` Free Generate clues left today: ${remaining}/${limit}. Pro unlocks unlimited.`;
+
 interface EntryRow {
   answer: string;
   clue: string;
@@ -1059,13 +1068,11 @@ export default function MakerApp({
         }
         dispatch({
           type: "setAiBlocked",
-          reason:
-            body?.error?.message ||
-            "Daily free Generate clues limit reached. Upgrade to Pro for unlimited clues, or type clues manually.",
+          reason: body?.error?.message || CLUE_QUOTA_BLOCKED,
         });
         dispatch({
           type: "setStatus",
-          statusMessage: "Free Generate clues limit reached — Pro is unlimited, or type clues manually.",
+          statusMessage: CLUE_QUOTA_STATUS,
         });
         return;
       }
@@ -1132,11 +1139,11 @@ export default function MakerApp({
       const mockNote = data.mock ? " (mock)" : "";
       const quotaNote =
         data.quota?.unlimited || data.quota?.isPro
-          ? " Pro: Generate clues is unlimited."
+          ? CLUE_QUOTA_PRO_NOTE
           : data.quota &&
               typeof data.quota.remaining === "number" &&
               typeof data.quota.limit === "number"
-            ? ` Free clues remaining today: ${data.quota.remaining}/${data.quota.limit}.`
+            ? CLUE_QUOTA_REMAINING(data.quota.remaining, data.quota.limit)
             : "";
       dispatch({
         type: "setStatus",
@@ -1340,10 +1347,14 @@ export default function MakerApp({
           {validation?.ok ? <StatusPill label="Grid checks passed" tone="ok" /> : null}
           {validation && !validation.ok ? <StatusPill label="Clues / grid need review" tone="warn" /> : null}
           {quota?.unlimited || quota?.isPro ? (
-            <StatusPill label="Pro · clues unlimited" tone="ok" />
+            <StatusPill label="Pro · unlimited clues" tone="ok" />
           ) : quota && typeof quota.remaining === "number" && typeof quota.limit === "number" ? (
             <StatusPill
-              label={`AI demo ${quota.remaining}/${quota.limit} today`}
+              label={
+                quota.remaining > 0
+                  ? `Free AI ${quota.remaining}/${quota.limit} today`
+                  : `Free AI used up · Pro unlimited`
+              }
               tone={quota.remaining > 0 ? "neutral" : "warn"}
             />
           ) : null}
@@ -1610,7 +1621,7 @@ export default function MakerApp({
                 >
                   <div>{state.aiBlockedReason}</div>
                   <div style={{ marginTop: "0.35rem" }}>
-                    <a href="/pricing/">Upgrade on Pricing</a>
+                    <a href="/pricing/">Upgrade to Pro — unlimited clues</a>
                     {" · "}
                     <a href="/examples/">Browse examples</a>
                     {" · "}
@@ -1620,12 +1631,14 @@ export default function MakerApp({
               ) : (
                 <p className="muted" style={{ margin: 0, fontSize: "0.9rem" }}>
                   {quota?.unlimited || quota?.isPro
-                    ? "Pro: Generate clues is unlimited. Topic demo still uses the free daily pool when shown."
+                    ? "Pro: Generate clues is unlimited. Topic demo may still use the free daily pool."
                     : quota &&
                         typeof quota.remaining === "number" &&
                         typeof quota.limit === "number"
-                      ? `Free demo: ${quota.remaining} of ${quota.limit} AI ops left today (Generate clues shares this pool). Layout reshuffles are free.`
-                      : "Free anonymous demo uses a daily quota when the API is enabled. Layout never spends AI credits."}
+                      ? quota.remaining > 0
+                        ? `Free plan: ${quota.remaining} of ${quota.limit} AI ops left today (includes Generate clues). Upgrade to Pro for unlimited clues. Layout reshuffles stay free.`
+                        : "Free Generate clues is used up for today. Upgrade to Pro for unlimited AI clues — or type clues yourself. Layout reshuffles stay free."
+                      : "Free plan includes a daily AI limit. Upgrade to Pro for unlimited Generate clues. Layout never spends AI credits."}
                 </p>
               )}
             </div>
@@ -1771,9 +1784,11 @@ export default function MakerApp({
                       title={
                         emptyClueCount === 0
                           ? "All answers already have clues"
-                          : cluesUnlimited
-                            ? "Fill empty clues with AI (Pro · unlimited)"
-                            : "Fill empty clues with AI (keeps your answers; free daily limit)"
+                          : freeAiExhausted
+                            ? "Free daily limit reached — upgrade to Pro for unlimited clues"
+                            : cluesUnlimited
+                              ? "Fill empty clues with AI (Pro · unlimited)"
+                              : "Fill empty clues with AI (free daily limit; Pro is unlimited)"
                       }
                     >
                       {clueAiBusyIndex === "all" ? "Generating clues…" : "Generate clues"}
@@ -1815,7 +1830,20 @@ export default function MakerApp({
               {emptyClueCount > 0 ? (
                 <p className="muted" style={{ margin: "0 0 0.55rem", fontSize: "0.88rem" }}>
                   {emptyClueCount} entr{emptyClueCount === 1 ? "y needs" : "ies need"} a clue — highlighted
-                  below. Use Generate clues / per-row AI, or type manually before handouts.
+                  below.{" "}
+                  {freeAiExhausted ? (
+                    <>
+                      Free Generate clues is used up today —{" "}
+                      <a href="/pricing/">upgrade to Pro for unlimited clues</a>, or type them
+                      manually.
+                    </>
+                  ) : (
+                    <>
+                      Use Generate clues / per-row AI
+                      {cluesUnlimited ? " (Pro · unlimited)" : " (free daily limit)"}, or type
+                      manually before handouts.
+                    </>
+                  )}
                 </p>
               ) : null}
               <div

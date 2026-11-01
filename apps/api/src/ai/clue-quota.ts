@@ -4,6 +4,11 @@ import { validateSession } from "../auth/session";
 import { getEntitlementsSummary } from "../billing/entitlements";
 import { consumeAnonQuota, getAnonQuota, type QuotaSnapshot } from "../quota/anon";
 
+/** User-facing copy when free Generate clues hits the daily cap. */
+export function clueQuotaExceededMessage(limit: number): string {
+  return `You've used today's free Generate clues (${limit}/day). Upgrade to Pro for unlimited AI clues — or keep typing clues yourself.`;
+}
+
 export type ClueQuotaPolicy =
   | {
       kind: "unlimited";

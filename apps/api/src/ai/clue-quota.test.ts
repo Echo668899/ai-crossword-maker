@@ -1,5 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { clueQuotaResponse, type ClueQuotaPolicy } from "./clue-quota";
+import {
+  clueQuotaExceededMessage,
+  clueQuotaResponse,
+  type ClueQuotaPolicy,
+} from "./clue-quota";
+
+describe("clueQuotaExceededMessage", () => {
+  it("points free users to Pro unlimited clues", () => {
+    const msg = clueQuotaExceededMessage(3);
+    expect(msg).toContain("3/day");
+    expect(msg).toContain("Upgrade to Pro");
+    expect(msg).toContain("unlimited AI clues");
+  });
+});
 
 describe("clueQuotaResponse", () => {
   it("marks Pro as unlimited with null counters", () => {

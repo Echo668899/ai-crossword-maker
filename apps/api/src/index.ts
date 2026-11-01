@@ -4,6 +4,7 @@ import { ClueGenerateRequestSchema, TopicGenerateRequestSchema } from "@acm/cont
 import { pricing } from "@acm/config/pricing";
 import { generateCluesForAnswers, generateTopicEntries } from "./ai/provider";
 import {
+  clueQuotaExceededMessage,
   clueQuotaResponse,
   consumeClueDailyQuota,
   resolveClueQuotaPolicy,
@@ -366,7 +367,7 @@ app.post("/api/v1/ai/clues", async (c) => {
       {
         error: {
           code: "quota_exceeded",
-          message: `Daily free Generate clues limit reached (${cluePolicy.snapshot.limit}/day). Upgrade to Pro for unlimited clues, or type clues manually.`,
+          message: clueQuotaExceededMessage(cluePolicy.snapshot.limit),
         },
         quota: clueQuotaResponse(cluePolicy),
       },
@@ -406,7 +407,7 @@ app.post("/api/v1/ai/clues", async (c) => {
           {
             error: {
               code: "quota_exceeded",
-              message: `Daily free Generate clues limit reached (${dailyLimit}/day).`,
+              message: clueQuotaExceededMessage(dailyLimit),
             },
             quota: finalized.quota,
           },
@@ -466,7 +467,7 @@ app.post("/api/v1/ai/clues", async (c) => {
       {
         error: {
           code: "quota_exceeded",
-          message: `Daily free Generate clues limit reached (${dailyLimit}/day). Upgrade to Pro for unlimited clues.`,
+          message: clueQuotaExceededMessage(dailyLimit),
         },
         quota: finalized.quota,
       },
