@@ -101,16 +101,18 @@ const jsonLd = {
       <h2 class="section-title">Popular classroom topics</h2>
       <ul style="display:grid;gap:0.55rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));list-style:none;padding:0;margin:0.75rem 0 0;">
         {featured.map((ex) => (
-          <li>
-            <a
-              href={`/examples/${ex.slug}/`}
-              style="display:block;padding:0.85rem 1rem;border:1px solid var(--color-border);border-radius:8px;background:#fff;text-decoration:none;color:var(--color-ink);"
-            >
+          <li style="padding:0.85rem 1rem;border:1px solid var(--color-border);border-radius:8px;background:#fff;">
+            <a href={`/examples/${ex.slug}/`} style="text-decoration:none;color:var(--color-ink);">
               <strong>{ex.title}</strong>
-              <div class="muted" style="font-size:0.85rem;margin-top:0.2rem;">
-                {ex.reviewState === "human_reviewed" ? "Human-reviewed" : "Sample"} · {ex.gradeBand}
-              </div>
             </a>
+            <div class="muted" style="font-size:0.85rem;margin-top:0.2rem;">
+              {ex.reviewState === "human_reviewed" ? "Human-reviewed" : "Sample"} · {ex.gradeBand}
+            </div>
+            <div style="margin-top:0.45rem;font-size:0.9rem;">
+              <a href={`/examples/${ex.slug}/play/`}>Play sample</a>
+              <span class="muted"> · </span>
+              <a href={`/examples/${ex.slug}/`}>Printable</a>
+            </div>
           </li>
         ))}
       </ul>
@@ -119,17 +121,19 @@ const jsonLd = {
       <h2 class="section-title">New long-tail printables</h2>
       <ul style="display:grid;gap:0.55rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));list-style:none;padding:0;margin:0.75rem 0 0;">
         {longTail.map((ex) => (
-          <li>
-            <a
-              href={`/examples/${ex.slug}/`}
-              style="display:block;padding:0.85rem 1rem;border:1px solid var(--color-border);border-radius:8px;background:#fff;text-decoration:none;color:var(--color-ink);"
-            >
+          <li style="padding:0.85rem 1rem;border:1px solid var(--color-border);border-radius:8px;background:#fff;">
+            <a href={`/examples/${ex.slug}/`} style="text-decoration:none;color:var(--color-ink);">
               <strong>{ex.title}</strong>
-              <div class="muted" style="font-size:0.85rem;margin-top:0.2rem;">
-                Human-reviewed · {ex.gradeBand}
-              </div>
-              <div class="muted" style="font-size:0.9rem;margin-top:0.25rem;">{ex.blurb}</div>
             </a>
+            <div class="muted" style="font-size:0.85rem;margin-top:0.2rem;">
+              Human-reviewed · {ex.gradeBand}
+            </div>
+            <div class="muted" style="font-size:0.9rem;margin-top:0.25rem;">{ex.blurb}</div>
+            <div style="margin-top:0.45rem;font-size:0.9rem;">
+              <a href={`/examples/${ex.slug}/play/`}>Play sample</a>
+              <span class="muted"> · </span>
+              <a href={`/examples/${ex.slug}/`}>Printable</a>
+            </div>
           </li>
         ))}
       </ul>
@@ -140,15 +144,17 @@ const jsonLd = {
           <h2 class="section-title">{labels[subject] ?? subject}</h2>
           <ul style="display:grid;gap:0.55rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));list-style:none;padding:0;margin:0.75rem 0 0;">
             {list.map((ex) => (
-              <li>
-                <a
-                  href={`/examples/${ex.slug}/`}
-                  style="display:block;padding:0.85rem 1rem;border:1px solid var(--color-border);border-radius:8px;background:#fff;text-decoration:none;color:var(--color-ink);"
-                >
+              <li style="padding:0.85rem 1rem;border:1px solid var(--color-border);border-radius:8px;background:#fff;">
+                <a href={`/examples/${ex.slug}/`} style="text-decoration:none;color:var(--color-ink);">
                   <strong>{ex.title}</strong>
-                  <div class="muted" style="font-size:0.85rem;margin-top:0.2rem;">{ex.gradeBand} · Free printable</div>
-                  <div class="muted" style="font-size:0.9rem;margin-top:0.25rem;">{ex.blurb}</div>
                 </a>
+                <div class="muted" style="font-size:0.85rem;margin-top:0.2rem;">{ex.gradeBand} · Free printable</div>
+                <div class="muted" style="font-size:0.9rem;margin-top:0.25rem;">{ex.blurb}</div>
+                <div style="margin-top:0.45rem;font-size:0.9rem;">
+                  <a href={`/examples/${ex.slug}/play/`}>Play sample</a>
+                  <span class="muted"> · </span>
+                  <a href={`/examples/${ex.slug}/`}>Printable</a>
+                </div>
               </li>
             ))}
           </ul>

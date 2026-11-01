@@ -20,6 +20,7 @@ describe("SEO shell hardening", () => {
     expect(robots).toContain("Disallow: /app/");
     expect(robots).toContain("Disallow: /admin/");
     expect(robots).toContain("Disallow: /p/");
+    expect(robots).toContain("Disallow: /examples/*/play/");
     expect(robots).toContain("Disallow: /login/");
     expect(robots).toContain("Allow: /");
     expect(robots).toContain("Sitemap:");
@@ -32,6 +33,7 @@ describe("SEO shell hardening", () => {
     expect(cfg).toContain('"/app/"');
     expect(cfg).toContain('"/login/"');
     expect(cfg).toContain('"/p/"');
+    expect(cfg).toContain('"/play/"');
     expect(cfg).toContain('"/404"');
   });
 
@@ -82,15 +84,21 @@ describe("SEO shell hardening", () => {
   it("examples index and detail pages carry canonical + sample labeling hooks", () => {
     const indexSrc = readFileSync(join(pagesRoot, "examples/index.astro"), "utf8");
     const detailSrc = readFileSync(join(pagesRoot, "examples/[slug].astro"), "utf8");
+    const playSrc = readFileSync(join(pagesRoot, "examples/[slug]/play/index.astro"), "utf8");
     expect(indexSrc).toContain('canonicalPath="/examples/"');
     expect(indexSrc).toContain("ItemList");
     expect(indexSrc).toContain("Free printable");
+    expect(indexSrc).toContain("Play sample");
     expect(detailSrc).toContain("FAQPage");
     expect(detailSrc).toContain("BreadcrumbList");
     expect(detailSrc).toContain("Make a variant with AI");
     expect(detailSrc).toContain("Answer key");
     expect(detailSrc).toContain("Print puzzle");
+    expect(detailSrc).toContain("Play this sample");
     expect(detailSrc).toContain("no-print");
+    expect(playSrc).toContain("noindex={true}");
+    expect(playSrc).toContain("exampleToLocalPlay");
+    expect(playSrc).toContain("localDemo");
     const globalCss = readFileSync(join(import.meta.dirname, "../styles/global.css"), "utf8");
     expect(globalCss).toContain("@media print");
     expect(EXAMPLES.length).toBeGreaterThanOrEqual(20);

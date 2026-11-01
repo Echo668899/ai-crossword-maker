@@ -24,7 +24,7 @@
 - FAQPage JSON-LD when FAQ visible (home, AI, teachers, each example)
 - ItemList on `/examples/`; BreadcrumbList on example detail
 - No AggregateRating fiction
-- `/app/`, `/admin/`, `/login/`, `/p/*` noindex; sitemap filter excludes those + `/404`
+- `/app/`, `/admin/`, `/login/`, `/p/*`, `/examples/*/play/` noindex; sitemap filter excludes those + `/play/` + `/404`
 - Real 404; sitemap via `@astrojs/sitemap`
 - No Chinese routes
 - Sample vs Human-reviewed labeling; no false “fact verified” claims
