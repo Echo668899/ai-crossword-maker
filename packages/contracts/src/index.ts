@@ -65,6 +65,15 @@ export const ClueGenerateRequestSchema = z.object({
 
 export type ClueGenerateRequest = z.infer<typeof ClueGenerateRequestSchema>;
 
+export const ClueQuotaSchema = z.object({
+  /** Pro / paid subscribers skip the free daily cap. */
+  unlimited: z.boolean().optional(),
+  isPro: z.boolean().optional(),
+  limit: z.number().int().nullable().optional(),
+  remaining: z.number().int().nullable().optional(),
+  day: z.string().optional(),
+});
+
 export const ClueGenerateResponseSchema = z.object({
   clues: z.array(
     z.object({
@@ -73,13 +82,7 @@ export const ClueGenerateResponseSchema = z.object({
     }),
   ),
   reviewState: z.literal("needs_review"),
-  quota: z
-    .object({
-      limit: z.number().int(),
-      remaining: z.number().int(),
-      day: z.string(),
-    })
-    .optional(),
+  quota: ClueQuotaSchema.optional(),
   model: z.string().optional(),
   mock: z.boolean().optional(),
 });

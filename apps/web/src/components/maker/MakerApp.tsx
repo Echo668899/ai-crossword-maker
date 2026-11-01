@@ -255,7 +255,12 @@ export default function MakerApp({
   const [cloudRevision, setCloudRevision] = useState<number | null>(null);
   const [cloudVersionId, setCloudVersionId] = useState<string | null>(null);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
-  const [quota, setQuota] = useState<{ remaining: number; limit: number } | null>(null);
+  const [quota, setQuota] = useState<{
+    remaining: number | null;
+    limit: number | null;
+    unlimited?: boolean;
+    isPro?: boolean;
+  } | null>(null);
   const [signedIn, setSignedIn] = useState(false);
   const [cloudProjects, setCloudProjects] = useState<
     Array<{ id: string; title: string; revision: number }>
@@ -422,9 +427,26 @@ export default function MakerApp({
         ]);
         if (cancelled) return;
         if (quotaRes.ok) {
-          const q = (await quotaRes.json()) as { remaining?: number; limit?: number };
-          if (typeof q.remaining === "number" && typeof q.limit === "number") {
-            setQuota({ remaining: q.remaining, limit: q.limit });
+          const q = (await quotaRes.json()) as {
+            remaining?: number | null;
+            limit?: number | null;
+            unlimited?: boolean;
+            isPro?: boolean;
+          };
+          if (q.unlimited || q.isPro) {
+            setQuota({
+              remaining: typeof q.remaining === "number" ? q.remaining : null,
+              limit: typeof q.limit === "number" ? q.limit : null,
+              unlimited: true,
+              isPro: true,
+            });
+          } else if (typeof q.remaining === "number" && typeof q.limit === "number") {
+            setQuota({
+              remaining: q.remaining,
+              limit: q.limit,
+              unlimited: false,
+              isPro: false,
+            });
           }
         }
         if (meRes.ok) {
@@ -1021,21 +1043,29 @@ export default function MakerApp({
       }
 
       if (res.status === 429) {
-        const exhausted = body?.quota as { remaining?: number; limit?: number } | undefined;
-        if (exhausted?.limit != null) {
-          setQuota({ remaining: 0, limit: exhausted.limit });
-        } else if (quota) {
-          setQuota({ remaining: 0, limit: quota.limit });
+        const exhausted = body?.quota as {
+          remaining?: number | null;
+          limit?: number | null;
+          unlimited?: boolean;
+          isPro?: boolean;
+        } | undefined;
+        if (!(exhausted?.unlimited || exhausted?.isPro)) {
+          setQuota({
+            remaining: 0,
+            limit: typeof exhausted?.limit === "number" ? exhausted.limit : quota?.limit ?? 3,
+            unlimited: false,
+            isPro: false,
+          });
         }
         dispatch({
           type: "setAiBlocked",
           reason:
             body?.error?.message ||
-            "Daily free AI demo limit reached. Enter clues manually or try again tomorrow.",
+            "Daily free Generate clues limit reached. Upgrade to Pro for unlimited clues, or type clues manually.",
         });
         dispatch({
           type: "setStatus",
-          statusMessage: "AI quota exhausted for today — clues can still be typed manually.",
+          statusMessage: "Free Generate clues limit reached — Pro is unlimited, or type clues manually.",
         });
         return;
       }
@@ -1046,7 +1076,12 @@ export default function MakerApp({
 
       const data = body as {
         clues?: Array<{ answer: string; clue: string }>;
-        quota?: { remaining: number; limit: number };
+        quota?: {
+          remaining?: number | null;
+          limit?: number | null;
+          unlimited?: boolean;
+          isPro?: boolean;
+        };
         mock?: boolean;
       };
       const clueMap = new Map(
@@ -1056,7 +1091,25 @@ export default function MakerApp({
         throw new Error("AI returned no clues.");
       }
 
-      if (data.quota) setQuota({ remaining: data.quota.remaining, limit: data.quota.limit });
+      if (data.quota?.unlimited || data.quota?.isPro) {
+        setQuota((prev) => ({
+          remaining: prev?.remaining ?? null,
+          limit: prev?.limit ?? null,
+          unlimited: true,
+          isPro: true,
+        }));
+      } else if (
+        data.quota &&
+        typeof data.quota.remaining === "number" &&
+        typeof data.quota.limit === "number"
+      ) {
+        setQuota({
+          remaining: data.quota.remaining,
+          limit: data.quota.limit,
+          unlimited: false,
+          isPro: false,
+        });
+      }
 
       let applied = 0;
       const nextRows = state.rows.map((row, index) => {
@@ -1078,7 +1131,13 @@ export default function MakerApp({
       pushHistory(nextRows);
       const mockNote = data.mock ? " (mock)" : "";
       const quotaNote =
-        data.quota != null ? ` Demo remaining today: ${data.quota.remaining}/${data.quota.limit}.` : "";
+        data.quota?.unlimited || data.quota?.isPro
+          ? " Pro: Generate clues is unlimited."
+          : data.quota &&
+              typeof data.quota.remaining === "number" &&
+              typeof data.quota.limit === "number"
+            ? ` Free clues remaining today: ${data.quota.remaining}/${data.quota.limit}.`
+            : "";
       dispatch({
         type: "setStatus",
         statusMessage: `Filled ${applied} AI clue${applied === 1 ? "" : "s"}${mockNote}. Review before printing.${quotaNote}`,
@@ -1148,11 +1207,17 @@ export default function MakerApp({
 
       if (res.status === 429) {
         const exhausted = body?.quota as { remaining?: number; limit?: number } | undefined;
-        if (exhausted?.limit != null) {
-          setQuota({ remaining: 0, limit: exhausted.limit });
-        } else if (quota) {
-          setQuota({ remaining: 0, limit: quota.limit });
-        }
+        setQuota({
+          remaining: 0,
+          limit:
+            typeof exhausted?.limit === "number"
+              ? exhausted.limit
+              : typeof quota?.limit === "number"
+                ? quota.limit
+                : 3,
+          unlimited: quota?.unlimited,
+          isPro: quota?.isPro,
+        });
         dispatch({
           type: "setAiBlocked",
           reason:
@@ -1180,7 +1245,14 @@ export default function MakerApp({
         throw new Error("AI returned no entries.");
       }
 
-      if (data.quota) setQuota({ remaining: data.quota.remaining, limit: data.quota.limit });
+      if (data.quota) {
+        setQuota((prev) => ({
+          remaining: data.quota!.remaining,
+          limit: data.quota!.limit,
+          unlimited: prev?.unlimited,
+          isPro: prev?.isPro,
+        }));
+      }
       pushHistory(data.entries);
       if (data.title) dispatch({ type: "setTitle", title: data.title });
       // Stay on Topic path mentally: keep editing in place, then jump to grid preview.
@@ -1215,6 +1287,14 @@ export default function MakerApp({
   const down = state.result?.placements.filter((p) => p.direction === "down") ?? [];
   const entryMap = new Map(state.entries.map((e) => [e.id, e]));
   const emptyClueCount = state.rows.filter((r) => r.answer.trim() && !r.clue.trim()).length;
+  const cluesUnlimited = Boolean(quota?.unlimited || quota?.isPro);
+  const freeAiExhausted =
+    !cluesUnlimited &&
+    quota != null &&
+    typeof quota.remaining === "number" &&
+    quota.remaining <= 0;
+  const topicAiExhausted =
+    quota != null && typeof quota.remaining === "number" && quota.remaining <= 0;
   const duplicateAnswers = (() => {
     const counts = new Map<string, number>();
     for (const row of state.rows) {
@@ -1259,7 +1339,9 @@ export default function MakerApp({
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
           {validation?.ok ? <StatusPill label="Grid checks passed" tone="ok" /> : null}
           {validation && !validation.ok ? <StatusPill label="Clues / grid need review" tone="warn" /> : null}
-          {quota ? (
+          {quota?.unlimited || quota?.isPro ? (
+            <StatusPill label="Pro · clues unlimited" tone="ok" />
+          ) : quota && typeof quota.remaining === "number" && typeof quota.limit === "number" ? (
             <StatusPill
               label={`AI demo ${quota.remaining}/${quota.limit} today`}
               tone={quota.remaining > 0 ? "neutral" : "warn"}
@@ -1456,13 +1538,13 @@ export default function MakerApp({
                   disabled={
                     !state.topic.trim() ||
                     aiLoading ||
-                    (quota != null && quota.remaining <= 0) ||
+                    topicAiExhausted ||
                     (turnstileConfigured() && !turnstileToken)
                   }
                 >
                   {aiLoading
                     ? "Generating…"
-                    : quota != null && quota.remaining <= 0
+                    : topicAiExhausted
                       ? "Daily AI limit reached"
                       : "Generate with AI"}
                 </Button>
@@ -1537,9 +1619,13 @@ export default function MakerApp({
                 </div>
               ) : (
                 <p className="muted" style={{ margin: 0, fontSize: "0.9rem" }}>
-                  {quota
-                    ? `Free demo: ${quota.remaining} of ${quota.limit} AI ops left today. Layout reshuffles are free.`
-                    : "Free anonymous demo uses a daily quota when the API is enabled. Layout never spends AI credits."}
+                  {quota?.unlimited || quota?.isPro
+                    ? "Pro: Generate clues is unlimited. Topic demo still uses the free daily pool when shown."
+                    : quota &&
+                        typeof quota.remaining === "number" &&
+                        typeof quota.limit === "number"
+                      ? `Free demo: ${quota.remaining} of ${quota.limit} AI ops left today (Generate clues shares this pool). Layout reshuffles are free.`
+                      : "Free anonymous demo uses a daily quota when the API is enabled. Layout never spends AI credits."}
                 </p>
               )}
             </div>
@@ -1680,12 +1766,14 @@ export default function MakerApp({
                         Boolean(aiLoading) ||
                         clueAiBusyIndex != null ||
                         (turnstileConfigured() && !turnstileToken) ||
-                        (quota != null && quota.remaining <= 0)
+                        freeAiExhausted
                       }
                       title={
                         emptyClueCount === 0
                           ? "All answers already have clues"
-                          : "Fill empty clues with AI (keeps your answers)"
+                          : cluesUnlimited
+                            ? "Fill empty clues with AI (Pro · unlimited)"
+                            : "Fill empty clues with AI (keeps your answers; free daily limit)"
                       }
                     >
                       {clueAiBusyIndex === "all" ? "Generating clues…" : "Generate clues"}
@@ -1795,7 +1883,7 @@ export default function MakerApp({
                           Boolean(aiLoading) ||
                           clueAiBusyIndex != null ||
                           (turnstileConfigured() && !turnstileToken) ||
-                          (quota != null && quota.remaining <= 0)
+                          freeAiExhausted
                         }
                         onClick={() => void runClueAi(index)}
                         style={{ padding: "0.45rem 0.55rem", minWidth: 44 }}
