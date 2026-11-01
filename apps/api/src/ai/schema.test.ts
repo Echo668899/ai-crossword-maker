@@ -68,6 +68,44 @@ describe("sanitizeTopicOutput", () => {
     );
     expect(result.entries).toHaveLength(5);
   });
+
+  it("allows empty clues for words_only style", () => {
+    const result = sanitizeTopicOutput(
+      {
+        title: "Vocab",
+        theme_blurb: "List",
+        entries: [
+          { answer: "MARS" },
+          { answer: "EARTH" },
+          { answer: "VENUS" },
+          { answer: "PLUTO" },
+          { answer: "COMET" },
+        ],
+      },
+      12,
+      { allowEmptyClues: true },
+    );
+    expect(result.entries).toHaveLength(5);
+    expect(result.entries.every((e) => e.clue === "")).toBe(true);
+  });
+
+  it("still drops empty clues when words_and_clues", () => {
+    const result = sanitizeTopicOutput(
+      {
+        title: "Vocab",
+        theme_blurb: "List",
+        entries: [
+          { answer: "MARS", clue: "" },
+          { answer: "EARTH", clue: "Our home" },
+          { answer: "VENUS", clue: "Second planet" },
+          { answer: "PLUTO", clue: "Dwarf planet" },
+          { answer: "COMET", clue: "Icy traveler" },
+        ],
+      },
+      12,
+    );
+    expect(result.entries.map((e) => e.answer)).toEqual(["EARTH", "VENUS", "PLUTO", "COMET"]);
+  });
 });
 
 describe("sanitizeClueOutput", () => {

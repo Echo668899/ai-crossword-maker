@@ -7,6 +7,7 @@ import {
   sanitizeClueOutput,
   sanitizeTopicOutput,
   TopicModelOutputSchema,
+  TopicModelWordsOnlySchema,
   type SanitizeClueResult,
   type SanitizeResult,
 } from "./schema";
@@ -39,17 +40,23 @@ function sleep(ms: number): Promise<void> {
 }
 
 function buildPrompt(req: TopicGenerateRequest): string {
+  const wordsOnly = req.entryStyle === "words_only";
   return [
-    `Create an educational English crossword word list for the topic below.`,
+    wordsOnly
+      ? `Create an educational English crossword vocabulary list (answers only, no clues) for the topic below.`
+      : `Create an educational English crossword word list for the topic below.`,
     `Topic: ${req.topic}`,
     `Target word count: ${req.wordCount}`,
     `Difficulty: ${req.difficulty}`,
     `Audience: ${req.audience}`,
+    `Output style: ${wordsOnly ? "words_only (answers only)" : "words_and_clues (answer + classroom clue)"}`,
     ``,
     `Rules:`,
     `- Answers must be single English words or short phrases using only A–Z letters once spaces/punctuation are removed.`,
     `- Prefer answers of 3–24 letters after removing spaces, hyphens, and apostrophes.`,
-    `- Clues must be classroom-safe, specific, and must not contain the answer verbatim.`,
+    wordsOnly
+      ? `- Do not invent clues, definitions, citations, URLs, or “verified” claims — return answers only.`
+      : `- Clues must be classroom-safe, specific, and must not contain the answer verbatim.`,
     `- Do not invent citations, URLs, or “verified” claims.`,
     `- Return exactly ${req.wordCount} distinct entries when possible.`,
     `- Never include grid coordinates, numbering, validation flags, prices, or ownership fields.`,
@@ -98,6 +105,9 @@ export async function generateTopicEntries(
   const model = generateModel(env);
   const retries = maxRetries(env);
   const started = Date.now();
+  const wordsOnly = req.entryStyle === "words_only";
+  const outputSchema = wordsOnly ? TopicModelWordsOnlySchema : TopicModelOutputSchema;
+  const schemaName = wordsOnly ? "topic_crossword_words_only" : "topic_crossword";
 
   let lastError: TopicProviderFailure | null = null;
 
@@ -113,13 +123,14 @@ export async function generateTopicEntries(
         input: [
           {
             role: "system",
-            content:
-              "You propose crossword answers and clues only. The host application owns grid layout, numbering, validation, billing, and IDs.",
+            content: wordsOnly
+              ? "You propose crossword answers only (no clues). The host application owns grid layout, numbering, validation, billing, and IDs."
+              : "You propose crossword answers and clues only. The host application owns grid layout, numbering, validation, billing, and IDs.",
           },
           { role: "user", content: buildPrompt(req) },
         ],
         text: {
-          format: zodTextFormat(TopicModelOutputSchema, "topic_crossword"),
+          format: zodTextFormat(outputSchema, schemaName),
         },
       });
 
@@ -170,7 +181,7 @@ export async function generateTopicEntries(
         continue;
       }
 
-      const parsed = TopicModelOutputSchema.safeParse(response.output_parsed);
+      const parsed = outputSchema.safeParse(response.output_parsed);
       if (!parsed.success) {
         lastError = {
           code: "schema_mismatch",
@@ -180,7 +191,9 @@ export async function generateTopicEntries(
         continue;
       }
 
-      const sanitized = sanitizeTopicOutput(parsed.data, req.wordCount);
+      const sanitized = sanitizeTopicOutput(parsed.data, req.wordCount, {
+        allowEmptyClues: wordsOnly,
+      });
       if (sanitized.entries.length < 5) {
         lastError = {
           code: "insufficient_entries",

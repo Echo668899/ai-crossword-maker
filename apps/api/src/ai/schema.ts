@@ -18,6 +18,22 @@ export const TopicModelOutputSchema = z.object({
 
 export type TopicModelOutput = z.infer<typeof TopicModelOutputSchema>;
 
+/** Words-only Structured Outputs — answers without classroom clues. */
+export const TopicModelWordsOnlySchema = z.object({
+  title: z.string().min(1).max(120),
+  theme_blurb: z.string().min(1).max(280),
+  entries: z
+    .array(
+      z.object({
+        answer: z.string().min(1).max(64),
+      }),
+    )
+    .min(limits.minWords)
+    .max(limits.maxWords),
+});
+
+export type TopicModelWordsOnly = z.infer<typeof TopicModelWordsOnlySchema>;
+
 export const TopicApiEntrySchema = z.object({
   answer: z.string(),
   clue: z.string(),
@@ -114,11 +130,15 @@ export function sanitizeClueOutput(
   return { clues, dropped };
 }
 
+type SanitizeRawEntry = { answer: string; clue?: string };
+
 /** Server-side business validation after Structured Outputs parse. */
 export function sanitizeTopicOutput(
-  raw: TopicModelOutput,
+  raw: { title: string; theme_blurb: string; entries: SanitizeRawEntry[] },
   wordCount: number,
+  options?: { allowEmptyClues?: boolean },
 ): SanitizeResult {
+  const allowEmptyClues = options?.allowEmptyClues ?? false;
   const seen = new Set<string>();
   const entries: SanitizedEntry[] = [];
   let dropped = 0;
@@ -128,19 +148,19 @@ export function sanitizeTopicOutput(
       .toUpperCase()
       .replace(/[^A-Z]/g, "")
       .slice(0, limits.maxAnswerLen);
-    const clue = row.clue.trim().replace(/\s+/g, " ").slice(0, 280);
+    const clue = (row.clue ?? "").trim().replace(/\s+/g, " ").slice(0, 280);
     if (
       answer.length < limits.minAnswerLen ||
       answer.length > limits.maxAnswerLen ||
       !ANSWER_RE.test(answer) ||
-      !clue ||
+      (!allowEmptyClues && !clue) ||
       seen.has(answer)
     ) {
       dropped += 1;
       continue;
     }
     seen.add(answer);
-    entries.push({ answer, clue });
+    entries.push({ answer, clue: allowEmptyClues ? "" : clue });
     if (entries.length >= wordCount) break;
   }
 

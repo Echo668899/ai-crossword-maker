@@ -21,11 +21,17 @@ export const BuildGridRequestSchema = z.object({
 
 export type BuildGridRequest = z.infer<typeof BuildGridRequestSchema>;
 
+/** AI Topic output shape — mirrors Maker Word list vs Words + clues modes. */
+export const TopicEntryStyleSchema = z.enum(["words_and_clues", "words_only"]);
+export type TopicEntryStyle = z.infer<typeof TopicEntryStyleSchema>;
+
 export const TopicGenerateRequestSchema = z.object({
   topic: z.string().min(2).max(120),
   wordCount: z.number().int().min(5).max(30).default(12),
   difficulty: z.enum(["easy", "medium", "hard"]).default("medium"),
   audience: z.enum(["general", "teachers", "esl", "kids"]).default("general"),
+  /** Default keeps historical behavior (answers + classroom clues). */
+  entryStyle: TopicEntryStyleSchema.default("words_and_clues"),
   turnstileToken: z.string().optional(),
 });
 
