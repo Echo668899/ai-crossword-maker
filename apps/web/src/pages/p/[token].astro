@@ -4,7 +4,7 @@ import PlayApp from "../../components/play/PlayApp";
 
 /**
  * Share play pages are unlisted + noindex.
- * Build emits a rewrite shell (`_`); CF Pages `_redirects` maps `/p/*` → `/p/_/` (200).
+ * Build emits a rewrite shell (`_`); Pages `_worker.js` + `_redirects` map `/p/:token/` → `/p/_/` (200).
  * `astro dev` serves any `/p/:token/` dynamically; PlayApp always reads the real pathname.
  */
 export function getStaticPaths() {

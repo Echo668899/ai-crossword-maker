@@ -3,7 +3,7 @@ import BaseLayout from "../../../layouts/BaseLayout.astro";
 import PackApp from "../../../components/packs/PackApp";
 
 /**
- * Pack detail shell. Build emits `_`; CF Pages `_redirects` maps `/app/packs/*` → `/app/packs/_/` (200).
+ * Pack detail shell. Build emits `_`; Pages `_worker.js` + `_redirects` map `/app/packs/:id/` → `/app/packs/_/` (200).
  */
 export function getStaticPaths() {
   return [{ params: { id: "_" } }];

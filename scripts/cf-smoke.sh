@@ -19,7 +19,10 @@ check() {
 
 check health curl -fsS "$BASE/api/v1/health"
 check examples_html bash -c "curl -fsS '$BASE/examples/' | grep -q 'Crossword examples'"
-check play_noindex bash -c "curl -fsSI '$BASE/p/demo-token/' | tr -d '\r' | grep -qiE 'x-robots|HTTP/'"
+# Play shell must 200 (noindex HTML) even for unknown tokens; API still 404s missing ids.
+check play_shell_200 bash -c "code=\$(curl -sS -o /tmp/acm-play-shell.html -w '%{http_code}' '$BASE/p/demo-token/'); [[ \$code == 200 ]] && grep -q 'Shared crossword' /tmp/acm-play-shell.html && grep -qi 'noindex' /tmp/acm-play-shell.html"
+check play_api_404 bash -c "code=\$(curl -sS -o /dev/null -w '%{http_code}' '$BASE/api/v1/play/demo-token'); [[ \$code == 404 ]]"
+check missing_page_404 bash -c "code=\$(curl -sS -o /dev/null -w '%{http_code}' '$BASE/this-page-does-not-exist/'); [[ \$code == 404 ]]"
 
 if [[ "$fail" -gt 0 ]]; then
   echo "SMOKE FAILED ($fail). Site may be undeployed or DNS not pointed."

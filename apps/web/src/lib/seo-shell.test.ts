@@ -76,8 +76,15 @@ describe("SEO shell hardening", () => {
 
   it("rewrites share play URLs without indexing answers in HTML shell", () => {
     const redirects = readFileSync(join(import.meta.dirname, "../../public/_redirects"), "utf8");
-    expect(redirects).toMatch(/\/p\/\*\s+\/p\/_\/index\.html\s+200/);
-    expect(redirects).toMatch(/\/app\/packs\/\*/);
+    expect(redirects).toMatch(/\/p\/:token\/\s+\/p\/_\/\s+200/);
+    expect(redirects).toMatch(/\/app\/packs\/:id/);
+    const redirectRules = redirects
+      .split("\n")
+      .filter((line) => line.trim() && !line.trim().startsWith("#"))
+      .join("\n");
+    expect(redirectRules).not.toMatch(/index\.html/);
+    const worker = readFileSync(join(import.meta.dirname, "../../public/_worker.js"), "utf8");
+    expect(worker).toContain('return "/p/_/"');
   });
 
   it("has no Chinese locale marketing routes", () => {

@@ -1,8 +1,10 @@
-# Pretty share URLs on Cloudflare Pages (200 rewrite, not a redirect).
-# PlayApp reads the real pathname; answers never ship in HTML.
-/p/*  /p/_/index.html  200
-
-# App pack detail shell (noindex). PackApp reads the real pathname.
-/app/packs/*  /app/packs/_/index.html  200
-/app/puzzles/*/edit/  /app/puzzles/_/edit/index.html  200
-/app/puzzles/*/edit  /app/puzzles/_/edit/index.html  200
+# Pretty SSG shells. Destination is the pretty URL (/p/_/), never the
+# on-disk index file — Workers HTML handling otherwise 308s and 404.html wins.
+# Pages Advanced Mode public/_worker.js also rewrites these; keep 200 proxies
+# as a fallback if the worker is absent.
+/p/:token  /p/_/  200
+/p/:token/  /p/_/  200
+/app/packs/:id  /app/packs/_/  200
+/app/packs/:id/  /app/packs/_/  200
+/app/puzzles/:id/edit/  /app/puzzles/_/edit/  200
+/app/puzzles/:id/edit  /app/puzzles/_/edit/  200

@@ -21,4 +21,4 @@
 
 ## Routing
 
-Astro owns HTML routes. API Worker owns `/api/*`. Missing pages are real 404s (`apps/web/src/pages/404.astro`). Share play `/p/[token]/` and `/admin/` are **noindex**, excluded from sitemap/robots; CF Pages `_redirects` rewrites unknown tokens to the play shell (200) while the play API returns 404 for bad tokens. Auth uses D1 sessions + magic link / optional Google OAuth. Hybrid billing (Creem primary / Stripe fallback) + admin skeleton are live in code; production keys remain env-gated.
+Astro owns HTML routes. API Worker owns `/api/*`. Missing pages are real 404s (`apps/web/src/pages/404.astro`). Share play `/p/[token]/` and `/admin/` are **noindex**, excluded from sitemap/robots; Pages Advanced Mode `_worker.js` (plus `_redirects` 200 proxy to the pretty path `/p/_/`, not `index.html`) serves the play shell while the play API returns 404 for bad tokens. Auth uses D1 sessions + magic link / optional Google OAuth. Hybrid billing (Creem primary / Stripe fallback) + admin skeleton are live in code; production keys remain env-gated. Snapshots for shares live in D1 `puzzle_versions`; R2 is pack ZIP exports only.
