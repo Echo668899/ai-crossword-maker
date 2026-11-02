@@ -2,6 +2,9 @@ name = "acm-api"
 main = "src/index.ts"
 compatibility_date = "2025-10-01"
 compatibility_flags = ["nodejs_compat"]
+# Dashboard-only vars (e.g. CREEM_PRODUCT_* / ADMIN_EMAILS if not secrets) survive wrangler deploy.
+# Prefer `wrangler secret put` for those names so they never show up in deploy logs.
+keep_vars = true
 
 # Same-origin API on the production host (zone must live in this account).
 [[routes]]
