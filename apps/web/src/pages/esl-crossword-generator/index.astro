@@ -15,7 +15,7 @@ const faqs = [
   },
   {
     q: "How do CEFR levels map to difficulty here?",
-    a: "A1–A2 presets use Easy difficulty and concrete everyday themes. B1–B2 use Medium. C1 uses Hard with denser academic themes. Difficulty guides clue style — always review AI text before class.",
+    a: "Presets pair a CEFR-themed prompt with Easy, Medium, or Hard so the AI tends toward simpler or denser vocabulary. That is a prompt hint, not a CEFR rating or syllabus guarantee — always review words and clues for your class.",
   },
   {
     q: "Can I print worksheets with an answer key?",
@@ -79,7 +79,7 @@ const site = import.meta.env.PUBLIC_SITE_URL || "https://crosswordmaker.app";
 
     <h2 class="section-title" id="cefr-levels">CEFR level presets</h2>
     <p style="max-width:60ch;margin:0 0 1rem;">
-      Each preset opens Topic mode with a level-matched theme and difficulty. Edit every clue before you print — AI text is not fact-verified.
+      Each preset opens Topic mode with a level-themed prompt and an Easy/Medium/Hard hint. Edit every clue before you print — AI text is not fact-verified or CEFR-certified.
     </p>
     <div class="cefr-grid" role="list">
       {

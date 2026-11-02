@@ -16,6 +16,16 @@ import { SAMPLE_MANUAL_ENTRIES, TEACHER_CLASSROOM_ENTRIES } from "../../lib/samp
 import { getExample } from "../../lib/examples";
 import { apiFetch } from "../../lib/api";
 import { hydrateFromSnapshot, type CloudSnapshot } from "../../lib/snapshot-hydrate";
+import {
+  STALE_GRID_MESSAGE,
+  answersDriftFromBuild,
+  formatBuildStatusLine,
+  formatSkipSummaryLine,
+  gridCheckStatus,
+  parsePaste,
+  sourceRowsForBuild,
+  summarizeSkippedEntries,
+} from "../../lib/maker-feedback";
 import TurnstileField, { turnstileConfigured } from "../security/TurnstileField";
 import { MakerGridSkeleton } from "../ui/AsyncSkeletons";
 import { GridView } from "./GridView";
@@ -156,16 +166,8 @@ function syncEntryCluesFromRows(entries: WordEntry[], rows: EntryRow[]): WordEnt
   });
 }
 
-function answersDriftFromBuild(entries: WordEntry[], rows: EntryRow[]): boolean {
-  if (!entries.length) return false;
-  const cleaned = rows.filter((r) => r.answer.trim());
-  return entries.some((entry) => {
-    const match = /^local-(\d+)$/.exec(entry.id);
-    if (!match) return false;
-    const row = cleaned[Number(match[1]) - 1];
-    if (!row) return true;
-    return normalizeAnswerLetters(row.answer) !== entry.answerNormalized;
-  });
+function buildSourceRows(state: Pick<State, "mode" | "rows" | "pasteText">): EntryRow[] {
+  return sourceRowsForBuild(state.mode, state.rows, state.pasteText);
 }
 
 type Action =
@@ -244,23 +246,6 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-function parsePaste(text: string): EntryRow[] {
-  return text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      if (line.includes("|")) {
-        const [answer, ...rest] = line.split("|");
-        return { answer: (answer ?? "").trim(), clue: rest.join("|").trim() };
-      }
-      if (line.includes("\t")) {
-        const [answer, ...rest] = line.split("\t");
-        return { answer: (answer ?? "").trim(), clue: rest.join("\t").trim() };
-      }
-      return { answer: line, clue: "" };
-    });
-}
 
 function downloadBlob(filename: string, data: Uint8Array | Blob, mime: string) {
   const blob =
@@ -629,10 +614,10 @@ export default function MakerApp({
     try {
       const seed = seedOverride ?? state.seed;
       dispatch({ type: "setStatus", statusMessage: "Building grid…" });
-      const sourceRows =
-        state.mode === "paste" && state.pasteText.trim() ? parsePaste(state.pasteText) : state.rows;
+      const sourceRows = buildSourceRows(state);
+      const skip = summarizeSkippedEntries(sourceRows);
       const cleaned = sourceRows.filter((r) => r.answer.trim());
-      const { entries, issues } = normalizeEntries(
+      const { entries } = normalizeEntries(
         cleaned.map((r, i) => ({
           id: `local-${i + 1}`,
           answerRaw: r.answer,
@@ -641,10 +626,11 @@ export default function MakerApp({
           reviewState: "reviewed_by_user" as const,
         })),
       );
+      const skipLine = formatSkipSummaryLine(skip, true);
       if (entries.length < 2) {
         dispatch({
           type: "setStatus",
-          statusMessage: `Need at least 2 valid A–Z answers (3–24 letters). Got ${cleaned.length} rows, ${entries.length} valid. Issues: ${issues.map((i) => i.code).join(", ") || "none"}`,
+          statusMessage: `Need at least 2 valid A–Z answers (3–24 letters). Got ${cleaned.length} rows, ${entries.length} valid.${skipLine ? ` ${skipLine}` : ""}`,
         });
         return;
       }
@@ -657,14 +643,15 @@ export default function MakerApp({
       });
       result = numberBuildResult(result);
       const report = validateBuildResult(result, entries);
-      const msg = [
-        `Placed ${result.placedEntryIds.length}/${entries.length} (${result.status}).`,
-        report.ok ? "Grid checks passed." : `Validator: ${report.errors[0]?.message ?? "issues found"}.`,
-        leaks.length ? `Clue leak warning on ${leaks.length} entr${leaks.length === 1 ? "y" : "ies"}.` : "",
-        issues.length ? `Normalize notes: ${issues.length}.` : "",
-      ]
-        .filter(Boolean)
-        .join(" ");
+      const msg = formatBuildStatusLine({
+        placed: result.placedEntryIds.length,
+        total: entries.length,
+        status: result.status,
+        validationOk: report.ok,
+        validationMessage: report.errors[0]?.message,
+        leaks: leaks.length,
+        skipLine,
+      });
       dispatch({ type: "setBuild", result, entries, statusMessage: msg });
       setMobileTab("grid");
     } catch (err) {
@@ -693,14 +680,33 @@ export default function MakerApp({
     dispatch({ type: "selectEntry", id });
   }
 
-  async function exportPdf(kind: "student" | "answers") {
-    if (!state.result || !state.entries.length) return;
-    if (answersDriftFromBuild(state.entries, state.rows)) {
+  function requireFreshGrid(verb: string): boolean {
+    if (!state.result || !state.entries.length) return false;
+    if (answersDriftFromBuild(state.entries, buildSourceRows(state))) {
       dispatch({
         type: "setStatus",
-        statusMessage: "Answers changed since the last build — click Build grid before exporting PDF.",
+        statusMessage: `Answers changed since the last build — click Build grid before ${verb}.`,
       });
-      return;
+      return false;
+    }
+    return true;
+  }
+
+  async function exportPdf(kind: "student" | "answers") {
+    if (!requireFreshGrid("exporting PDF")) return;
+    const result = state.result;
+    if (!result) return;
+    const placed = result.placedEntryIds.length;
+    const total = state.entries.length;
+    if (kind === "student" && total > 0 && placed < total) {
+      const unplaced = result.unplacedEntryIds
+        .map((id) => state.entries.find((e) => e.id === id)?.answerNormalized)
+        .filter(Boolean)
+        .join(", ");
+      dispatch({
+        type: "setStatus",
+        statusMessage: `Only ${placed} of ${total} words are on the grid${unplaced ? ` (unplaced: ${unplaced})` : ""}. Exporting a draft — rebuild or shorten the list for a complete handout.`,
+      });
     }
     if (validation && !validation.ok && kind === "student") {
       dispatch({
@@ -713,7 +719,7 @@ export default function MakerApp({
       const bytes =
         kind === "student"
           ? await buildStudentPdf({
-              result: state.result,
+              result,
               entries: state.entries,
               settings: {
                 title: state.title,
@@ -723,7 +729,7 @@ export default function MakerApp({
               },
             })
           : await buildAnswerKeyPdf({
-              result: state.result,
+              result,
               entries: state.entries,
               settings: {
                 title: `${state.title} — Answer Key`,
@@ -745,6 +751,7 @@ export default function MakerApp({
   }
 
   function exportSvg(showAnswers: boolean) {
+    if (!requireFreshGrid("exporting SVG")) return;
     if (!state.result) return;
     const svg = puzzleToSvg(state.result, { showAnswers, cellSize: 28 });
     downloadBlob(
@@ -760,7 +767,9 @@ export default function MakerApp({
   }
 
   async function createShareLink() {
-    if (!state.result || !state.entries.length) return;
+    if (!requireFreshGrid("creating a share link")) return;
+    const result = state.result;
+    if (!result) return;
     setShareBusy(true);
     setShareUrl(null);
     try {
@@ -774,15 +783,15 @@ export default function MakerApp({
         window.location.href = "/login/";
         return;
       }
-      const placed = new Set(state.result.placedEntryIds);
+      const placed = new Set(result.placedEntryIds);
       const snapshot = {
         title: state.title,
-        seed: state.result.seed,
-        engineVersion: state.result.engineVersion,
+        seed: result.seed,
+        engineVersion: result.engineVersion,
         reviewState: "needs_review",
-        size: state.result.size,
-        grid: cellsToAscii(state.result.cells),
-        placements: state.result.placements,
+        size: result.size,
+        grid: cellsToAscii(result.cells),
+        placements: result.placements,
         entries: state.entries
           .filter((e) => placed.has(e.id))
           .map((e) => ({
@@ -837,7 +846,9 @@ export default function MakerApp({
   }
 
   async function createActivityPack() {
-    if (!state.result || !state.entries.length) return;
+    if (!requireFreshGrid("creating an Activity Pack")) return;
+    const result = state.result;
+    if (!result) return;
     setPackBusy(true);
     setPackUrl(null);
     try {
@@ -851,7 +862,7 @@ export default function MakerApp({
         window.location.href = "/login/";
         return;
       }
-      const placed = new Set(state.result.placedEntryIds);
+      const placed = new Set(result.placedEntryIds);
       const entries = state.entries
         .filter((e) => placed.has(e.id))
         .map((e) => ({
@@ -871,7 +882,7 @@ export default function MakerApp({
         method: "POST",
         body: JSON.stringify({
           title: state.title || "Classroom pack",
-          baseSeed: state.result.seed,
+          baseSeed: result.seed,
           entries,
           reviewState: "needs_review",
         }),
@@ -900,8 +911,9 @@ export default function MakerApp({
   function buildFromRows(rows: EntryRow[], titleHint?: string) {
     try {
       dispatch({ type: "setStatus", statusMessage: "Building grid…" });
+      const skip = summarizeSkippedEntries(rows);
       const cleaned = rows.filter((r) => r.answer.trim());
-      const { entries, issues } = normalizeEntries(
+      const { entries } = normalizeEntries(
         cleaned.map((r, i) => ({
           id: `local-${i + 1}`,
           answerRaw: r.answer,
@@ -910,10 +922,11 @@ export default function MakerApp({
           reviewState: "needs_review" as const,
         })),
       );
+      const skipLine = formatSkipSummaryLine(skip, true);
       if (entries.length < 2) {
         dispatch({
           type: "setStatus",
-          statusMessage: `Need at least 2 valid A–Z answers. Got ${entries.length} valid.`,
+          statusMessage: `Need at least 2 valid A–Z answers. Got ${entries.length} valid.${skipLine ? ` ${skipLine}` : ""}`,
         });
         return;
       }
@@ -926,11 +939,17 @@ export default function MakerApp({
       result = numberBuildResult(result);
       const report = validateBuildResult(result, entries);
       const msg = [
-        titleHint ? `${titleHint} ` : "",
-        `Placed ${result.placedEntryIds.length}/${entries.length} (${result.status}).`,
-        report.ok ? "Grid checks passed." : `Validator: ${report.errors[0]?.message ?? "issues found"}.`,
+        formatBuildStatusLine({
+          placed: result.placedEntryIds.length,
+          total: entries.length,
+          status: result.status,
+          validationOk: report.ok,
+          validationMessage: report.errors[0]?.message,
+          leaks: 0,
+          skipLine,
+          titleHint,
+        }),
         "Clues need review before you treat them as final.",
-        issues.length ? `Normalize notes: ${issues.length}.` : "",
       ]
         .filter(Boolean)
         .join(" ");
@@ -1007,6 +1026,7 @@ export default function MakerApp({
   }
 
   async function saveToCloud() {
+    if (!requireFreshGrid("saving to cloud")) return;
     const snapshot = currentSnapshot();
     if (!snapshot) return;
     setCloudBusy(true);
@@ -1434,7 +1454,10 @@ export default function MakerApp({
   const across = state.result?.placements.filter((p) => p.direction === "across") ?? [];
   const down = state.result?.placements.filter((p) => p.direction === "down") ?? [];
   const entryMap = new Map(state.entries.map((e) => [e.id, e]));
-  const previewStale = Boolean(state.result && answersDriftFromBuild(state.entries, state.rows));
+  const buildSource = buildSourceRows(state);
+  const previewStale = Boolean(state.result && answersDriftFromBuild(state.entries, buildSource));
+  const skipSummary = summarizeSkippedEntries(buildSource);
+  const skipSummaryLine = formatSkipSummaryLine(skipSummary, Boolean(state.result) && !previewStale);
   const selectedRowIndex = rowIndexForEntryId(state.rows, state.selectedEntryId);
   const emptyClueCount = state.rows.filter((r) => r.answer.trim() && !r.clue.trim()).length;
   const cluesUnlimited = Boolean(quota?.unlimited || quota?.isPro);
@@ -1456,6 +1479,15 @@ export default function MakerApp({
   })();
   const placedCount = state.result?.placedEntryIds.length ?? 0;
   const totalForResult = state.result ? state.entries.length : 0;
+  const headerGridStatus = gridCheckStatus({
+    validationOk: validation?.ok,
+    placed: placedCount,
+    total: totalForResult,
+  });
+  const unplacedNames = (state.result?.unplacedEntryIds ?? [])
+    .map((id) => entryMap.get(id)?.answerNormalized)
+    .filter(Boolean);
+  const outputsLocked = !state.result || previewStale;
 
   return (
     <section
@@ -1487,8 +1519,12 @@ export default function MakerApp({
           </p>
         </div>
         <div style={{ display: "flex", gap: "0.5rem", alignItems: "center", flexWrap: "wrap" }}>
-          {validation?.ok ? <StatusPill label="Grid checks passed" tone="ok" /> : null}
-          {validation && !validation.ok ? <StatusPill label="Clues / grid need review" tone="warn" /> : null}
+          {headerGridStatus ? (
+            <StatusPill label={headerGridStatus.label} tone={headerGridStatus.tone} />
+          ) : null}
+          {validation && !validation.ok && headerGridStatus?.label !== "Clues / grid need review" ? (
+            <StatusPill label="Clues / grid need review" tone="warn" />
+          ) : null}
           {quota?.unlimited || quota?.isPro ? (
             <StatusPill label="Pro · unlimited clues" tone="ok" />
           ) : quota && typeof quota.remaining === "number" && typeof quota.limit === "number" ? (
@@ -1684,6 +1720,9 @@ export default function MakerApp({
                     <option value="medium">Medium</option>
                     <option value="hard">Hard</option>
                   </select>
+                  <span className="muted" style={{ fontSize: "0.78rem", fontWeight: 500 }}>
+                    Prompt hint only — not a CEFR or grade-level guarantee.
+                  </span>
                 </label>
                 <label style={{ display: "grid", gap: "0.35rem" }}>
                   <span style={{ fontWeight: 650 }}>AI output</span>
@@ -1842,6 +1881,19 @@ export default function MakerApp({
                 />
               </label>
               <Button onClick={applyPaste}>Parse into editor</Button>
+              {skipSummary.skipped.length ? (
+                <p
+                  role="status"
+                  style={{
+                    margin: 0,
+                    fontSize: "0.88rem",
+                    color: "var(--color-warn)",
+                    fontWeight: 650,
+                  }}
+                >
+                  {skipSummaryLine}
+                </p>
+              ) : null}
               <p className="muted" style={{ margin: 0, fontSize: "0.88rem" }}>
                 Supports one answer per line, tab-separated columns, or <code>ANSWER | clue</code>. PDF import
                 confirmation lands in a later API pass — paste extracted text here for now.
@@ -1993,9 +2045,40 @@ export default function MakerApp({
                     margin: "0 0 0.55rem",
                     fontSize: "0.88rem",
                     color: "var(--color-warn)",
+                    fontWeight: 650,
                   }}
                 >
-                  Answers changed since the last build — click Build grid to refresh the preview and PDF.
+                  {STALE_GRID_MESSAGE}
+                </p>
+              ) : null}
+              {skipSummary.skipped.length ? (
+                <div
+                  role="status"
+                  style={{
+                    margin: "0 0 0.55rem",
+                    padding: "0.65rem 0.75rem",
+                    borderRadius: 8,
+                    border: "1px solid #e6d4a8",
+                    background: "#fff8e8",
+                    color: "var(--color-warn)",
+                    fontSize: "0.88rem",
+                  }}
+                >
+                  <strong style={{ display: "block", marginBottom: "0.25rem" }}>
+                    {skipSummary.usedCount} of {skipSummary.inputCount} words{" "}
+                    {state.result && !previewStale ? "used" : "valid"} — {skipSummary.skipped.length} skipped
+                  </strong>
+                  <ul style={{ margin: 0, paddingLeft: "1.15rem" }}>
+                    {skipSummary.skipped.map((note) => (
+                      <li key={`${note.entryId}-${note.rowIndex}`}>
+                        <strong>{note.answerRaw.trim() || "(blank)"}</strong> — {note.reason}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : skipSummary.inputCount > 0 && skipSummaryLine ? (
+                <p className="muted" style={{ margin: "0 0 0.55rem", fontSize: "0.85rem" }}>
+                  {skipSummaryLine}
                 </p>
               ) : null}
               {state.mode === "topic" && state.rows.length === 0 ? (
@@ -2049,7 +2132,8 @@ export default function MakerApp({
               >
                 {state.rows.map((row, index) => {
                   const normalized = normalizeAnswerLetters(row.answer);
-                  const isDup = normalized.length >= 3 && duplicateAnswers.includes(normalized);
+                  const skipNote = skipSummary.byRowIndex.get(index);
+                  const isDup = skipNote?.code === "duplicate" || (normalized.length >= 3 && duplicateAnswers.includes(normalized));
                   const needsClue = Boolean(row.answer.trim() && !row.clue.trim());
                   const canAiClue = normalized.length >= 3;
                   const rowAiBusy = clueAiBusyIndex === index;
@@ -2074,16 +2158,28 @@ export default function MakerApp({
                       }}
                       style={{
                         display: "grid",
+                        gap: "0.2rem",
+                        padding: "0.2rem",
+                        borderRadius: "var(--radius-sm)",
+                        border: skipNote
+                          ? "1px solid #e8b4b4"
+                          : selected
+                            ? "1px solid var(--color-primary)"
+                            : "1px solid transparent",
+                        background: skipNote
+                          ? "#fff5f5"
+                          : selected
+                            ? "rgba(47,92,143,0.1)"
+                            : "transparent",
+                        cursor: "pointer",
+                      }}
+                    >
+                    <div
+                      style={{
+                        display: "grid",
                         gridTemplateColumns: "0.85fr 1.15fr auto auto",
                         gap: "0.35rem",
                         alignItems: "center",
-                        padding: "0.2rem",
-                        borderRadius: "var(--radius-sm)",
-                        border: selected
-                          ? "1px solid var(--color-primary)"
-                          : "1px solid transparent",
-                        background: selected ? "rgba(47,92,143,0.1)" : "transparent",
-                        cursor: "pointer",
                       }}
                     >
                       <input
@@ -2100,12 +2196,14 @@ export default function MakerApp({
                         placeholder="ANSWER"
                         style={{
                           ...inputStyle,
-                          borderColor: isDup
-                            ? "var(--color-warn)"
-                            : selected
-                              ? "var(--color-primary)"
-                              : undefined,
-                          background: isDup ? "#fff8e8" : undefined,
+                          borderColor: skipNote
+                            ? "var(--color-danger)"
+                            : isDup
+                              ? "var(--color-warn)"
+                              : selected
+                                ? "var(--color-primary)"
+                                : undefined,
+                          background: skipNote ? "#fff5f5" : isDup ? "#fff8e8" : undefined,
                         }}
                       />
                       <input
@@ -2164,6 +2262,21 @@ export default function MakerApp({
                       >
                         ×
                       </Button>
+                    </div>
+                    {skipNote ? (
+                      <p
+                        role="status"
+                        style={{
+                          margin: 0,
+                          fontSize: "0.78rem",
+                          fontWeight: 650,
+                          color: "var(--color-danger)",
+                          padding: "0 0.15rem 0.1rem",
+                        }}
+                      >
+                        Skipped: {skipNote.reason}
+                      </p>
+                    ) : null}
                     </div>
                   );
                 })}
@@ -2268,12 +2381,38 @@ export default function MakerApp({
           data-active={mobileTab === "grid" || mobileTab === "export"}
           style={{ padding: "1rem 1.1rem", background: "rgba(245,247,250,0.65)" }}
         >
+          {previewStale ? (
+            <div
+              role="status"
+              style={{
+                margin: "0 0 0.75rem",
+                padding: "0.65rem 0.75rem",
+                borderRadius: 8,
+                border: "1px solid #e6d4a8",
+                background: "#fff8e8",
+                color: "var(--color-warn)",
+                fontSize: "0.9rem",
+                fontWeight: 650,
+                display: "grid",
+                gap: "0.45rem",
+              }}
+            >
+              <span>Rebuild needed — {STALE_GRID_MESSAGE}</span>
+              <span>
+                <Button onClick={() => runBuild()}>Rebuild grid</Button>
+              </span>
+            </div>
+          ) : null}
           <div style={{ display: "flex", justifyContent: "space-between", gap: "0.75rem", flexWrap: "wrap" }}>
             <div style={{ display: "flex", gap: "0.45rem", alignItems: "center", flexWrap: "wrap" }}>
               <strong>Grid & print preview</strong>
               {state.result ? (
                 <StatusPill
-                  label={`Placed ${placedCount}/${totalForResult}`}
+                  label={
+                    placedCount === totalForResult && totalForResult > 0
+                      ? `Placed ${placedCount}/${totalForResult}`
+                      : `${placedCount} of ${totalForResult} placed`
+                  }
                   tone={
                     placedCount === totalForResult && totalForResult > 0
                       ? "ok"
@@ -2302,37 +2441,48 @@ export default function MakerApp({
               </label>
               <Button
                 variant="secondary"
-                disabled={!state.result || previewStale}
+                disabled={outputsLocked}
+                title={previewStale ? STALE_GRID_MESSAGE : undefined}
                 onClick={() => void exportPdf("student")}
-              >                Export PDF
+              >
+                Export PDF
               </Button>
               <Button
                 variant="secondary"
-                disabled={!state.result || previewStale}
+                disabled={outputsLocked}
+                title={previewStale ? STALE_GRID_MESSAGE : undefined}
                 onClick={() => void exportPdf("answers")}
               >
                 Answer key PDF
               </Button>
-              <Button variant="ghost" disabled={!state.result} onClick={() => exportSvg(false)}>
+              <Button
+                variant="ghost"
+                disabled={outputsLocked}
+                title={previewStale ? STALE_GRID_MESSAGE : undefined}
+                onClick={() => exportSvg(false)}
+              >
                 SVG
               </Button>
               <Button
                 variant="secondary"
-                disabled={!state.result || shareBusy}
+                disabled={outputsLocked || shareBusy}
+                title={previewStale ? STALE_GRID_MESSAGE : undefined}
                 onClick={() => void createShareLink()}
               >
                 {shareBusy ? "Sharing…" : "Share play link"}
               </Button>
               <Button
                 variant="secondary"
-                disabled={!state.result || packBusy}
+                disabled={outputsLocked || packBusy}
+                title={previewStale ? STALE_GRID_MESSAGE : undefined}
                 onClick={() => void createActivityPack()}
               >
                 {packBusy ? "Creating pack…" : "Activity pack (A/B/C)"}
               </Button>
               <Button
                 variant="secondary"
-                disabled={!state.result || cloudBusy}
+                disabled={outputsLocked || cloudBusy}
+                title={previewStale ? STALE_GRID_MESSAGE : undefined}
                 onClick={() => void saveToCloud()}
               >
                 {cloudBusy
@@ -2506,15 +2656,26 @@ export default function MakerApp({
             </ContentEnter>
           ) : null}
 
-          {state.result?.unplacedEntryIds.length ? (
-            <p className="muted" style={{ marginTop: "0.85rem", fontSize: "0.9rem" }}>
-              Unplaced:{" "}
-              {state.result.unplacedEntryIds
-                .map((id) => entryMap.get(id)?.answerNormalized)
-                .filter(Boolean)
-                .join(", ")}
-              . Expand grid size, edit the list, or accept this subset as a new version later.
-            </p>
+          {unplacedNames.length ? (
+            <div
+              role="status"
+              style={{
+                marginTop: "0.85rem",
+                padding: "0.65rem 0.75rem",
+                borderRadius: 8,
+                border: "1px solid #e6d4a8",
+                background: "#fff8e8",
+                color: "var(--color-warn)",
+                fontSize: "0.9rem",
+              }}
+            >
+              <strong>
+                {placedCount} of {totalForResult} placed
+              </strong>
+              {" — "}
+              unplaced: {unplacedNames.join(", ")}. Student PDF will omit these words. Edit the list
+              or shuffle layout, then rebuild.
+            </div>
           ) : null}
         </div>
       </div>
