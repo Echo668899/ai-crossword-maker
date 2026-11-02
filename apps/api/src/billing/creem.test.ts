@@ -5,6 +5,7 @@ import {
   createCreemProvider,
   creemDiagnostics,
   creemKeyMode,
+  creemUserMessageForStatus,
   extractCreemCheckout,
   normalizeCreemProductId,
   parseCreemErrorPayload,
@@ -77,6 +78,14 @@ describe("normalizeCreemEvent", () => {
 });
 
 describe("creem key / product helpers", () => {
+  it("403 copy depends on key mode", () => {
+    const live = creemUserMessageForStatus(403, [], "live");
+    expect(live.userMessage).toMatch(/Checkouts: Write/);
+    expect(live.userMessage).not.toMatch(/creem_test_ key cannot charge live/);
+    const test = creemUserMessageForStatus(403, [], "test");
+    expect(test.userMessage).toMatch(/creem_test_/);
+  });
+
   it("classifies test vs live key prefixes", () => {
     expect(creemKeyMode("creem_test_abc")).toBe("test");
     expect(creemKeyMode("creem_liveish")).toBe("live");
@@ -202,6 +211,9 @@ describe("createCheckout", () => {
       expect(err).toBeInstanceOf(CreemCheckoutError);
       const e = err as CreemCheckoutError;
       expect(e.reason).toBe("creem_forbidden");
+      expect(e.userMessage).toMatch(/Creem HTTP 403/);
+      expect(e.userMessage).toMatch(/Checkouts: Write/);
+      expect(e.userMessage).not.toMatch(/creem_test_/);
       expect(e.userMessage).not.toMatch(/creem_abc/);
     }
   });

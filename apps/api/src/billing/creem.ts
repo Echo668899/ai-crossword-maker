@@ -9,7 +9,7 @@ import { isCheckoutSku } from "./types";
 import { timingSafeEqualHex } from "./stripe";
 
 export function creemConfigured(env: ApiEnv): boolean {
-  return Boolean(env.CREEM_API_KEY?.trim());
+  return Boolean(normalizeCreemApiKey(env.CREEM_API_KEY));
 }
 
 export function creemProductsMapped(env: ApiEnv): boolean {
@@ -27,9 +27,21 @@ export type CreemApiBaseMode = "test" | "live";
 
 const PRODUCT_ID_RE = /prod_[A-Za-z0-9]+/;
 
+/** Strip wrapping quotes; never log the value. */
+export function normalizeCreemApiKey(raw: string | undefined): string {
+  let key = raw?.trim() ?? "";
+  if (
+    ((key.startsWith('"') && key.endsWith('"')) || (key.startsWith("'") && key.endsWith("'"))) &&
+    key.length > 1
+  ) {
+    key = key.slice(1, -1).trim();
+  }
+  return key;
+}
+
 /** Creem test keys are `creem_test_…`; live keys are `creem_…` (not test). */
 export function creemKeyMode(apiKey: string | undefined): CreemKeyMode {
-  const key = apiKey?.trim() ?? "";
+  const key = normalizeCreemApiKey(apiKey);
   if (!key) return "unknown";
   if (key.startsWith("creem_test_")) return "test";
   if (key.startsWith("creem_")) return "live";
@@ -178,16 +190,29 @@ export function extractCreemCheckout(json: Record<string, unknown>): {
   return { url, id };
 }
 
-function creemUserMessageForStatus(
+function safeCreemHint(messages: string[]): string {
+  const hint = messages
+    .filter((m) => m.length < 160 && !/creem_|whsec|sk_|prod_/i.test(m))
+    .join("; ");
+  return hint ? ` Creem said: ${hint}.` : "";
+}
+
+export function creemUserMessageForStatus(
   status: number,
   messages: string[],
+  keyMode: CreemKeyMode,
 ): { reason: string; userMessage: string } {
   const joined = messages.join(" ").toLowerCase();
   if (status === 403 || status === 401) {
+    const liveHint =
+      "Recreate a Live API key with Test Mode OFF, grant Checkouts: Write (add Products: Read if it still fails), then wrangler secret put CREEM_API_KEY on Worker acm-api (encrypted secret, not a Dashboard plaintext var). Do not paste the webhook signing secret.";
+    const userMessage =
+      keyMode === "test"
+        ? `Creem HTTP ${status}: a creem_test_ key cannot charge live. Turn Test Mode OFF, copy a Live key (creem_…), secret-put CREEM_API_KEY.`
+        : `Creem HTTP ${status}: live API key rejected (invalid, revoked, or missing Checkouts: Write). ${liveHint}`;
     return {
       reason: "creem_forbidden",
-      userMessage:
-        "Creem rejected the API key. Use a live key (not creem_test_) with live products, grant Checkouts: Write, and keep CREEM_API_BASE on https://api.creem.io.",
+      userMessage: userMessage + safeCreemHint(messages),
     };
   }
   if (
@@ -409,7 +434,7 @@ export function createCreemProvider(env: ApiEnv): PaymentProvider {
           logMessage: "CREEM_PRODUCT_NOT_MAPPED",
         });
       }
-      const key = env.CREEM_API_KEY?.trim();
+      const key = normalizeCreemApiKey(env.CREEM_API_KEY);
       if (!key) {
         throw new CreemCheckoutError({
           reason: "creem_not_configured",
@@ -467,7 +492,11 @@ export function createCreemProvider(env: ApiEnv): PaymentProvider {
 
       if (!res.ok) {
         const parsed = parseCreemErrorPayload(json);
-        const mapped = creemUserMessageForStatus(res.status, parsed.messages);
+        const mapped = creemUserMessageForStatus(
+          res.status,
+          parsed.messages,
+          creemKeyMode(key),
+        );
         throw new CreemCheckoutError({
           reason: mapped.reason,
           userMessage: mapped.userMessage,

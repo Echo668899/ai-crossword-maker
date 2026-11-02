@@ -159,6 +159,8 @@ pnpm --filter @acm/api exec wrangler deploy
    **Test vs live (most common checkout 502):** Creem Test Mode (sidebar toggle) uses a **different catalog and key** (`creem_test_…` + `https://test-api.creem.io`) than Live (`creem_…` + `https://api.creem.io`). Product IDs are not interchangeable. crosswordmaker.app is configured for **live**. For real charges: turn Test Mode **off**, copy the live API key + five live `prod_…` ids, `wrangler secret put` each name on Worker `acm-api`. The API auto-routes a `creem_test_…` key to the test host so a mismatched `CREEM_API_BASE` no longer 403s, but test product IDs still 404 against a live key (and vice versa).
 
 4. Developers → API Keys → put the key in `CREEM_API_KEY`. Grant at least **Checkouts: Write**. Do not paste the webhook signing secret into `CREEM_API_KEY`.
+
+   If Pay toasts **Creem HTTP 401/403** while `/api/v1/billing/status` already shows `keyMode=live` + `productIdFormatOk=true`: the Worker **is** calling live `api.creem.io` with a `creem_…` key. Creem still rejected it (`403` = invalid/revoked key **or** missing `checkouts:write`; `401` = key missing on the request). Recreate a **Live** key (Test Mode **OFF**), enable **Checkouts: Write** (then **Products: Read** if it still 403s), `wrangler secret put CREEM_API_KEY` on Worker `acm-api` (encrypted secret, not a Dashboard plaintext var). Prefer a new key if the old one was rotated. `CREEM_API_BASE` is already `https://api.creem.io` — do not change it. Product IDs need no change unless the next error is 404.
 5. Developers → Webhooks → endpoint:
 
    `https://crosswordmaker.app/api/v1/billing/webhooks/creem`
