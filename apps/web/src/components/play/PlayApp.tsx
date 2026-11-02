@@ -1,8 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Button, ContentEnter } from "@acm/ui";
 import { PlayPageSkeleton } from "../ui/AsyncSkeletons";
 import { apiFetch } from "../../lib/api";
-import { playCellPx, playLetterFontPx, playNumberFontPx } from "../../lib/play-grid";
+import {
+  PLAY_ZOOM_MAX,
+  PLAY_ZOOM_MIN,
+  clampPlayZoom,
+  playCellPx,
+  playLetterFontPx,
+  playNumberFontPx,
+  stepPlayZoom,
+} from "../../lib/play-grid";
 
 type PlayCell = { row: number; col: number; isBlock: boolean; number?: number };
 type PlayClue = {
@@ -89,14 +97,10 @@ export default function PlayApp({
   const [direction, setDirection] = useState<"across" | "down">("across");
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [viewportWidth, setViewportWidth] = useState(1280);
-
-  useEffect(() => {
-    const read = () => setViewportWidth(window.innerWidth);
-    read();
-    window.addEventListener("resize", read);
-    return () => window.removeEventListener("resize", read);
-  }, []);
+  const [availableWidth, setAvailableWidth] = useState(1120);
+  const [zoom, setZoom] = useState(PLAY_ZOOM_MIN);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const pinchRef = useRef<{ startDist: number; startZoom: number } | null>(null);
 
   useEffect(() => {
     if (localDemo) {
@@ -161,6 +165,35 @@ export default function PlayApp({
     }, 250);
     return () => window.clearTimeout(handle);
   }, [letters, token]);
+
+  useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const apply = () => {
+      const w = el.clientWidth;
+      if (w > 0) setAvailableWidth(w);
+    };
+    apply();
+    const ro = new ResizeObserver(apply);
+    ro.observe(el);
+
+    const onPinchMove = (e: TouchEvent) => {
+      const pinch = pinchRef.current;
+      if (!pinch || e.touches.length !== 2 || pinch.startDist < 1) return;
+      e.preventDefault();
+      const a = e.touches[0];
+      const b = e.touches[1];
+      if (!a || !b) return;
+      const dist = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+      setZoom(clampPlayZoom(pinch.startZoom * (dist / pinch.startDist)));
+    };
+    el.addEventListener("touchmove", onPinchMove, { passive: false });
+
+    return () => {
+      ro.disconnect();
+      el.removeEventListener("touchmove", onPinchMove);
+    };
+  }, [payload]);
 
   const fillableCount = useMemo(
     () => (payload ? countFillable(payload.cells) : 0),
@@ -375,6 +408,31 @@ export default function PlayApp({
     }
   }
 
+  function touchDistance(e: React.TouchEvent) {
+    const a = e.touches[0];
+    const b = e.touches[1];
+    if (!a || !b) return 0;
+    return Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+  }
+
+  function onGridTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    if (e.touches.length === 2) {
+      pinchRef.current = { startDist: touchDistance(e), startZoom: zoom };
+    }
+  }
+
+  function onGridTouchEnd(e: React.TouchEvent<HTMLDivElement>) {
+    if (e.touches.length < 2) pinchRef.current = null;
+  }
+
+  function enlargeGrid() {
+    setZoom((z) => stepPlayZoom(z, 1));
+  }
+
+  function fitGrid() {
+    setZoom(PLAY_ZOOM_MIN);
+  }
+
   if (error && !payload) {
     return (
       <section className="container section" style={{ paddingTop: "1.5rem" }}>
@@ -391,9 +449,12 @@ export default function PlayApp({
     return <PlayPageSkeleton />;
   }
 
-  const cellPx = playCellPx(payload.size.rows, payload.size.cols, viewportWidth);
+  const cellPx = playCellPx(payload.size.rows, payload.size.cols, availableWidth, zoom);
   const letterPx = playLetterFontPx(cellPx);
   const numberPx = playNumberFontPx(cellPx);
+  const zoomPercent = Math.round(zoom * 100);
+  const canEnlarge = zoom < PLAY_ZOOM_MAX - 1e-6;
+  const canFit = zoom > PLAY_ZOOM_MIN + 1e-6;
   const across = payload.clues.filter((c) => c.direction === "across");
   const down = payload.clues.filter((c) => c.direction === "down");
   const modeLabel = isLocal ? "Sample play · not indexed" : "Shared play · not indexed";
@@ -465,71 +526,111 @@ export default function PlayApp({
       ) : null}
 
       <div className="play-layout">
-        <div
-          role="grid"
-          aria-label="Crossword puzzle"
-          tabIndex={0}
-          onKeyDown={onKey}
-          className="play-grid"
-          style={{
-            gridTemplateColumns: `repeat(${payload.size.cols}, ${cellPx}px)`,
-            gridTemplateRows: `repeat(${payload.size.rows}, ${cellPx}px)`,
-          }}
-        >
-          {payload.cells.map((row, r) =>
-            row.map((cell, c) => {
-              if (cell.isBlock) {
-                return <div key={keyOf(r, c)} role="gridcell" className="play-cell play-cell--block" />;
-              }
-              const k = keyOf(r, c);
-              const selected = active?.row === r && active?.col === c;
-              const inClue =
-                activeClue &&
-                ((activeClue.direction === "across" &&
-                  r === activeClue.row &&
-                  c >= activeClue.col &&
-                  c < activeClue.col + activeClue.length) ||
-                  (activeClue.direction === "down" &&
-                    c === activeClue.col &&
-                    r >= activeClue.row &&
-                    r < activeClue.row + activeClue.length));
-              const mark = marks[k];
-              const stateClass = selected
-                ? "is-selected"
-                : inClue
-                  ? "is-in-clue"
-                  : mark === false
-                    ? "is-wrong"
-                    : mark === true
-                      ? "is-right"
-                      : "";
-              return (
-                <button
-                  key={k}
-                  type="button"
-                  role="gridcell"
-                  className={`play-cell ${stateClass}`.trim()}
-                  aria-selected={selected}
-                  aria-label={`Row ${r + 1} column ${c + 1}${cell.number ? `, clue ${cell.number}` : ""}`}
-                  onClick={() => {
-                    if (selected) {
-                      setDirection((d) => (d === "across" ? "down" : "across"));
-                    } else {
-                      setActive({ row: r, col: c });
+        <div className="play-board">
+          <div className="play-grid-toolbar">
+            <p className="muted play-zoom-status">
+              Grid {zoomPercent}%{canFit ? " · pan to move" : ""}
+            </p>
+            <div className="play-zoom-actions">
+              <Button
+                variant="secondary"
+                className="play-zoom-btn"
+                onClick={enlargeGrid}
+                aria-label={
+                  canEnlarge
+                    ? `Enlarge grid to ${Math.round(stepPlayZoom(zoom, 1) * 100)} percent`
+                    : "Grid at maximum zoom, tap Fit to reset"
+                }
+              >
+                Enlarge
+              </Button>
+              {canFit ? (
+                <Button variant="ghost" onClick={fitGrid} aria-label="Fit grid to screen">
+                  Fit
+                </Button>
+              ) : null}
+            </div>
+          </div>
+          <div
+            className="play-grid-scroller"
+            ref={scrollerRef}
+            onTouchStart={onGridTouchStart}
+            onTouchEnd={onGridTouchEnd}
+            onTouchCancel={onGridTouchEnd}
+          >
+            <div
+              className="play-grid-zoom"
+              style={{ width: `${zoom * 100}%` }}
+            >
+              <div
+                role="grid"
+                aria-label="Crossword puzzle"
+                tabIndex={0}
+                onKeyDown={onKey}
+                className="play-grid"
+                style={{
+                  gridTemplateColumns: `repeat(${payload.size.cols}, minmax(0, 1fr))`,
+                  gridTemplateRows: `repeat(${payload.size.rows}, minmax(0, 1fr))`,
+                  aspectRatio: `${payload.size.cols} / ${payload.size.rows}`,
+                }}
+              >
+                {payload.cells.map((row, r) =>
+                  row.map((cell, c) => {
+                    if (cell.isBlock) {
+                      return <div key={keyOf(r, c)} role="gridcell" className="play-cell play-cell--block" />;
                     }
-                  }}
-                  style={{ width: cellPx, height: cellPx, fontSize: letterPx }}
-                >
-                  {cell.number ? (
-                    <span className="play-cell-number" style={{ fontSize: numberPx }}>
-                      {cell.number}
-                    </span>
-                  ) : null}
-                  <span className="play-cell-letter">{letters[k] ?? ""}</span>
-                </button>
-              );
-            }),
-          )}
+                    const k = keyOf(r, c);
+                    const selected = active?.row === r && active?.col === c;
+                    const inClue =
+                      activeClue &&
+                      ((activeClue.direction === "across" &&
+                        r === activeClue.row &&
+                        c >= activeClue.col &&
+                        c < activeClue.col + activeClue.length) ||
+                        (activeClue.direction === "down" &&
+                          c === activeClue.col &&
+                          r >= activeClue.row &&
+                          r < activeClue.row + activeClue.length));
+                    const mark = marks[k];
+                    const stateClass = selected
+                      ? "is-selected"
+                      : inClue
+                        ? "is-in-clue"
+                        : mark === false
+                          ? "is-wrong"
+                          : mark === true
+                            ? "is-right"
+                            : "";
+                    return (
+                      <button
+                        key={k}
+                        type="button"
+                        role="gridcell"
+                        className={`play-cell ${stateClass}`.trim()}
+                        aria-selected={selected}
+                        aria-label={`Row ${r + 1} column ${c + 1}${cell.number ? `, clue ${cell.number}` : ""}`}
+                        onClick={() => {
+                          if (selected) {
+                            setDirection((d) => (d === "across" ? "down" : "across"));
+                          } else {
+                            setActive({ row: r, col: c });
+                          }
+                        }}
+                        style={{ fontSize: letterPx }}
+                      >
+                        {cell.number ? (
+                          <span className="play-cell-number" style={{ fontSize: numberPx }}>
+                            {cell.number}
+                          </span>
+                        ) : null}
+                        <span className="play-cell-letter">{letters[k] ?? ""}</span>
+                      </button>
+                    );
+                  }),
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="play-clues">

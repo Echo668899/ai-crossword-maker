@@ -16,18 +16,15 @@ export function PlayPageSkeleton() {
       <p className="muted" style={{ margin: "0.65rem 0 0" }}>
         Loading puzzle…
       </p>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(240px, 0.9fr)",
-          gap: "1.5rem",
-          marginTop: "1rem",
-          alignItems: "start",
-        }}
-        className="play-layout"
-      >
-        <SkeletonGrid label="Loading shared crossword" />
-        <div style={{ display: "grid", gap: "1rem" }}>
+      <div className="play-layout">
+        <div role="status" aria-busy="true" aria-label="Loading shared crossword">
+          <Skeleton
+            variant="block"
+            className="play-skeleton-grid"
+            style={{ width: "100%", aspectRatio: "1 / 1", height: "auto", minHeight: "12rem" }}
+          />
+        </div>
+        <div className="play-clues" style={{ display: "grid", gap: "1rem" }}>
           <div>
             <Skeleton width="5rem" height="1rem" style={{ marginBottom: "0.65rem" }} />
             <SkeletonText lines={5} lastWidth="78%" />

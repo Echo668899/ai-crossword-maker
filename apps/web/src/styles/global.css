@@ -314,23 +314,65 @@ h3 {
   border-radius: 8px;
 }
 
-/* Share play + sample play (/p/:token/ and example play pages). */
+/* Share play + sample play pages: grid fills the content column, clues below. */
 .play-layout {
   display: grid;
-  grid-template-columns: minmax(0, auto) minmax(240px, 1fr);
-  gap: 1.75rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
   margin-top: 1rem;
   align-items: start;
 }
 
+.play-board {
+  min-width: 0;
+}
+
+.play-grid-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.55rem;
+}
+
+.play-zoom-status {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.play-zoom-actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+.play-zoom-btn {
+  min-height: 2.5rem;
+}
+
+.play-grid-scroller {
+  width: 100%;
+  max-width: 100%;
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+}
+
+.play-grid-zoom {
+  min-width: 100%;
+}
+
 .play-grid {
-  display: inline-grid;
+  display: grid;
+  width: 100%;
   border: 2px solid var(--color-ink);
   background: var(--color-ink);
   gap: 1px;
-  max-width: 100%;
-  overflow: auto;
   outline: none;
+  box-sizing: border-box;
 }
 
 .play-cell {
@@ -354,6 +396,10 @@ h3 {
   cursor: pointer;
   overflow: hidden;
   -webkit-text-fill-color: #111827;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
 }
 
 .play-cell:focus {
@@ -474,10 +520,6 @@ h3 {
 }
 
 @media (max-width: 800px) {
-  .play-layout {
-    grid-template-columns: 1fr;
-  }
-
   .play-clue-active,
   .play-clue-hint {
     font-size: 1.05rem;
@@ -485,6 +527,11 @@ h3 {
 
   .play-clue-list {
     font-size: 0.98rem;
+  }
+
+  .play-zoom-btn {
+    min-width: 6.5rem;
+    font-weight: 700;
   }
 }
 
@@ -539,6 +586,18 @@ h3 {
 
   .example-answer-key summary {
     list-style: none;
+  }
+
+  .play-grid-toolbar {
+    display: none;
+  }
+
+  .play-grid-scroller {
+    overflow: visible;
+  }
+
+  .play-grid-zoom {
+    width: 100% !important;
   }
 
   a {
