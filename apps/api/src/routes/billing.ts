@@ -14,6 +14,7 @@ import {
   resolvePaymentProvider,
   resolveWebhookProvider,
 } from "../billing/provider";
+import { CreemCheckoutError } from "../billing/creem";
 import { isCheckoutSku, type BillingProviderId } from "../billing/types";
 
 type AppContext = Context<{ Bindings: ApiEnv }>;
@@ -139,20 +140,45 @@ billingRoutes.post("/api/v1/billing/checkout", async (c) => {
       sku: skuRaw,
     });
   } catch (err) {
+    if (err instanceof CreemCheckoutError) {
+      console.error(
+        JSON.stringify({
+          event: "billing_checkout_failed",
+          provider: provider.id,
+          reason: err.reason,
+          providerStatus: err.providerStatus ?? null,
+          providerTraceId: err.providerTraceId ?? null,
+        }),
+      );
+      return c.json(
+        {
+          error: {
+            code: "checkout_failed",
+            message: err.userMessage,
+            reason: err.reason,
+            providerTraceId: err.providerTraceId,
+          },
+        },
+        502,
+      );
+    }
     const message = err instanceof Error ? err.message : "Checkout failed";
+    const dbError = /D1_|SQLITE_|DB_REQUIRED|no such table/i.test(message);
     console.error(
       JSON.stringify({
         event: "billing_checkout_failed",
         provider: provider.id,
-        code: message,
+        code: dbError ? "db_error" : message.slice(0, 80),
       }),
     );
     return c.json(
       {
         error: {
           code: "checkout_failed",
-          message:
-            "Could not start checkout. Verify provider credentials and price/product mappings.",
+          message: dbError
+            ? "Could not create the order. If this persists, D1 billing migrations may be missing."
+            : "Could not start checkout. Verify provider credentials and price/product mappings.",
+          reason: dbError ? "db_error" : "checkout_failed",
         },
       },
       502,

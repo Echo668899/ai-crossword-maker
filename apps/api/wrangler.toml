@@ -38,6 +38,7 @@ PLAN_VERSION = "2026-10-31.hybrid.v1"
 # Force with BILLING_PROVIDER=creem|stripe.
 BILLING_PROVIDER = "auto"
 # Live Creem API (test mode: https://test-api.creem.io). Non-secret base URL only.
+# A `creem_test_…` key always uses test-api even if this var is live (Creem rejects mismatches).
 CREEM_API_BASE = "https://api.creem.io"
 # Prefer secrets / .dev.vars for OPENAI_*; do not commit keys.
 OPENAI_MODEL_GENERATE = "gpt-4.1-mini"

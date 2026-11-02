@@ -67,4 +67,19 @@ describe("getBillingStatus", () => {
     expect(s.checkoutEnabled).toBe(false);
     expect(resolvePaymentProvider(env({ BILLING_PROVIDER: "stripe" }))).toBeNull();
   });
+
+  it("exposes Creem key mode without leaking secrets", () => {
+    const s = getBillingStatus(
+      env({
+        ...creemReady,
+        CREEM_API_KEY: "creem_test_secret",
+        CREEM_API_BASE: "https://api.creem.io",
+      }),
+    );
+    expect(s.providers.creem.keyMode).toBe("test");
+    expect(s.providers.creem.configuredApiBaseMode).toBe("live");
+    expect(s.providers.creem.effectiveApiBaseMode).toBe("test");
+    expect(s.providers.creem.modeAligned).toBe(false);
+    expect(s.providers.creem.productIdFormatOk).toBe(true);
+  });
 });
