@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button, ContentEnter } from "@acm/ui";
 import { PlayPageSkeleton } from "../ui/AsyncSkeletons";
 import { apiFetch } from "../../lib/api";
+import { playCellPx, playLetterFontPx, playNumberFontPx } from "../../lib/play-grid";
 
 type PlayCell = { row: number; col: number; isBlock: boolean; number?: number };
 type PlayClue = {
@@ -88,6 +89,14 @@ export default function PlayApp({
   const [direction, setDirection] = useState<"across" | "down">("across");
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [viewportWidth, setViewportWidth] = useState(1280);
+
+  useEffect(() => {
+    const read = () => setViewportWidth(window.innerWidth);
+    read();
+    window.addEventListener("resize", read);
+    return () => window.removeEventListener("resize", read);
+  }, []);
 
   useEffect(() => {
     if (localDemo) {
@@ -382,7 +391,9 @@ export default function PlayApp({
     return <PlayPageSkeleton />;
   }
 
-  const cellPx = Math.min(36, Math.floor(420 / Math.max(payload.size.cols, payload.size.rows)));
+  const cellPx = playCellPx(payload.size.rows, payload.size.cols, viewportWidth);
+  const letterPx = playLetterFontPx(cellPx);
+  const numberPx = playNumberFontPx(cellPx);
   const across = payload.clues.filter((c) => c.direction === "across");
   const down = payload.clues.filter((c) => c.direction === "down");
   const modeLabel = isLocal ? "Sample play · not indexed" : "Shared play · not indexed";
@@ -453,37 +464,22 @@ export default function PlayApp({
         </p>
       ) : null}
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(240px, 0.9fr)",
-          gap: "1.5rem",
-          marginTop: "1rem",
-          alignItems: "start",
-        }}
-        className="play-layout"
-      >
+      <div className="play-layout">
         <div
           role="grid"
           aria-label="Crossword puzzle"
           tabIndex={0}
           onKeyDown={onKey}
+          className="play-grid"
           style={{
-            display: "inline-grid",
             gridTemplateColumns: `repeat(${payload.size.cols}, ${cellPx}px)`,
             gridTemplateRows: `repeat(${payload.size.rows}, ${cellPx}px)`,
-            border: "2px solid var(--color-ink)",
-            background: "var(--color-ink)",
-            gap: 1,
-            maxWidth: "100%",
-            overflow: "auto",
-            outline: "none",
           }}
         >
           {payload.cells.map((row, r) =>
             row.map((cell, c) => {
               if (cell.isBlock) {
-                return <div key={keyOf(r, c)} role="gridcell" style={{ background: "var(--color-ink)" }} />;
+                return <div key={keyOf(r, c)} role="gridcell" className="play-cell play-cell--block" />;
               }
               const k = keyOf(r, c);
               const selected = active?.row === r && active?.col === c;
@@ -498,11 +494,22 @@ export default function PlayApp({
                     r >= activeClue.row &&
                     r < activeClue.row + activeClue.length));
               const mark = marks[k];
+              const stateClass = selected
+                ? "is-selected"
+                : inClue
+                  ? "is-in-clue"
+                  : mark === false
+                    ? "is-wrong"
+                    : mark === true
+                      ? "is-right"
+                      : "";
               return (
                 <button
                   key={k}
                   type="button"
                   role="gridcell"
+                  className={`play-cell ${stateClass}`.trim()}
+                  aria-selected={selected}
                   aria-label={`Row ${r + 1} column ${c + 1}${cell.number ? `, clue ${cell.number}` : ""}`}
                   onClick={() => {
                     if (selected) {
@@ -511,69 +518,34 @@ export default function PlayApp({
                       setActive({ row: r, col: c });
                     }
                   }}
-                  style={{
-                    position: "relative",
-                    width: cellPx,
-                    height: cellPx,
-                    border: "none",
-                    margin: 0,
-                    padding: 0,
-                    background: selected
-                      ? "var(--color-accent-soft, #dce9f7)"
-                      : inClue
-                        ? "rgba(45, 112, 168, 0.12)"
-                        : mark === false
-                          ? "rgba(180, 60, 60, 0.18)"
-                          : mark === true
-                            ? "rgba(40, 140, 80, 0.15)"
-                            : "#fff",
-                    cursor: "pointer",
-                    font: "inherit",
-                  }}
+                  style={{ width: cellPx, height: cellPx, fontSize: letterPx }}
                 >
                   {cell.number ? (
-                    <span
-                      style={{
-                        position: "absolute",
-                        top: 1,
-                        left: 2,
-                        fontSize: Math.max(8, cellPx * 0.28),
-                        lineHeight: 1,
-                        color: "var(--color-ink)",
-                      }}
-                    >
+                    <span className="play-cell-number" style={{ fontSize: numberPx }}>
                       {cell.number}
                     </span>
                   ) : null}
-                  <span
-                    style={{
-                      fontWeight: 700,
-                      fontSize: Math.max(12, cellPx * 0.48),
-                      color: "var(--color-ink)",
-                    }}
-                  >
-                    {letters[k] ?? ""}
-                  </span>
+                  <span className="play-cell-letter">{letters[k] ?? ""}</span>
                 </button>
               );
             }),
           )}
         </div>
 
-        <div style={{ display: "grid", gap: "1rem" }}>
+        <div className="play-clues">
           {activeClue ? (
-            <p style={{ margin: 0 }}>
+            <p className="play-clue-active">
               <strong>
                 {activeClue.number} {activeClue.direction}
               </strong>{" "}
               {activeClue.clue}
             </p>
           ) : (
-            <p className="muted" style={{ margin: 0 }}>
+            <p className="muted play-clue-hint">
               Select a cell and type. Arrow keys change direction; Tab jumps clues.
             </p>
           )}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+          <div className="play-clue-columns">
             <ClueList
               title="Across"
               clues={across}
@@ -593,7 +565,7 @@ export default function PlayApp({
               }}
             />
           </div>
-          <p className="muted" style={{ margin: 0, fontSize: "0.88rem" }}>
+          <p className="muted play-clue-footer">
             <a href={backHref}>{backLabel}</a>
             {isLocal ? (
               <>
@@ -604,11 +576,6 @@ export default function PlayApp({
           </p>
         </div>
       </div>
-      <style>{`
-        @media (max-width: 800px) {
-          .play-layout { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
       </section>
     </ContentEnter>
   );
@@ -628,23 +595,13 @@ function ClueList({
   return (
     <div>
       <strong>{title}</strong>
-      <ul style={{ margin: "0.4rem 0 0", paddingLeft: 0, listStyle: "none", fontSize: "0.92rem" }}>
+      <ul className="play-clue-list">
         {clues.map((c) => (
-          <li key={c.entryId} style={{ marginBottom: "0.35rem" }}>
+          <li key={c.entryId}>
             <button
               type="button"
+              className={`play-clue-item${c.entryId === activeId ? " is-active" : ""}`}
               onClick={() => onSelect(c)}
-              style={{
-                border: "none",
-                background: c.entryId === activeId ? "rgba(45,112,168,0.12)" : "transparent",
-                textAlign: "left",
-                padding: "0.15rem 0.25rem",
-                borderRadius: 4,
-                cursor: "pointer",
-                font: "inherit",
-                color: "inherit",
-                width: "100%",
-              }}
             >
               <span style={{ fontWeight: 650 }}>{c.number}.</span> {c.clue}
             </button>
