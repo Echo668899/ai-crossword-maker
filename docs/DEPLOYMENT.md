@@ -113,6 +113,8 @@ pnpm exec wrangler secret put RESEND_API_KEY
 
 Or export the same names in the shell (values never printed by the script) and run `./scripts/cf-put-secrets.sh`.
 
+**Do not set `CREEM_PRODUCT_*` or `ADMIN_EMAILS` as Cloudflare Dashboard plaintext vars.** `wrangler deploy` replaces the Worker’s remote var map with `wrangler.toml` `[vars]` and will **delete** dashboard-only plaintext keys (CI then prints a redacted-looking diff that still contains the values). Put them with `wrangler secret put` (encrypted; survive deploys; not printed). `apps/api/wrangler.toml` sets `keep_vars = true` as a safety net, but secrets are still the right store.
+
 Set Worker `vars` in `wrangler.toml` (non-secret): `PUBLIC_SITE_URL`, `AI_ENABLED`, `AI_ANON_DEMO_ENABLED`, `PLAN_VERSION`, `BILLING_PROVIDER=auto`, `CREEM_API_BASE=https://api.creem.io`, model ids, `TURNSTILE_REQUIRED`, `TURNSTILE_HOSTNAMES`, `TURNSTILE_ACTION`, `MAIL_PROVIDER=resend`, `MAIL_FROM=noreply@crosswordmaker.app`, `MAIL_FROM_NAME`.
 
 Production magic-link mail: verify the sending domain in Resend (SPF/DKIM DNS), put `RESEND_API_KEY`, keep `AUTH_DEV_RETURN_LINK` / `AUTH_DEV_LOG_LINKS` **unset/false**. Operator steps (Chinese): project store `docs/email-setup.md`.
@@ -163,7 +165,7 @@ pnpm --filter @acm/api exec wrangler deploy
 
    Subscribe at least: `checkout.completed`, `subscription.active`, `subscription.paid`, `subscription.canceled`, `subscription.expired`, `subscription.past_due`, `subscription.update`, `subscription.trialing`, `subscription.paused`, `subscription.scheduled_cancel`. Copy the signing secret into `CREEM_WEBHOOK_SECRET` (header verified: `creem-signature` HMAC-SHA256 hex of raw body).
 
-6. Confirm Worker vars: `BILLING_PROVIDER=auto` (or `creem`) and `CREEM_API_BASE=https://api.creem.io` (live) or `https://test-api.creem.io` (test). Redeploy API after secret/var changes.
+6. Confirm Worker vars: `BILLING_PROVIDER=auto` (or `creem`) and `CREEM_API_BASE=https://api.creem.io` (live) or `https://test-api.creem.io` (test). After **secret** puts, checkout flags update without a redeploy; after plaintext dashboard var edits, the next `wrangler deploy` used to wipe them — `keep_vars = true` now keeps extras, but still prefer secrets.
 
 7. Stripe (optional fallback) webhook:
 
