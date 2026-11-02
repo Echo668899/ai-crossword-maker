@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ContentEnter } from "@acm/ui";
+import { ContentEnter, Notice } from "@acm/ui";
 import { apiFetch } from "../../lib/api";
 import { BillingSkeleton } from "../ui/AsyncSkeletons";
 
@@ -149,7 +149,7 @@ export default function BillingAccount() {
             ) : null}
           </dl>
         ) : (
-          <p className="muted">No entitlement ledger yet.</p>
+          <Notice tone="info">No entitlement ledger yet.</Notice>
         )}
 
         <p style={{ marginTop: "1.25rem", display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>

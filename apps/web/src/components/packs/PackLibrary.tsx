@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Button, ContentEnter } from "@acm/ui";
+import { Button, ContentEnter, Notice } from "@acm/ui";
 import { apiFetch } from "../../lib/api";
 import { LibraryListSkeleton } from "../ui/AsyncSkeletons";
+import { CopyNotice } from "../ui/CopyNotice";
 
 type PackRow = {
   id: string;
@@ -76,11 +77,11 @@ export default function PackLibrary() {
         <ContentEnter>
           <div style={{ display: "grid", gap: "1rem" }}>
             {access && !access.canCreatePack ? (
-              <p className="muted">
+              <Notice tone="upsell">
                 {access.reason} <a href="/pricing/">View pricing</a>.
-              </p>
+              </Notice>
             ) : null}
-            {status ? <p className="muted">{status}</p> : null}
+            {status ? <CopyNotice copy={status} /> : null}
             {packs.length ? (
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "0.65rem" }}>
                 {packs.map((p) => (
