@@ -314,6 +314,186 @@ h3 {
   border-radius: 8px;
 }
 
+/* Share play + sample play (/p/:token/ and example play pages). */
+.play-layout {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(240px, 1fr);
+  gap: 1.75rem;
+  margin-top: 1rem;
+  align-items: start;
+}
+
+.play-grid {
+  display: inline-grid;
+  border: 2px solid var(--color-ink);
+  background: var(--color-ink);
+  gap: 1px;
+  max-width: 100%;
+  overflow: auto;
+  outline: none;
+}
+
+.play-cell {
+  appearance: none;
+  -webkit-appearance: none;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: #fff;
+  color: #111827;
+  font-family: var(--font-body);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0;
+  text-align: center;
+  cursor: pointer;
+  overflow: hidden;
+  -webkit-text-fill-color: #111827;
+}
+
+.play-cell:focus {
+  outline: none;
+}
+
+.play-cell:focus-visible {
+  outline: 2px solid #111827;
+  outline-offset: -2px;
+}
+
+.play-cell--block {
+  background: var(--color-ink);
+  cursor: default;
+}
+
+.play-cell.is-in-clue {
+  background: #cfe3f7;
+}
+
+.play-cell.is-selected,
+.play-cell.is-selected:hover,
+.play-cell.is-selected:active,
+.play-cell.is-selected:focus,
+.play-cell.is-selected:focus-visible {
+  background: #ffd54a;
+  color: #111827;
+  -webkit-text-fill-color: #111827;
+  box-shadow: inset 0 0 0 2px #111827;
+}
+
+.play-cell.is-wrong {
+  background: #f4c7c7;
+}
+
+.play-cell.is-right {
+  background: #cfe8d8;
+}
+
+.play-cell-number {
+  position: absolute;
+  top: 2px;
+  left: 3px;
+  z-index: 2;
+  line-height: 1;
+  font-weight: 700;
+  color: #111827;
+  -webkit-text-fill-color: #111827;
+  pointer-events: none;
+}
+
+.play-cell-letter {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  line-height: 1;
+  color: #111827;
+  -webkit-text-fill-color: #111827;
+  pointer-events: none;
+}
+
+.play-clues {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.play-clue-active,
+.play-clue-hint {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1.4;
+}
+
+.play-clue-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.play-clue-list {
+  margin: 0.45rem 0 0;
+  padding-left: 0;
+  list-style: none;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+.play-clue-list li {
+  margin-bottom: 0.4rem;
+}
+
+.play-clue-item {
+  appearance: none;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 0.2rem 0.3rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+  line-height: 1.4;
+}
+
+.play-clue-item.is-active {
+  background: #cfe3f7;
+}
+
+.play-clue-footer {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 800px) {
+  .play-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .play-clue-active,
+  .play-clue-hint {
+    font-size: 1.05rem;
+  }
+
+  .play-clue-list {
+    font-size: 0.98rem;
+  }
+}
+
+@media (max-width: 560px) {
+  .play-clue-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media print {
   /* Exact Letter vs A4 size is set by Maker via a injected `@page { size }` rule. */
   @page {
