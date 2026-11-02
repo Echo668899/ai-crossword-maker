@@ -1,15 +1,8 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
 import type { BuildResult, WordEntry } from "@acm/crossword-engine";
 import { nameLineText, resolveNameLinePreset } from "./name-line.js";
+import { PAGE_MARGIN_PT, paperPageSize } from "./paper.js";
 import { DEFAULT_PRINT_LAYOUT, type ClueLine, type PrintLayoutSettings } from "./types.js";
-
-function paperPoints(paper: PrintLayoutSettings["paper"], orientation: PrintLayoutSettings["orientation"]) {
-  const letter = { w: 612, h: 792 };
-  const a4 = { w: 595.28, h: 841.89 };
-  const base = paper === "a4" ? a4 : letter;
-  if (orientation === "landscape") return { w: base.h, h: base.w };
-  return base;
-}
 
 export function collectClues(result: BuildResult, entries: WordEntry[]): { across: ClueLine[]; down: ClueLine[] } {
   const map = new Map(entries.map((e) => [e.id, e]));
@@ -272,8 +265,8 @@ export async function buildStudentPdf(input: {
   const doc = await PDFDocument.create();
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const fontBold = await doc.embedFont(StandardFonts.HelveticaBold);
-  const { w, h } = paperPoints(settings.paper, settings.orientation);
-  const margin = 48;
+  const { width: w, height: h } = paperPageSize(settings.paper, settings.orientation);
+  const margin = PAGE_MARGIN_PT;
   const clueFontSize = 8;
   const clueLineHeight = 10;
 

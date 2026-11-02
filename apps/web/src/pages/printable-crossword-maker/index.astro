@@ -13,14 +13,18 @@ const faqs = [
   },
   {
     q: "When should I use the teachers page instead?",
-    a: "Use crossword maker for teachers when you want a classroom word-list preset and Class header defaults. Stay here for PDF export, name-line presets, and a matching answer key.",
+    a: "Use crossword maker for teachers when you want a classroom word-list preset and Class header defaults. Stay here for general PDF/paper-size export settings.",
+  },
+  {
+    q: "Can I export US Letter or A4?",
+    a: "Yes. Choose Paper size in the export panel — US Letter (8.5 × 11 in) or A4 (210 × 297 mm). That control is separate from Name line. Student and answer-key PDFs use that page size for the sheet, margins, and clue columns.",
   },
 ];
 ---
 
 <BaseLayout
   title="Printable Crossword Maker — PDF & Answer Key"
-  description="Printable crossword maker with PDF export, a separate answer-key page, and optional name/date lines. Free watermarked exports; Pro removes the footer."
+  description="Printable crossword maker with PDF export, answer key page, Letter/A4 layouts, and optional name/date lines. Free watermarked exports; Pro removes the footer."
   canonicalPath="/printable-crossword-maker/"
   jsonLd={{
     "@context": "https://schema.org",
@@ -37,7 +41,7 @@ const faqs = [
     <h1 style="margin:0 0 0.5rem;">Printable Crossword Maker</h1>
     <p style="max-width:60ch;margin:0 0 1rem;">
       Design on screen, then export a student PDF and a separate answer key. Free exports may include an crosswordmaker.app footer watermark.
-      Use Build grid for layout — printing never requires AI. Pick a Name line preset for classroom handouts.
+      Use Build grid for layout — printing never requires AI. Pick Paper size (US Letter or A4) and a Name line preset for classroom handouts.
     </p>
     <MakerApp client:load initialMode="manual" initialNameLinePreset="name-date" heading="Build, then export PDF" />
   </section>
@@ -57,7 +61,7 @@ const faqs = [
   <section class="container section">
     <h2 class="section-title">Print settings available</h2>
     <ul>
-      <li>Student PDFs export at US Letter; pick A4 or scale in your printer dialog if needed (no in-maker paper-size selector yet)</li>
+      <li>US Letter and A4 — choose Paper size in the export panel (separate from Name line)</li>
       <li>Name line presets: Name+Date, Name+Class+Date, Name+Period+Date, or none</li>
       <li>Student sheet without embedded answers</li>
       <li>Answer key as a separate download</li>

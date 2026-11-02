@@ -51,7 +51,7 @@ export const BLOG_POSTS: BlogPostMeta[] = [
     slug: "how-to-print-crossword-worksheets",
     title: "How to Print Crossword Worksheets with Answer Keys",
     description:
-      "Add name/class/date lines and export student PDFs with a matching answer key. Print Letter or A4 from your printer dialog.",
+      "Choose Letter/A4, add name/class/date lines, and export student PDFs with a matching answer key.",
     toolPaths: ["/printable-crossword-maker/", "/crossword-maker-for-teachers/"],
     exampleSlugs: [
       "classroom-objects",

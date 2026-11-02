@@ -363,21 +363,37 @@ describe("SEO shell hardening", () => {
     expect(maker).toContain("Prompt hint only");
   });
 
-  it("does not claim an in-maker Letter/A4 selector or CEFR-certified difficulty", () => {
+  it("does not claim CEFR-certified difficulty", () => {
+    const esl = readFileSync(join(pagesRoot, "esl-crossword-generator/index.astro"), "utf8");
+    const cefr = readFileSync(join(pagesRoot, "cefr-crossword/index.astro"), "utf8");
+    expect(esl).toContain("prompt hint, not a CEFR rating");
+    expect(cefr).toContain("do not certify CEFR level");
+  });
+
+  it("advertises a real in-maker Letter/A4 paper-size control, separate from Name line", () => {
     const printable = readFileSync(join(pagesRoot, "printable-crossword-maker/index.astro"), "utf8");
     const teachers = readFileSync(join(pagesRoot, "crossword-maker-for-teachers/index.astro"), "utf8");
     const printHowto = readFileSync(
       join(pagesRoot, "blog/how-to-print-crossword-worksheets/index.astro"),
       "utf8",
     );
-    const esl = readFileSync(join(pagesRoot, "esl-crossword-generator/index.astro"), "utf8");
-    const cefr = readFileSync(join(pagesRoot, "cefr-crossword/index.astro"), "utf8");
-    expect(printable).not.toMatch(/<li>US Letter and A4<\/li>/);
-    expect(printable).toContain("no in-maker paper-size selector yet");
-    expect(teachers).not.toMatch(/fine-tune Letter vs A4/);
-    expect(printHowto).not.toContain("Choose the paper size in the export panel");
-    expect(printHowto).toContain("There is no Letter/A4 selector in the maker yet");
-    expect(esl).toContain("prompt hint, not a CEFR rating");
-    expect(cefr).toContain("do not certify CEFR level");
+    const maker = readFileSync(
+      join(import.meta.dirname, "../components/maker/MakerApp.tsx"),
+      "utf8",
+    );
+    const globalCss = readFileSync(join(import.meta.dirname, "../styles/global.css"), "utf8");
+    expect(printable).toContain("US Letter and A4");
+    expect(printable).toContain("Paper size");
+    expect(printable).toContain("separate from Name line");
+    expect(printable).not.toMatch(/no in-maker paper-size selector yet/);
+    expect(teachers).toContain("Letter vs A4 (Paper size in the export panel)");
+    expect(printHowto).toContain("Paper size");
+    expect(printHowto).toContain("not the Name line preset");
+    expect(maker).toContain('id="maker-paper-size"');
+    expect(maker).toContain('id="maker-name-line"');
+    expect(maker).toContain("PAPER_SIZE_OPTIONS");
+    expect(maker).toContain("paper: paperSize");
+    expect(maker).toContain("applyBrowserPrintPaper");
+    expect(globalCss).toContain("@page");
   });
 });
