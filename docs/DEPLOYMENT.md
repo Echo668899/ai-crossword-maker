@@ -144,8 +144,19 @@ pnpm --filter @acm/api exec wrangler deploy
 | `credits_100` | Credit Pack 100 | one-time | 8 |
 | `activity_pack` | Activity Pack | one-time | 4.99 |
 
-3. Copy each product id into the matching `CREEM_PRODUCT_*` Worker secret (never commit ids to git if you treat them as private; product ids are not as sensitive as API keys but still go through secrets for consistency).
-4. Developers → API Keys → put the key in `CREEM_API_KEY`.
+3. Copy each **Product ID** (`prod_…`, not the payment-link URL or product name) into the matching `CREEM_PRODUCT_*` Worker secret (never commit ids to git if you treat them as private; product ids are not as sensitive as API keys but still go through secrets for consistency).
+
+   | SKU | Worker secret |
+   | --- | --- |
+   | `pro_monthly` | `CREEM_PRODUCT_PRO_MONTHLY` |
+   | `pro_yearly` | `CREEM_PRODUCT_PRO_YEARLY` |
+   | `credits_50` | `CREEM_PRODUCT_CREDITS_50` |
+   | `credits_100` | `CREEM_PRODUCT_CREDITS_100` |
+   | `activity_pack` | `CREEM_PRODUCT_ACTIVITY_PACK` |
+
+   **Test vs live (most common checkout 502):** Creem Test Mode (sidebar toggle) uses a **different catalog and key** (`creem_test_…` + `https://test-api.creem.io`) than Live (`creem_…` + `https://api.creem.io`). Product IDs are not interchangeable. crosswordmaker.app is configured for **live**. For real charges: turn Test Mode **off**, copy the live API key + five live `prod_…` ids, `wrangler secret put` each name on Worker `acm-api`. The API auto-routes a `creem_test_…` key to the test host so a mismatched `CREEM_API_BASE` no longer 403s, but test product IDs still 404 against a live key (and vice versa).
+
+4. Developers → API Keys → put the key in `CREEM_API_KEY`. Grant at least **Checkouts: Write**. Do not paste the webhook signing secret into `CREEM_API_KEY`.
 5. Developers → Webhooks → endpoint:
 
    `https://crosswordmaker.app/api/v1/billing/webhooks/creem`
@@ -162,7 +173,9 @@ pnpm --filter @acm/api exec wrangler deploy
 
 ```bash
 curl -sS https://crosswordmaker.app/api/v1/billing/status
-# expect: checkoutEnabled=true, activeProvider=creem, providers.creem.configured=true, productsMapped=true
+# expect: checkoutEnabled=true, activeProvider=creem, providers.creem.configured=true,
+#         productsMapped=true, keyMode=live, productIdFormatOk=true, modeAligned=true
+# keyMode=test means the Worker secret is still a Test Mode key (no real charges).
 
 # Signed-in browser: /pricing → Buy Pro Monthly → Creem Checkout → pay test card
 # → success redirect /app/billing/?checkout=success

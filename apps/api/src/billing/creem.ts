@@ -22,11 +22,200 @@ export function creemProductsMapped(env: ApiEnv): boolean {
   );
 }
 
+export type CreemKeyMode = "test" | "live" | "unknown";
+export type CreemApiBaseMode = "test" | "live";
+
+const PRODUCT_ID_RE = /prod_[A-Za-z0-9]+/;
+
+/** Creem test keys are `creem_test_…`; live keys are `creem_…` (not test). */
+export function creemKeyMode(apiKey: string | undefined): CreemKeyMode {
+  const key = apiKey?.trim() ?? "";
+  if (!key) return "unknown";
+  if (key.startsWith("creem_test_")) return "test";
+  if (key.startsWith("creem_")) return "live";
+  return "unknown";
+}
+
+export function creemConfiguredApiBaseMode(env: ApiEnv): CreemApiBaseMode {
+  const raw = env.CREEM_API_BASE?.trim().replace(/\/$/, "") ?? "";
+  if (raw.includes("test-api.creem.io")) return "test";
+  if (raw.includes("api.creem.io")) return "live";
+  // Code default (when unset) is test; production wrangler sets live.
+  return raw ? "live" : "test";
+}
+
+/**
+ * Creem rejects a test key on the live host (and vice versa). The key prefix is
+ * the source of truth; CREEM_API_BASE is used when it matches, or when the key
+ * prefix is unrecognized.
+ */
+export function resolveCreemApiBase(env: ApiEnv): string {
+  const keyMode = creemKeyMode(env.CREEM_API_KEY);
+  const fromKey = keyMode === "test" ? "https://test-api.creem.io" : "https://api.creem.io";
+  const raw = env.CREEM_API_BASE?.trim().replace(/\/$/, "");
+  if (!raw) {
+    return keyMode === "live" ? "https://api.creem.io" : "https://test-api.creem.io";
+  }
+  if (keyMode === "unknown") return raw;
+  const rawIsTest = raw.includes("test-api.creem.io");
+  if ((keyMode === "test") !== rawIsTest) return fromKey;
+  return raw;
+}
+
+export function creemEffectiveApiBaseMode(env: ApiEnv): CreemApiBaseMode {
+  return resolveCreemApiBase(env).includes("test-api.creem.io") ? "test" : "live";
+}
+
+/** Strip quotes / extract `prod_…` from a pasted dashboard URL. Never log the value. */
+export function normalizeCreemProductId(raw: string | undefined): string | null {
+  let id = raw?.trim() ?? "";
+  if (!id) return null;
+  if (
+    ((id.startsWith('"') && id.endsWith('"')) || (id.startsWith("'") && id.endsWith("'"))) &&
+    id.length > 1
+  ) {
+    id = id.slice(1, -1).trim();
+  }
+  if (/^https?:\/\//i.test(id) || id.includes("/")) {
+    const m = id.match(PRODUCT_ID_RE);
+    if (m) return m[0];
+  }
+  return id || null;
+}
+
+export function creemProductIdsFormatOk(env: ApiEnv): boolean {
+  const ids = [
+    env.CREEM_PRODUCT_PRO_MONTHLY,
+    env.CREEM_PRODUCT_PRO_YEARLY,
+    env.CREEM_PRODUCT_CREDITS_50,
+    env.CREEM_PRODUCT_CREDITS_100,
+    env.CREEM_PRODUCT_ACTIVITY_PACK,
+  ].map(normalizeCreemProductId);
+  return ids.every((id) => Boolean(id && id.startsWith("prod_")));
+}
+
+export function creemDiagnostics(env: ApiEnv): {
+  configured: boolean;
+  productsMapped: boolean;
+  keyMode: CreemKeyMode;
+  configuredApiBaseMode: CreemApiBaseMode;
+  effectiveApiBaseMode: CreemApiBaseMode;
+  modeAligned: boolean;
+  productIdFormatOk: boolean;
+} {
+  const keyMode = creemKeyMode(env.CREEM_API_KEY);
+  const configuredApiBaseMode = creemConfiguredApiBaseMode(env);
+  const effectiveApiBaseMode = creemEffectiveApiBaseMode(env);
+  return {
+    configured: creemConfigured(env),
+    productsMapped: creemProductsMapped(env),
+    keyMode,
+    configuredApiBaseMode,
+    effectiveApiBaseMode,
+    modeAligned: keyMode === "unknown" || keyMode === configuredApiBaseMode,
+    productIdFormatOk: creemProductIdsFormatOk(env),
+  };
+}
+
+export class CreemCheckoutError extends Error {
+  readonly reason: string;
+  readonly userMessage: string;
+  readonly providerStatus?: number;
+  readonly providerTraceId?: string;
+
+  constructor(opts: {
+    reason: string;
+    userMessage: string;
+    logMessage?: string;
+    providerStatus?: number;
+    providerTraceId?: string;
+  }) {
+    super(opts.logMessage ?? opts.reason);
+    this.name = "CreemCheckoutError";
+    this.reason = opts.reason;
+    this.userMessage = opts.userMessage;
+    this.providerStatus = opts.providerStatus;
+    this.providerTraceId = opts.providerTraceId;
+  }
+}
+
+export function parseCreemErrorPayload(json: unknown): {
+  messages: string[];
+  status?: number;
+  traceId?: string;
+} {
+  if (!json || typeof json !== "object") return { messages: [] };
+  const obj = json as Record<string, unknown>;
+  const messages: string[] = [];
+  if (typeof obj.message === "string" && obj.message.trim()) messages.push(obj.message.trim());
+  else if (Array.isArray(obj.message)) {
+    for (const m of obj.message) {
+      if (typeof m === "string" && m.trim()) messages.push(m.trim());
+    }
+  }
+  const traceId = typeof obj.trace_id === "string" ? obj.trace_id : undefined;
+  const status = typeof obj.status === "number" ? obj.status : undefined;
+  return { messages, status, traceId };
+}
+
+export function extractCreemCheckout(json: Record<string, unknown>): {
+  url?: string;
+  id?: string;
+} {
+  const nested =
+    json.checkout && typeof json.checkout === "object"
+      ? (json.checkout as Record<string, unknown>)
+      : json;
+  const url = pickString(
+    nested.checkout_url,
+    nested.checkoutUrl,
+    nested.url,
+    json.checkout_url,
+    json.checkoutUrl,
+    json.url,
+  );
+  const id = pickString(nested.id, json.id, nested.checkout_id, json.checkout_id);
+  return { url, id };
+}
+
+function creemUserMessageForStatus(
+  status: number,
+  messages: string[],
+): { reason: string; userMessage: string } {
+  const joined = messages.join(" ").toLowerCase();
+  if (status === 403 || status === 401) {
+    return {
+      reason: "creem_forbidden",
+      userMessage:
+        "Creem rejected the API key. Use a live key (not creem_test_) with live products, grant Checkouts: Write, and keep CREEM_API_BASE on https://api.creem.io.",
+    };
+  }
+  if (
+    status === 404 ||
+    /product not found|invalid product/i.test(joined)
+  ) {
+    return {
+      reason: "creem_product_not_found",
+      userMessage:
+        "Creem product not found for this plan. Paste the dashboard Product ID (prod_…) into the matching CREEM_PRODUCT_* secret, same test/live mode as the API key.",
+    };
+  }
+  if (status === 400) {
+    return {
+      reason: "creem_bad_request",
+      userMessage:
+        "Creem rejected the checkout request. Check product IDs, that Pro SKUs are subscriptions, and that success URL https://crosswordmaker.app is allowed.",
+    };
+  }
+  return {
+    reason: "creem_api_error",
+    userMessage:
+      "Could not start checkout. Verify Creem credentials and product mappings (test vs live must match).",
+  };
+}
+
 function creemBase(env: ApiEnv): string {
-  const raw = env.CREEM_API_BASE?.trim();
-  if (raw) return raw.replace(/\/$/, "");
-  // Default to test API; production should set CREEM_API_BASE=https://api.creem.io
-  return "https://test-api.creem.io";
+  return resolveCreemApiBase(env);
 }
 
 function creemProductId(env: ApiEnv, sku: CreateCheckoutInput["sku"]): string | null {
@@ -37,8 +226,7 @@ function creemProductId(env: ApiEnv, sku: CreateCheckoutInput["sku"]): string | 
     credits_100: env.CREEM_PRODUCT_CREDITS_100,
     activity_pack: env.CREEM_PRODUCT_ACTIVITY_PACK,
   };
-  const id = map[sku]?.trim();
-  return id || null;
+  return normalizeCreemProductId(map[sku]);
 }
 
 /** Creem: HMAC-SHA256 hex of raw body with webhook secret; header `creem-signature`. */
@@ -213,9 +401,22 @@ export function createCreemProvider(env: ApiEnv): PaymentProvider {
 
     async createCheckout(input: CreateCheckoutInput): Promise<CreateCheckoutResult> {
       const productId = creemProductId(env, input.sku);
-      if (!productId) throw new Error("CREEM_PRODUCT_NOT_MAPPED");
+      if (!productId) {
+        throw new CreemCheckoutError({
+          reason: "creem_product_unmapped",
+          userMessage:
+            "This plan has no Creem product id. Set the matching CREEM_PRODUCT_* Worker secret.",
+          logMessage: "CREEM_PRODUCT_NOT_MAPPED",
+        });
+      }
       const key = env.CREEM_API_KEY?.trim();
-      if (!key) throw new Error("CREEM_NOT_CONFIGURED");
+      if (!key) {
+        throw new CreemCheckoutError({
+          reason: "creem_not_configured",
+          userMessage: "Creem API key is missing on the Worker.",
+          logMessage: "CREEM_NOT_CONFIGURED",
+        });
+      }
 
       const body = {
         product_id: productId,
@@ -230,28 +431,62 @@ export function createCreemProvider(env: ApiEnv): PaymentProvider {
         },
       };
 
-      const res = await fetch(`${creemBase(env)}/v1/checkouts`, {
-        method: "POST",
-        headers: {
-          "x-api-key": key,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      });
-      const json = (await res.json()) as Record<string, unknown>;
-      if (!res.ok) {
-        const msg =
-          typeof json.message === "string"
-            ? json.message
-            : typeof (json.error as { message?: string } | undefined)?.message === "string"
-              ? (json.error as { message: string }).message
-              : `Creem API ${res.status}`;
-        throw new Error(msg);
+      let res: Response;
+      try {
+        res = await fetch(`${creemBase(env)}/v1/checkouts`, {
+          method: "POST",
+          headers: {
+            "x-api-key": key,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+      } catch {
+        throw new CreemCheckoutError({
+          reason: "creem_unreachable",
+          userMessage: "Could not reach Creem. Retry in a moment.",
+          logMessage: "CREEM_FETCH_FAILED",
+        });
       }
-      const url = pickString(json.checkout_url, json.checkoutUrl);
-      const id = pickString(json.id);
-      if (!url || !id) throw new Error("CREEM_CHECKOUT_MISSING_URL");
-      return { url, providerSessionId: id };
+
+      const text = await res.text();
+      let json: Record<string, unknown> = {};
+      if (text) {
+        try {
+          json = JSON.parse(text) as Record<string, unknown>;
+        } catch {
+          throw new CreemCheckoutError({
+            reason: "creem_bad_response",
+            userMessage:
+              "Creem returned a non-JSON response. Check CREEM_API_BASE and that the API key matches test vs live.",
+            logMessage: `CREEM_NON_JSON_${res.status}`,
+            providerStatus: res.status,
+          });
+        }
+      }
+
+      if (!res.ok) {
+        const parsed = parseCreemErrorPayload(json);
+        const mapped = creemUserMessageForStatus(res.status, parsed.messages);
+        throw new CreemCheckoutError({
+          reason: mapped.reason,
+          userMessage: mapped.userMessage,
+          logMessage: `CREEM_API_${res.status}`,
+          providerStatus: res.status,
+          providerTraceId: parsed.traceId,
+        });
+      }
+
+      const session = extractCreemCheckout(json);
+      if (!session.url || !session.id) {
+        throw new CreemCheckoutError({
+          reason: "creem_missing_checkout_url",
+          userMessage:
+            "Creem created a session but returned no checkout URL. Confirm the product is active in the same mode as the API key.",
+          logMessage: "CREEM_CHECKOUT_MISSING_URL",
+        });
+      }
+      return { url: session.url, providerSessionId: session.id };
     },
 
     async verifyAndParseWebhook(request: Request, rawBody: string) {

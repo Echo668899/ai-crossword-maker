@@ -79,7 +79,19 @@ export type BillingStatus = {
   activeProvider: BillingProviderId | null;
   providers: {
     stripe: { configured: boolean; pricesMapped: boolean };
-    creem: { configured: boolean; productsMapped: boolean };
+    creem: {
+      configured: boolean;
+      productsMapped: boolean;
+      /** `creem_test_` vs live `creem_` prefix. Never the key itself. */
+      keyMode: "test" | "live" | "unknown";
+      /** Host implied by CREEM_API_BASE (wrangler var). */
+      configuredApiBaseMode: "test" | "live";
+      /** Host actually used (key prefix wins on mismatch). */
+      effectiveApiBaseMode: "test" | "live";
+      modeAligned: boolean;
+      /** True when all five mapped ids look like `prod_…` (no values leaked). */
+      productIdFormatOk: boolean;
+    };
   };
   planVersion: string;
   skus: CheckoutSku[];

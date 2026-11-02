@@ -1,10 +1,6 @@
 import { pricing } from "@acm/config/pricing";
 import type { ApiEnv } from "../env";
-import {
-  createCreemProvider,
-  creemConfigured,
-  creemProductsMapped,
-} from "./creem";
+import { createCreemProvider, creemConfigured, creemDiagnostics } from "./creem";
 import {
   createStripeProvider,
   stripeConfigured,
@@ -25,7 +21,8 @@ export function getBillingStatus(env: ApiEnv): BillingStatus {
   const stripeOk = stripeConfigured(env);
   const creemOk = creemConfigured(env);
   const stripeMapped = stripePricesMapped(env);
-  const creemMapped = creemProductsMapped(env);
+  const creemDiag = creemDiagnostics(env);
+  const creemMapped = creemDiag.productsMapped;
   const pref = billingPreference(env);
 
   let active: BillingProviderId | null = null;
@@ -46,7 +43,15 @@ export function getBillingStatus(env: ApiEnv): BillingStatus {
     activeProvider: active,
     providers: {
       stripe: { configured: stripeOk, pricesMapped: stripeMapped },
-      creem: { configured: creemOk, productsMapped: creemMapped },
+      creem: {
+        configured: creemOk,
+        productsMapped: creemMapped,
+        keyMode: creemDiag.keyMode,
+        configuredApiBaseMode: creemDiag.configuredApiBaseMode,
+        effectiveApiBaseMode: creemDiag.effectiveApiBaseMode,
+        modeAligned: creemDiag.modeAligned,
+        productIdFormatOk: creemDiag.productIdFormatOk,
+      },
     },
     planVersion: env.PLAN_VERSION?.trim() || pricing.planVersion,
     skus: [...CHECKOUT_SKUS],

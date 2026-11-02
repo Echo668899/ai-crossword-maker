@@ -4,13 +4,23 @@ import { ContentEnter, Notice } from "@acm/ui";
 import { apiFetch } from "../../lib/api";
 import { CheckoutCtaSkeleton } from "../ui/AsyncSkeletons";
 
+type CreemStatus = {
+  configured: boolean;
+  productsMapped: boolean;
+  keyMode?: "test" | "live" | "unknown";
+  configuredApiBaseMode?: "test" | "live";
+  effectiveApiBaseMode?: "test" | "live";
+  modeAligned?: boolean;
+  productIdFormatOk?: boolean;
+};
+
 type BillingStatus = {
   checkoutEnabled: boolean;
   portalEnabled: boolean;
   activeProvider: "stripe" | "creem" | null;
   providers: {
     stripe: { configured: boolean; pricesMapped: boolean };
-    creem: { configured: boolean; productsMapped: boolean };
+    creem: CreemStatus;
   };
   planVersion: string;
   skus: string[];
@@ -149,7 +159,7 @@ export default function PricingCheckout() {
             activeProvider: null,
             providers: {
               stripe: { configured: false, pricesMapped: false },
-              creem: { configured: false, productsMapped: false },
+              creem: { configured: false, productsMapped: false, keyMode: "unknown" },
             },
             planVersion: pricing.planVersion,
             skus: [],
@@ -233,8 +243,19 @@ export default function PricingCheckout() {
           {status?.providers.stripe.configured && status?.providers.creem.configured
             ? " (alternate provider also configured; switch with BILLING_PROVIDER)"
             : ""}
+          {status?.activeProvider === "creem" && status.providers.creem.keyMode === "test"
+            ? " — Creem test mode (no real charges)"
+            : ""}
           .
         </p>
+      ) : null}
+
+      {enabled && status?.activeProvider === "creem" && status.providers.creem.productIdFormatOk === false ? (
+        <Notice tone="warn" style={{ margin: "0 0 1rem" }}>
+          Creem product IDs do not look like <code>prod_…</code>. Re-copy each Product ID from the
+          Creem dashboard (same test/live mode as the API key) into the matching{" "}
+          <code>CREEM_PRODUCT_*</code> Worker secret.
+        </Notice>
       ) : null}
 
       {notice ? (
