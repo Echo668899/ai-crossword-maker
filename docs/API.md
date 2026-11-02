@@ -59,7 +59,7 @@ Base: `/api/v1` (Cloudflare Worker `apps/api`).
 
 - Sessions: Lucia/Oslo-style — cookie holds raw token; D1 `sessions.id` stores SHA-256 hex. Cookie: HttpOnly, SameSite=Lax, Secure when HTTPS.
 - Magic links: single-use, ~20 min TTL, hashed at rest, email/IP rate limits.
-- Share play HTML `/p/[token]/` is **noindex** and excluded from sitemap/robots; GET play never embeds answer letters.
+- Share play HTML `/p/[token]/` is **noindex** and excluded from sitemap/robots; Pages `_worker.js` serves the `/p/_/` shell for token URLs (HTTP 200) while GET `/play/:token` 404s unknown ids and never embeds answer letters.
 
 ## Packs / versions
 

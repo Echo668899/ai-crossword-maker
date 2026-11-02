@@ -66,7 +66,15 @@ test.describe("static SEO fixtures", () => {
     const robots = readFileSync(join(process.cwd(), "apps/web/public/robots.txt"), "utf8");
     expect(robots).toContain("Disallow: /p/");
     const redirects = readFileSync(join(process.cwd(), "apps/web/public/_redirects"), "utf8");
-    expect(redirects).toContain("/app/packs/*");
-    expect(redirects).toContain("/app/puzzles/");
+    expect(redirects).toContain("/p/:token/");
+    expect(redirects).toContain("/app/packs/:id");
+    expect(redirects).toContain("/app/puzzles/:id/edit");
+    const redirectRules = redirects
+      .split("\n")
+      .filter((line) => line.trim() && !line.trim().startsWith("#"))
+      .join("\n");
+    expect(redirectRules).not.toContain("index.html");
+    const worker = readFileSync(join(process.cwd(), "apps/web/public/_worker.js"), "utf8");
+    expect(worker).toContain("rewriteAssetPath");
   });
 });

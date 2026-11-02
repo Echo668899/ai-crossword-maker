@@ -13,7 +13,7 @@ Production domain default: **https://crosswordmaker.app** (`PUBLIC_SITE_URL`).
 | Private exports | R2 (private bucket) | `FILES` → `acm-private` |
 | Async jobs | Queues | `JOBS` / consumer on `acm-jobs` |
 
-Do **not** use SPA fallback for missing HTML or API errors. Share play uses `_redirects` 200 rewrite to `/p/_/` only.
+Do **not** use SPA fallback for missing HTML or API errors. Share play uses Pages `_worker.js` (and `_redirects`) to 200-rewrite `/p/:token/` to the pretty shell `/p/_/` only — never to `/p/_/index.html`.
 
 ## Local
 
@@ -177,8 +177,8 @@ PUBLIC_SITE_URL=https://crosswordmaker.app pnpm --filter @acm/web build
 pnpm --filter @acm/api exec wrangler pages deploy "$PWD/apps/web/dist" --project-name=acm-web
 ```
 
-Preferred: **Cloudflare Pages** project `acm-web` with `_redirects` for `/p/*`, `/app/packs/*`, `/app/puzzles/*/edit/` 200 rewrites.  
-Alternative: Workers Static Assets (`apps/web/wrangler.toml`) on the same host.
+Preferred: **Cloudflare Pages** project `acm-web` with `dist/_worker.js` (from `public/_worker.js`) plus `_redirects` 200 rewrites of `/p/:token/`, `/app/packs/:id/`, `/app/puzzles/:id/edit/` to their `_` shells.  
+Alternative: Workers Static Assets (`apps/web/wrangler.toml`) on the same host (`run_worker_first` for those prefixes).
 
 Same-origin API:
 
@@ -217,15 +217,16 @@ Notes:
 
 - Workers: roll back to previous deployment version in the dashboard / `wrangler deployments`.
 - D1: migrations must stay forward-compatible; before risky schema changes export/backup D1.
-- Web: redeploy previous `dist` artifact; keep `_redirects` in sync with play/pack shells.
+- Web: redeploy previous `dist` artifact; keep `_worker.js` and `_redirects` in sync with play/pack shells.
 
 ## Post-deploy smoke
 
 ```bash
 curl -s https://crosswordmaker.app/api/v1/health
 curl -s https://crosswordmaker.app/examples/ | grep -o 'Crossword examples'
-curl -sI https://crosswordmaker.app/p/demo-token/ | tr -d '\r' | grep -i 'x-robots\|HTTP'
-# HTML play shell is noindex via meta robots on /p/_/
+curl -sS -o /tmp/play.html -w '%{http_code}\n' https://crosswordmaker.app/p/demo-token/
+# expect 200 HTML play shell (noindex); API GET /api/v1/play/demo-token is still 404
+grep -i 'noindex\|Shared crossword' /tmp/play.html
 ```
 
 ## Pre-launch secrets & config checklist
