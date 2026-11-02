@@ -10,7 +10,7 @@ import {
   type BuildResult,
   type WordEntry,
 } from "@acm/crossword-engine";
-import { Button, ContentEnter, StatusPill } from "@acm/ui";
+import { Button, ContentEnter, Notice, StatusPill } from "@acm/ui";
 import {
   applyBrowserPrintPaper,
   PAPER_SIZE_OPTIONS,
@@ -32,6 +32,7 @@ import {
   sourceRowsForBuild,
   summarizeSkippedEntries,
 } from "../../lib/maker-feedback";
+import { noticeToneFromCopy } from "../../lib/notice-tone";
 import TurnstileField, { turnstileConfigured } from "../security/TurnstileField";
 import { MakerGridSkeleton } from "../ui/AsyncSkeletons";
 import { GridView } from "./GridView";
@@ -87,24 +88,35 @@ const CLUE_QUOTA_PRO_NOTE = " Pro: Generate clues is unlimited.";
 const CLUE_QUOTA_REMAINING = (remaining: number, limit: number) =>
   ` Free Generate clues left today: ${remaining}/${limit}. Pro unlocks unlimited.`;
 
-/** High-contrast alert for free-quota exhaustion (avoid muted gray). */
-const clueQuotaAlertStyle: CSSProperties = {
-  margin: 0,
-  padding: "0.75rem 0.9rem",
-  borderRadius: 8,
-  border: "1px solid #ea580c",
-  background: "linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%)",
-  color: "#9a3412",
-  fontSize: "0.92rem",
-  fontWeight: 650,
-  boxShadow: "inset 3px 0 0 #ea580c",
-};
-const clueQuotaAlertLinkStyle: CSSProperties = {
-  color: "#c2410c",
-  fontWeight: 700,
-  textDecoration: "underline",
-  textUnderlineOffset: "2px",
-};
+function MakerStatusLine({ message }: { message: string }) {
+  const tone = noticeToneFromCopy(message);
+  const quotaWarn = tone === "warn";
+  const showPricingLink =
+    tone === "upsell" && !/view pricing|upgrade to pro|\/pricing/i.test(message);
+  if (!tone) {
+    return (
+      <p style={{ margin: "0.75rem 0 0", fontSize: "0.92rem" }} aria-live="polite">
+        {message}
+      </p>
+    );
+  }
+  return (
+    <Notice tone={tone} style={{ margin: "0.75rem 0 0" }} aria-live={tone === "warn" ? "assertive" : "polite"}>
+      {message}
+      {quotaWarn ? (
+        <>
+          {" "}
+          <a href="/pricing/">Upgrade to Pro — unlimited clues</a>
+        </>
+      ) : showPricingLink ? (
+        <>
+          {" "}
+          <a href="/pricing/">View pricing</a>
+        </>
+      ) : null}
+    </Notice>
+  );
+}
 
 interface EntryRow {
   answer: string;
@@ -335,6 +347,7 @@ export default function MakerApp({
     isPro?: boolean;
   } | null>(null);
   const [unwatermarkedExport, setUnwatermarkedExport] = useState(false);
+  const [activityPackEntitled, setActivityPackEntitled] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
   const [cloudProjects, setCloudProjects] = useState<
     Array<{ id: string; title: string; revision: number }>
@@ -546,12 +559,20 @@ export default function MakerApp({
             }
             if (!cancelled && entRes.ok) {
               const ent = (await entRes.json()) as {
-                entitlements?: { unwatermarkedExport?: boolean };
+                entitlements?: {
+                  unwatermarkedExport?: boolean;
+                  activityPack?: boolean;
+                  isPro?: boolean;
+                  batchExport?: boolean;
+                };
               };
-              setUnwatermarkedExport(Boolean(ent.entitlements?.unwatermarkedExport));
+              const e = ent.entitlements;
+              setUnwatermarkedExport(Boolean(e?.unwatermarkedExport || e?.isPro));
+              setActivityPackEntitled(Boolean(e?.activityPack || e?.isPro || e?.batchExport));
             }
           } else if (!cancelled) {
             setUnwatermarkedExport(false);
+            setActivityPackEntitled(false);
           }
         }
       } catch {
@@ -1837,51 +1858,39 @@ export default function MakerApp({
                 </Button>
               </div>
               {state.aiBlockedReason ? (
-                <div
-                  role="alert"
-                  style={
-                    freeAiExhausted || /unlimited AI clues|Generate clues/i.test(state.aiBlockedReason)
-                      ? clueQuotaAlertStyle
-                      : {
-                          margin: 0,
-                          padding: "0.7rem 0.85rem",
-                          borderRadius: 8,
-                          border: "1px solid #e6d4a8",
-                          background: "#fff8e8",
-                          color: "var(--color-warn)",
-                          fontSize: "0.92rem",
-                        }
+                <Notice
+                  tone={
+                    freeAiExhausted || /unlimited AI clues|Generate clues|quota exhausted/i.test(state.aiBlockedReason)
+                      ? "warn"
+                      : "upsell"
                   }
                 >
                   <div>{state.aiBlockedReason}</div>
                   <div style={{ marginTop: "0.35rem" }}>
-                    <a href="/pricing/" style={clueQuotaAlertLinkStyle}>
-                      Upgrade to Pro — unlimited clues
-                    </a>
+                    <a href="/pricing/">Upgrade to Pro — unlimited clues</a>
                     {" · "}
                     <a href="/examples/">Browse examples</a>
                     {" · "}
                     <a href="/crossword-maker-from-word-list/">Word list maker</a>
                   </div>
-                </div>
+                </Notice>
               ) : freeAiExhausted ? (
-                <div role="alert" style={clueQuotaAlertStyle}>
+                <Notice tone="warn">
                   Free Generate clues is used up for today.{" "}
-                  <a href="/pricing/" style={clueQuotaAlertLinkStyle}>
-                    Upgrade to Pro for unlimited AI clues
-                  </a>{" "}
-                  — or type clues yourself. Layout reshuffles stay free.
-                </div>
+                  <a href="/pricing/">Upgrade to Pro for unlimited AI clues</a> — or type clues
+                  yourself. Layout reshuffles stay free.
+                </Notice>
               ) : (
-                <p className="muted" style={{ margin: 0, fontSize: "0.9rem" }}>
+                <Notice tone={quota?.unlimited || quota?.isPro ? "info" : "upsell"}>
                   {quota?.unlimited || quota?.isPro
                     ? "Pro: Generate clues is unlimited. Topic demo may still use the free daily pool."
                     : quota &&
                         typeof quota.remaining === "number" &&
                         typeof quota.limit === "number"
                       ? `Free plan: ${quota.remaining} of ${quota.limit} AI ops left today (includes Generate clues). Upgrade to Pro for unlimited clues. Layout reshuffles stay free.`
-                      : "Free plan includes a daily AI limit. Upgrade to Pro for unlimited Generate clues. Layout never spends AI credits."}
-                </p>
+                      : "Free plan includes a daily AI limit. Upgrade to Pro for unlimited Generate clues. Layout never spends AI credits."}{" "}
+                  {quota?.unlimited || quota?.isPro ? null : <a href="/pricing/">View pricing</a>}
+                </Notice>
               )}
             </div>
           ) : null}
@@ -2132,21 +2141,25 @@ export default function MakerApp({
               ) : null}
               {emptyClueCount > 0 ? (
                 freeAiExhausted ? (
-                  <div role="alert" style={{ ...clueQuotaAlertStyle, margin: "0 0 0.55rem" }}>
+                  <Notice tone="warn" style={{ margin: "0 0 0.55rem" }}>
                     {emptyClueCount} entr{emptyClueCount === 1 ? "y needs" : "ies need"} a clue.
                     Free Generate clues is used up today —{" "}
-                    <a href="/pricing/" style={clueQuotaAlertLinkStyle}>
-                      upgrade to Pro for unlimited clues
-                    </a>
-                    , or type them manually.
-                  </div>
+                    <a href="/pricing/">upgrade to Pro for unlimited clues</a>, or type them
+                    manually.
+                  </Notice>
                 ) : (
-                  <p className="muted" style={{ margin: "0 0 0.55rem", fontSize: "0.88rem" }}>
+                  <Notice tone={cluesUnlimited ? "info" : "upsell"} style={{ margin: "0 0 0.55rem" }}>
                     {emptyClueCount} entr{emptyClueCount === 1 ? "y needs" : "ies need"} a clue —
                     highlighted below. Use Generate clues / per-row AI
-                    {cluesUnlimited ? " (Pro · unlimited)" : " (free daily limit)"}, or type
-                    manually before handouts.
-                  </p>
+                    {cluesUnlimited ? " (Pro · unlimited)" : " (free daily limit; Pro is unlimited)"},
+                    or type manually before handouts.
+                    {cluesUnlimited ? null : (
+                      <>
+                        {" "}
+                        <a href="/pricing/">View pricing</a>
+                      </>
+                    )}
+                  </Notice>
                 )
               ) : null}
               <div
@@ -2335,33 +2348,7 @@ export default function MakerApp({
               Shuffle layout
             </Button>
           </div>
-          <p
-            style={
-              state.statusMessage === CLUE_QUOTA_STATUS ||
-              state.statusMessage.startsWith("Free Generate clues used up")
-                ? { ...clueQuotaAlertStyle, margin: "0.75rem 0 0" }
-                : { margin: "0.75rem 0 0", fontSize: "0.92rem" }
-            }
-            aria-live="polite"
-            role={
-              state.statusMessage === CLUE_QUOTA_STATUS ||
-              state.statusMessage.startsWith("Free Generate clues used up")
-                ? "alert"
-                : undefined
-            }
-          >
-            {state.statusMessage === CLUE_QUOTA_STATUS ||
-            state.statusMessage.startsWith("Free Generate clues used up") ? (
-              <>
-                {state.statusMessage}{" "}
-                <a href="/pricing/" style={clueQuotaAlertLinkStyle}>
-                  Upgrade to Pro — unlimited clues
-                </a>
-              </>
-            ) : (
-              state.statusMessage
-            )}
-          </p>
+          <MakerStatusLine message={state.statusMessage} />
         </div>
 
         <div
@@ -2505,6 +2492,21 @@ export default function MakerApp({
               </Button>
             </div>
           </div>
+          {unwatermarkedExport && activityPackEntitled ? (
+            <Notice tone="info" style={{ margin: "0.75rem 0 0" }}>
+              Pro: PDFs have no site footer. Activity packs (A/B/C) and batch export are included.
+            </Notice>
+          ) : (
+            <Notice tone="upsell" style={{ margin: "0.75rem 0 0" }}>
+              {unwatermarkedExport
+                ? "PDFs have no site footer. "
+                : "Free PDFs include a crosswordmaker.app footer. Pro removes it. "}
+              {activityPackEntitled
+                ? "Activity packs (A/B/C) are unlocked."
+                : "Activity packs require an Activity Pack purchase or Pro. Free plan can still print a single layout."}{" "}
+              <a href="/pricing/">View pricing</a>
+            </Notice>
+          )}
           <div
             className="maker-export-settings"
             style={{

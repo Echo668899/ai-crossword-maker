@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { pricing } from "@acm/config/pricing";
-import { ContentEnter } from "@acm/ui";
+import { ContentEnter, Notice } from "@acm/ui";
 import { apiFetch } from "../../lib/api";
 import { CheckoutCtaSkeleton } from "../ui/AsyncSkeletons";
 
@@ -220,21 +220,11 @@ export default function PricingCheckout() {
       </p>
 
       {status && !enabled ? (
-        <p
-          className="muted"
-          role="status"
-          style={{
-            margin: "0 0 1rem",
-            padding: "0.75rem 1rem",
-            border: "1px solid var(--color-border)",
-            borderRadius: 8,
-            background: "rgba(255,255,255,0.7)",
-          }}
-        >
+        <Notice tone="info" style={{ margin: "0 0 1rem" }}>
           Checkout is offline until payment secrets are configured. Set{" "}
           <code>CREEM_*</code> (preferred) or <code>STRIPE_*</code> plus product/price IDs.
           Free AI demo and manual maker remain available.
-        </p>
+        </Notice>
       ) : null}
 
       {enabled && providerLabel ? (
@@ -248,9 +238,9 @@ export default function PricingCheckout() {
       ) : null}
 
       {notice ? (
-        <p role="status" style={{ color: "var(--color-warn)", margin: "0 0 1rem" }}>
+        <Notice tone="info" style={{ margin: "0 0 1rem" }}>
           {notice}
-        </p>
+        </Notice>
       ) : null}
       {error ? (
         <p role="alert" style={{ color: "var(--color-danger)", margin: "0 0 1rem" }}>
@@ -275,9 +265,10 @@ export default function PricingCheckout() {
             <li>Watermarked PDF + share play links</li>
             <li>Up to {pricing.free.loggedInCloudProjects} cloud projects when signed in</li>
           </ul>
-          <p className="muted" style={{ margin: 0, fontSize: "0.88rem" }}>
-            When the daily demo runs out, keep building manually — or upgrade for more AI ops.
-          </p>
+          <Notice tone="upsell">
+            When the daily demo runs out, keep building manually — or{" "}
+            <a href="#pro">upgrade to Pro</a> for more AI ops.
+          </Notice>
           <p style={{ marginTop: "auto" }}>
             <a href="/#maker" style={linkBtnStyle}>
               Start free Topic demo
@@ -285,7 +276,7 @@ export default function PricingCheckout() {
           </p>
         </article>
 
-        <article style={primaryCard}>
+        <article id="pro" style={primaryCard}>
           <p
             style={{
               margin: 0,

@@ -9,6 +9,16 @@
   --color-success: #1f6b4a;
   --color-danger: #9b2c2c;
   --color-warn: #8a6d1f;
+  /* Entitlement tips: cool info / amber upsell / orange warn (#31). Not muted gray. */
+  --notice-info-ink: #1e4a73;
+  --notice-info-border: #9bb4cd;
+  --notice-info-accent: #2f5c8f;
+  --notice-upsell-ink: #7a4e0b;
+  --notice-upsell-border: #e0b15a;
+  --notice-upsell-accent: #c9922a;
+  --notice-warn-ink: #9a3412;
+  --notice-warn-border: #ea580c;
+  --notice-warn-accent: #ea580c;
   --font-display: "Fraunces", "Source Serif 4", Georgia, serif;
   --font-body: "Source Sans 3", "Segoe UI", sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -155,6 +165,59 @@ h3 {
 
 .muted {
   color: var(--color-muted);
+}
+
+/* Plan / entitlement tips — filled + left bar so they don't read as helper gray. */
+.acm-notice {
+  margin: 0;
+  padding: 0.7rem 0.9rem 0.7rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--notice-border, var(--color-border));
+  background: var(--notice-bg, var(--color-surface));
+  color: var(--notice-ink, var(--color-ink));
+  font-size: 0.92rem;
+  font-weight: 650;
+  line-height: 1.45;
+  box-shadow: inset 3px 0 0 var(--notice-accent, var(--color-primary));
+}
+
+.acm-notice--info {
+  --notice-ink: var(--notice-info-ink);
+  --notice-border: var(--notice-info-border);
+  --notice-accent: var(--notice-info-accent);
+  --notice-bg: linear-gradient(180deg, #f4f8fc 0%, #e7eef6 100%);
+}
+
+.acm-notice--upsell {
+  --notice-ink: var(--notice-upsell-ink);
+  --notice-border: var(--notice-upsell-border);
+  --notice-accent: var(--notice-upsell-accent);
+  --notice-bg: linear-gradient(180deg, #fffbeb 0%, #fef3c7 100%);
+}
+
+.acm-notice--warn {
+  --notice-ink: var(--notice-warn-ink);
+  --notice-border: var(--notice-warn-border);
+  --notice-accent: var(--notice-warn-accent);
+  --notice-bg: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
+}
+
+.acm-notice a {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.acm-notice--info a {
+  color: var(--color-primary-hover);
+}
+
+.acm-notice--upsell a {
+  color: #92400e;
+}
+
+.acm-notice--warn a {
+  color: #c2410c;
 }
 
 .prose {

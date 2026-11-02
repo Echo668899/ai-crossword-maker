@@ -11,6 +11,12 @@ export const tokens = {
     success: "#1F6B4A",
     danger: "#9B2C2C",
     warn: "#8A6D1F",
+    /** Cool paper-blue — entitlement facts, not a paywall. */
+    noticeInfo: "#1E4A73",
+    /** Amber/gold — Pro / Activity Pack upsell (not quota-exhausted orange). */
+    noticeUpsell: "#7A4E0B",
+    /** Vivid orange — quota exhausted (Maker #31). */
+    noticeWarn: "#9A3412",
   },
   font: {
     display: '"Fraunces", "Source Serif 4", Georgia, serif',

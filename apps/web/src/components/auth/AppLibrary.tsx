@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button, ContentEnter } from "@acm/ui";
 import { apiFetch } from "../../lib/api";
 import { LibraryListSkeleton } from "../ui/AsyncSkeletons";
+import { CopyNotice } from "../ui/CopyNotice";
 
 type User = { id: string; email: string | null; name: string | null };
 type Project = {
@@ -125,7 +126,7 @@ export default function AppLibrary() {
           </p>
         </ContentEnter>
       )}
-      {status && !showSkeleton ? <p className="muted">{status}</p> : null}
+      {status && !showSkeleton ? <CopyNotice copy={status} /> : null}
       {phase === "loading" ? <LibraryListSkeleton count={4} /> : null}
       {phase === "ready" && projects.length ? (
         <ContentEnter>

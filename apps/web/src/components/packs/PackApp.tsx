@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button, ContentEnter } from "@acm/ui";
 import { apiFetch } from "../../lib/api";
 import { PackDetailSkeleton } from "../ui/AsyncSkeletons";
+import { CopyNotice } from "../ui/CopyNotice";
 
 type PackItem = {
   id: string;
@@ -168,7 +169,7 @@ export default function PackApp({ initialPackId = "" }: { initialPackId?: string
           <a href="/app/">My puzzles</a> / <a href="/app/packs/">Packs</a> / {title || "Pack"}
         </nav>
         <h1 style={{ margin: 0 }}>{title || "Activity pack"}</h1>
-        {status ? <p className="muted">{status}</p> : null}
+        {status ? <CopyNotice copy={status} /> : null}
         {items.length ? (
           <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "0.65rem" }}>
             {items.map((item) => (
