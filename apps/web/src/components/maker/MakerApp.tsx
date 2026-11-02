@@ -1709,41 +1709,49 @@ export default function MakerApp({
                 {" · "}
                 <a href="/blog/how-to-make-a-geography-vocabulary-crossword/">Geography how-to</a>
               </p>
-              <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-                <label style={{ display: "grid", gap: "0.35rem" }}>
-                  <span style={{ fontWeight: 650 }}>Words</span>
-                  <input
-                    type="number"
-                    min={5}
-                    max={30}
-                    value={state.wordCount}
-                    onChange={(e) => dispatch({ type: "setWordCount", wordCount: Number(e.target.value) })}
-                    style={{ ...inputStyle, width: 90 }}
-                  />
-                </label>
-                <label style={{ display: "grid", gap: "0.35rem" }}>
-                  <span style={{ fontWeight: 650 }}>Difficulty</span>
-                  <select
-                    value={state.difficulty}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "setDifficulty",
-                        difficulty: e.target.value as State["difficulty"],
-                      })
-                    }
-                    style={inputStyle}
-                  >
-                    <option value="easy">Easy</option>
-                    <option value="medium">Medium</option>
-                    <option value="hard">Hard</option>
-                  </select>
-                  <span className="muted" style={{ fontSize: "0.78rem", fontWeight: 500 }}>
+              <div className="maker-topic-fields">
+                <div className="maker-topic-row" role="group" aria-label="Word count and difficulty">
+                  <label className="maker-topic-field maker-topic-field--count" htmlFor="maker-topic-word-count">
+                    <span className="maker-topic-field-label">Words</span>
+                    <input
+                      id="maker-topic-word-count"
+                      className="maker-topic-word-count"
+                      type="number"
+                      min={5}
+                      max={30}
+                      inputMode="numeric"
+                      value={state.wordCount}
+                      onChange={(e) => dispatch({ type: "setWordCount", wordCount: Number(e.target.value) })}
+                      style={inputStyle}
+                    />
+                  </label>
+                  <label className="maker-topic-field maker-topic-field--difficulty" htmlFor="maker-topic-difficulty">
+                    <span className="maker-topic-field-label">Difficulty</span>
+                    <select
+                      id="maker-topic-difficulty"
+                      className="maker-topic-difficulty"
+                      value={state.difficulty}
+                      onChange={(e) =>
+                        dispatch({
+                          type: "setDifficulty",
+                          difficulty: e.target.value as State["difficulty"],
+                        })
+                      }
+                      style={inputStyle}
+                    >
+                      <option value="easy">Easy</option>
+                      <option value="medium">Medium</option>
+                      <option value="hard">Hard</option>
+                    </select>
+                  </label>
+                  <p className="maker-topic-difficulty-hint muted">
                     Prompt hint only — not a CEFR or grade-level guarantee.
-                  </span>
-                </label>
-                <label style={{ display: "grid", gap: "0.35rem" }}>
-                  <span style={{ fontWeight: 650 }}>AI output</span>
+                  </p>
+                </div>
+                <label className="maker-topic-field maker-topic-field--output" htmlFor="maker-topic-ai-output">
+                  <span className="maker-topic-field-label">AI output</span>
                   <select
+                    id="maker-topic-ai-output"
                     value={state.aiEntryStyle}
                     onChange={(e) =>
                       dispatch({
@@ -1752,7 +1760,7 @@ export default function MakerApp({
                       })
                     }
                     aria-label="AI output style — word list or words with clues"
-                    style={{ ...inputStyle, minWidth: 160 }}
+                    style={inputStyle}
                   >
                     <option value="words_and_clues">Words + clues</option>
                     <option value="words_only">Word list only</option>
@@ -2735,6 +2743,59 @@ export default function MakerApp({
 
       <style>{`
         .maker-pane-clues { display: none; }
+        .maker-topic-fields {
+          display: grid;
+          gap: 0.75rem;
+        }
+        .maker-topic-row {
+          display: grid;
+          grid-template-columns: minmax(7rem, 8.25rem) minmax(0, 1fr);
+          column-gap: 0.75rem;
+          row-gap: 0.3rem;
+          align-items: start;
+        }
+        .maker-topic-field {
+          display: grid;
+          gap: 0.35rem;
+          min-width: 0;
+        }
+        .maker-topic-field-label {
+          font-weight: 650;
+          line-height: 1.2;
+        }
+        .maker-topic-word-count,
+        .maker-topic-difficulty,
+        .maker-topic-field--output select {
+          box-sizing: border-box;
+          width: 100%;
+          min-height: 2.5rem;
+          padding-block: 0.5rem;
+          line-height: 1.35;
+        }
+        .maker-topic-word-count {
+          min-width: 7rem;
+          text-align: center;
+        }
+        .maker-topic-word-count::-webkit-outer-spin-button,
+        .maker-topic-word-count::-webkit-inner-spin-button {
+          margin-block: auto;
+        }
+        .maker-topic-difficulty-hint {
+          grid-column: 2;
+          margin: 0;
+          font-size: 0.78rem;
+          font-weight: 500;
+          line-height: 1.35;
+        }
+        @media (max-width: 420px) {
+          .maker-topic-row {
+            grid-template-columns: minmax(6.5rem, 7.25rem) minmax(0, 1fr);
+            column-gap: 0.55rem;
+          }
+          .maker-topic-difficulty-hint {
+            grid-column: 1 / -1;
+          }
+        }
         @media (max-width: 860px) {
           .maker-mobile-tabs { display: flex !important; }
           .maker-workspace { grid-template-columns: 1fr !important; }
