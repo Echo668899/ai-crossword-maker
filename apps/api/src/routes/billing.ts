@@ -156,6 +156,7 @@ billingRoutes.post("/api/v1/billing/checkout", async (c) => {
             code: "checkout_failed",
             message: err.userMessage,
             reason: err.reason,
+            providerStatus: err.providerStatus,
             providerTraceId: err.providerTraceId,
           },
         },

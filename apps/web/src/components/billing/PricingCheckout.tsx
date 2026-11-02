@@ -183,10 +183,12 @@ export default function PricingCheckout() {
       });
       const json = (await res.json()) as {
         url?: string;
-        error?: { message?: string };
+        error?: { message?: string; providerTraceId?: string; providerStatus?: number };
       };
       if (!res.ok || !json.url) {
-        setError(json.error?.message ?? "Checkout could not start.");
+        const parts = [json.error?.message ?? "Checkout could not start."];
+        if (json.error?.providerTraceId) parts.push(`Creem trace ${json.error.providerTraceId}`);
+        setError(parts.join(" "));
         setBusySku(null);
         return;
       }
