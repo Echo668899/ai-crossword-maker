@@ -315,6 +315,11 @@ h3 {
 }
 
 @media print {
+  /* Exact Letter vs A4 size is set by Maker via a injected `@page { size }` rule. */
+  @page {
+    margin: 0.67in;
+  }
+
   body {
     background: #fff !important;
     color: #000;

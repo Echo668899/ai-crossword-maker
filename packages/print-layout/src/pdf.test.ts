@@ -1,17 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { PDFDocument, StandardFonts } from "pdf-lib";
 import { buildGrid, normalizeEntries, numberBuildResult } from "@acm/crossword-engine";
+import { PAPER_SIZE_PT, printContentWidth } from "./paper.js";
 import { buildAnswerKeyPdf, buildStudentPdf, collectClues, wrapClueText } from "./pdf.js";
+
+async function samplePuzzle() {
+  const { entries } = normalizeEntries([
+    { id: "1", answerRaw: "SUN", clue: "Daytime star", origin: "manual", reviewState: "reviewed_by_user" },
+    { id: "2", answerRaw: "SEA", clue: "Salty water", origin: "manual", reviewState: "reviewed_by_user" },
+    { id: "3", answerRaw: "USE", clue: "Employ", origin: "manual", reviewState: "reviewed_by_user" },
+  ]);
+  let result = buildGrid({ entries, seed: 3, size: { rows: 9, cols: 9 }, nodeBudget: 20_000 });
+  result = numberBuildResult(result);
+  return { entries, result };
+}
 
 describe("pdf export", () => {
   it("creates student and answer PDFs with %PDF header", async () => {
-    const { entries } = normalizeEntries([
-      { id: "1", answerRaw: "SUN", clue: "Daytime star", origin: "manual", reviewState: "reviewed_by_user" },
-      { id: "2", answerRaw: "SEA", clue: "Salty water", origin: "manual", reviewState: "reviewed_by_user" },
-      { id: "3", answerRaw: "USE", clue: "Employ", origin: "manual", reviewState: "reviewed_by_user" },
-    ]);
-    let result = buildGrid({ entries, seed: 3, size: { rows: 9, cols: 9 }, nodeBudget: 20_000 });
-    result = numberBuildResult(result);
+    const { entries, result } = await samplePuzzle();
     expect(result.placedEntryIds.length).toBeGreaterThan(0);
 
     const student = await buildStudentPdf({
@@ -67,7 +73,7 @@ describe("pdf export", () => {
       entries,
       settings: {
         title: "Overflow Probe",
-        nameLinePreset: "name_class_date",
+        nameLinePreset: "name-class-date",
         watermark: "crosswordmaker.app",
       },
     });
@@ -80,6 +86,84 @@ describe("pdf export", () => {
     // Multi-page is the completeness guarantee for this fixture when enough clues place.
     if (across.length + down.length >= 16) {
       expect(parsed.getPageCount()).toBeGreaterThan(1);
+    }
+  });
+
+  it("emits US Letter and A4 page boxes for student and answer-key PDFs", async () => {
+    const { entries, result } = await samplePuzzle();
+    expect(result.placedEntryIds.length).toBeGreaterThan(0);
+
+    const letterPdf = await buildStudentPdf({
+      result,
+      entries,
+      settings: { title: "Letter sheet", paper: "letter" },
+    });
+    const a4Pdf = await buildStudentPdf({
+      result,
+      entries,
+      settings: { title: "A4 sheet", paper: "a4" },
+    });
+    const a4Key = await buildAnswerKeyPdf({
+      result,
+      entries,
+      settings: { title: "A4 key", paper: "a4" },
+    });
+
+    const letterDoc = await PDFDocument.load(letterPdf);
+    const a4Doc = await PDFDocument.load(a4Pdf);
+    const a4KeyDoc = await PDFDocument.load(a4Key);
+
+    for (const page of letterDoc.getPages()) {
+      const size = page.getSize();
+      expect(size.width).toBeCloseTo(PAPER_SIZE_PT.letter.width, 2);
+      expect(size.height).toBeCloseTo(PAPER_SIZE_PT.letter.height, 2);
+    }
+    for (const page of [...a4Doc.getPages(), ...a4KeyDoc.getPages()]) {
+      const size = page.getSize();
+      expect(size.width).toBeCloseTo(PAPER_SIZE_PT.a4.width, 2);
+      expect(size.height).toBeCloseTo(PAPER_SIZE_PT.a4.height, 2);
+    }
+
+    expect(printContentWidth("a4")).toBeLessThan(printContentWidth("letter"));
+    expect(a4Doc.getPages()[0]!.getSize().height).toBeGreaterThan(
+      letterDoc.getPages()[0]!.getSize().height,
+    );
+  });
+
+  it("keeps continuation pages on the chosen paper size", async () => {
+    const raw = Array.from({ length: 28 }, (_, i) => {
+      const ans = (`FORCE${String.fromCharCode(65 + (i % 26))}${String.fromCharCode(65 + ((i * 3) % 26))}`).slice(
+        0,
+        4 + (i % 5),
+      );
+      return {
+        id: `w${i}`,
+        answerRaw: ans,
+        clue: `Detailed classroom clue number ${i + 1} describing the concept thoroughly for students who are learning this unit vocabulary in science class`,
+        origin: "manual" as const,
+        reviewState: "reviewed_by_user" as const,
+      };
+    });
+    const { entries } = normalizeEntries(raw);
+    let best = numberBuildResult(buildGrid({ entries, seed: 7, size: "auto", nodeBudget: 25_000 }));
+    for (let s = 7; s < 40; s++) {
+      const candidate = numberBuildResult(
+        buildGrid({ entries, seed: s, size: "auto", nodeBudget: 20_000 }),
+      );
+      if (candidate.placedEntryIds.length > best.placedEntryIds.length) best = candidate;
+    }
+
+    const pdf = await buildStudentPdf({
+      result: best,
+      entries,
+      settings: { title: "A4 overflow", paper: "a4", nameLinePreset: "name-class-date" },
+    });
+    const parsed = await PDFDocument.load(pdf);
+    expect(parsed.getPageCount()).toBeGreaterThanOrEqual(1);
+    for (const page of parsed.getPages()) {
+      const size = page.getSize();
+      expect(size.width).toBeCloseTo(PAPER_SIZE_PT.a4.width, 2);
+      expect(size.height).toBeCloseTo(PAPER_SIZE_PT.a4.height, 2);
     }
   });
 });

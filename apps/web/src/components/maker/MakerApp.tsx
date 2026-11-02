@@ -11,6 +11,12 @@ import {
   type WordEntry,
 } from "@acm/crossword-engine";
 import { Button, ContentEnter, StatusPill } from "@acm/ui";
+import {
+  applyBrowserPrintPaper,
+  PAPER_SIZE_OPTIONS,
+  resolveMakerPaperSize,
+  type MakerPaperSize,
+} from "../../lib/maker-paper";
 import { loadDraft, saveDraft } from "../../lib/maker-storage";
 import { SAMPLE_MANUAL_ENTRIES, TEACHER_CLASSROOM_ENTRIES } from "../../lib/sample-entries";
 import { getExample } from "../../lib/examples";
@@ -41,6 +47,8 @@ export interface MakerAppProps {
   initialEntries?: Array<{ answer: string; clue: string }>;
   /** Teacher worksheet header blanks for student PDF export. */
   initialNameLinePreset?: NameLinePresetId;
+  /** Student/answer PDF paper size (US Letter or A4). */
+  initialPaper?: MakerPaperSize;
   heading?: string;
   showModeTabs?: boolean;
   compact?: boolean;
@@ -274,6 +282,7 @@ export default function MakerApp({
   initialDifficulty = "medium",
   initialEntries,
   initialNameLinePreset = "name-date",
+  initialPaper = "letter",
   heading = "Create your crossword",
   showModeTabs = true,
 }: MakerAppProps) {
@@ -333,6 +342,7 @@ export default function MakerApp({
   const [loadProjectId, setLoadProjectId] = useState("");
   const [cloudLoadBusy, setCloudLoadBusy] = useState(false);
   const [nameLinePreset, setNameLinePreset] = useState<NameLinePresetId>(initialNameLinePreset);
+  const [paperSize, setPaperSize] = useState<MakerPaperSize>(resolveMakerPaperSize(initialPaper));
 
   useEffect(() => {
     let cancelled = false;
@@ -444,6 +454,7 @@ export default function MakerApp({
               statusMessage: "Restored local draft from this browser.",
             },
           });
+          setPaperSize(resolveMakerPaperSize(draft.paper));
         })
         .finally(() => {
           if (!cancelled) setDraftReady(true);
@@ -467,6 +478,7 @@ export default function MakerApp({
         rawEntries: state.rows,
         seed: state.seed,
         title: state.title,
+        paper: paperSize,
         updatedAt: new Date().toISOString(),
       });
     }, 400);
@@ -480,7 +492,10 @@ export default function MakerApp({
     state.rows,
     state.seed,
     state.title,
+    paperSize,
   ]);
+
+  useEffect(() => applyBrowserPrintPaper(paperSize), [paperSize]);
 
   useEffect(() => {
     let cancelled = false;
@@ -723,6 +738,7 @@ export default function MakerApp({
               entries: state.entries,
               settings: {
                 title: state.title,
+                paper: paperSize,
                 nameLinePreset,
                 showNameDate: nameLinePreset !== "none",
                 watermark: unwatermarkedExport ? null : "crosswordmaker.app",
@@ -733,6 +749,7 @@ export default function MakerApp({
               entries: state.entries,
               settings: {
                 title: `${state.title} — Answer Key`,
+                paper: paperSize,
                 nameLinePreset: "none",
                 showNameDate: false,
               },
@@ -2424,21 +2441,6 @@ export default function MakerApp({
               ) : null}
             </div>
             <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
-              <label style={{ display: "flex", gap: "0.35rem", alignItems: "center", fontSize: "0.9rem" }}>
-                <span className="muted">Name line</span>
-                <select
-                  value={nameLinePreset}
-                  onChange={(e) => setNameLinePreset(e.target.value as NameLinePresetId)}
-                  aria-label="Student PDF name line preset"
-                  style={{ ...inputStyle, width: "auto", minWidth: 160 }}
-                >
-                  {NAME_LINE_OPTIONS.map((opt) => (
-                    <option key={opt.id} value={opt.id}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
               <Button
                 variant="secondary"
                 disabled={outputsLocked}
@@ -2494,6 +2496,57 @@ export default function MakerApp({
                       : "Save to cloud"}
               </Button>
             </div>
+          </div>
+          <div
+            className="maker-export-settings"
+            style={{
+              display: "flex",
+              gap: "0.75rem 1rem",
+              flexWrap: "wrap",
+              alignItems: "flex-end",
+              marginTop: "0.75rem",
+            }}
+          >
+            <label
+              htmlFor="maker-paper-size"
+              style={{ display: "flex", flexDirection: "column", gap: "0.2rem", fontSize: "0.9rem" }}
+            >
+              <span className="muted">Paper size</span>
+              <select
+                id="maker-paper-size"
+                name="paperSize"
+                value={paperSize}
+                onChange={(e) => setPaperSize(resolveMakerPaperSize(e.target.value))}
+                aria-label="PDF paper size (US Letter or A4)"
+                style={{ ...inputStyle, width: "auto", minWidth: 200 }}
+              >
+                {PAPER_SIZE_OPTIONS.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label
+              htmlFor="maker-name-line"
+              style={{ display: "flex", flexDirection: "column", gap: "0.2rem", fontSize: "0.9rem" }}
+            >
+              <span className="muted">Name line</span>
+              <select
+                id="maker-name-line"
+                name="nameLinePreset"
+                value={nameLinePreset}
+                onChange={(e) => setNameLinePreset(e.target.value as NameLinePresetId)}
+                aria-label="Student PDF name line preset"
+                style={{ ...inputStyle, width: "auto", minWidth: 200 }}
+              >
+                {NAME_LINE_OPTIONS.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
           {signedIn && cloudProjects.length > 0 ? (
             <div

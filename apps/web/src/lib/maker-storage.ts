@@ -1,3 +1,5 @@
+import { resolveMakerPaperSize, type MakerPaperSize } from "./maker-paper";
+
 const DB_NAME = "acm-maker";
 const STORE = "drafts";
 const DRAFT_KEY = "current";
@@ -12,6 +14,8 @@ export interface MakerDraftV1 {
   seed: number;
   title: string;
   updatedAt: string;
+  /** Student/answer PDF paper size. Optional on drafts saved before this field existed. */
+  paper?: MakerPaperSize;
 }
 
 function openDb(): Promise<IDBDatabase> {
@@ -48,5 +52,6 @@ export async function loadDraft(): Promise<MakerDraftV1 | null> {
     req.onerror = () => reject(req.error);
   });
   db.close();
-  return value;
+  if (!value) return null;
+  return { ...value, paper: resolveMakerPaperSize(value.paper) };
 }

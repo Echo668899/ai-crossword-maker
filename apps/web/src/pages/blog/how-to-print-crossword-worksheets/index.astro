@@ -7,7 +7,7 @@ const meta = getBlogPost("how-to-print-crossword-worksheets")!;
 const relatedGuides = relatedBlogPosts(meta.slug);
 const title = "How to Print Crossword Worksheets with Answer Keys";
 const description =
-  "Print classroom crossword worksheets: add name/class/date lines, export a student PDF, keep a matching answer key separate, and pick Letter or A4 in your printer dialog.";
+  "Print classroom crossword worksheets: choose Letter or A4, add name/class/date lines, export a student PDF, and keep a matching answer key separate.";
 ---
 
 <BaseLayout
@@ -47,7 +47,7 @@ const description =
     <h1>How to Print Crossword Worksheets with Answer Keys</h1>
     <p>
       Teachers usually need two files: a student sheet without answers, and a matching answer key for grading.
-      This guide walks through name-line presets and PDF export — then sends you into the live printable maker.
+      This guide walks through paper size, name-line presets, and PDF export — then sends you into the live printable maker.
     </p>
     <p>
       <a href="/printable-crossword-maker/"><strong>Open the printable crossword maker</strong></a>
@@ -66,10 +66,11 @@ const description =
       Edit clues before you print — PDF export locks the grid you see on screen.
     </p>
 
-    <h2>2. Paper size (Letter vs A4)</h2>
+    <h2>2. Pick Letter or A4</h2>
     <p>
-      Student PDFs currently export at US Letter. There is no Letter/A4 selector in the maker yet.
-      If your copier needs A4, choose A4 (or “fit to paper”) in the browser or printer dialog when you print the PDF.
+      US classrooms usually print Letter; many international schools prefer A4.
+      Choose <strong>Paper size</strong> in the export panel (US Letter or A4) — that dropdown is not the Name line preset.
+      The student PDF and answer-key PDF use that page size for the sheet, margins, and clue columns so they fit one page when possible.
     </p>
 
     <h2>3. Add a Name line for handouts</h2>
@@ -98,6 +99,7 @@ const description =
     <ul>
       <li>Student sheet has no filled answers.</li>
       <li>Answer key matches the same grid version.</li>
+      <li>Paper size is US Letter or A4 to match your copier — set in Paper size, not Name line.</li>
       <li>Name/class/period lines match your roster needs.</li>
       <li>You skimmed AI clues before handing out copies.</li>
     </ul>
