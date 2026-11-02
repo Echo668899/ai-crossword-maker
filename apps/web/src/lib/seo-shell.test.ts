@@ -354,5 +354,30 @@ describe("SEO shell hardening", () => {
     expect(maker).toContain("/blog/how-to-make-a-crossword-from-a-word-list/");
     expect(maker).toContain("/examples/electricity/");
     expect(maker).toContain("/blog/how-to-make-a-geography-vocabulary-crossword/");
+    expect(maker).toContain("requireFreshGrid");
+    expect(maker).toContain("outputsLocked");
+    expect(maker).toContain("Rebuild needed");
+    expect(maker).toContain("Skipped:");
+    expect(maker).toContain("sourceRowsForBuild");
+    expect(maker).toContain("gridCheckStatus");
+    expect(maker).toContain("Prompt hint only");
+  });
+
+  it("does not claim an in-maker Letter/A4 selector or CEFR-certified difficulty", () => {
+    const printable = readFileSync(join(pagesRoot, "printable-crossword-maker/index.astro"), "utf8");
+    const teachers = readFileSync(join(pagesRoot, "crossword-maker-for-teachers/index.astro"), "utf8");
+    const printHowto = readFileSync(
+      join(pagesRoot, "blog/how-to-print-crossword-worksheets/index.astro"),
+      "utf8",
+    );
+    const esl = readFileSync(join(pagesRoot, "esl-crossword-generator/index.astro"), "utf8");
+    const cefr = readFileSync(join(pagesRoot, "cefr-crossword/index.astro"), "utf8");
+    expect(printable).not.toMatch(/<li>US Letter and A4<\/li>/);
+    expect(printable).toContain("no in-maker paper-size selector yet");
+    expect(teachers).not.toMatch(/fine-tune Letter vs A4/);
+    expect(printHowto).not.toContain("Choose the paper size in the export panel");
+    expect(printHowto).toContain("There is no Letter/A4 selector in the maker yet");
+    expect(esl).toContain("prompt hint, not a CEFR rating");
+    expect(cefr).toContain("do not certify CEFR level");
   });
 });

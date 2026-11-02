@@ -13,16 +13,22 @@ export interface NormalizeOptions {
   maxLength?: number;
 }
 
+export type NormalizeIssueCode =
+  | "empty"
+  | "non_letter"
+  | "too_short"
+  | "too_long"
+  | "duplicate"
+  | "needs_transliteration";
+
 export interface NormalizeIssue {
-  code:
-    | "empty"
-    | "non_ascii_letter"
-    | "too_short"
-    | "too_long"
-    | "duplicate"
-    | "needs_transliteration";
+  code: NormalizeIssueCode;
   message: string;
   answerRaw: string;
+  /** Source item id when produced by `normalizeEntries`. */
+  entryId?: string;
+  /** Latin A–Z spelling to try when the raw answer has accents. */
+  suggestion?: string;
 }
 
 export interface NormalizeResult {
@@ -54,11 +60,14 @@ export function normalizeAnswer(
 
   // Reject silent transliteration of accented / non-Latin characters.
   if (/[^\x00-\x7F]/.test(display)) {
+    const suggestion = suggestAsciiSpelling(display);
     issues.push({
       code: "needs_transliteration",
-      message:
-        "Answer contains non-ASCII characters. Confirm a Latin A–Z spelling before placing.",
+      message: suggestion
+        ? `Contains accented or non-English letters. Try ${suggestion} (Latin A–Z only; we do not auto-convert).`
+        : "Contains accented or non-English letters. Confirm a Latin A–Z spelling before placing.",
       answerRaw: raw,
+      suggestion,
     });
   }
 
@@ -69,30 +78,44 @@ export function normalizeAnswer(
 
   if (/[^A-Z]/.test(s) && !/[^\x00-\x7F]/.test(display)) {
     issues.push({
-      code: "non_ascii_letter",
-      message: "Answer contains digits or symbols that cannot be placed on an A–Z grid",
+      code: "non_letter",
+      message: "Digits or symbols cannot be placed on an A–Z grid",
       answerRaw: raw,
     });
   }
 
   const normalized = s.replace(/[^A-Z]/g, "");
 
-  if (normalized.length < opts.minLength) {
+  // Pure digit/symbol strings are `non_letter`, not `too_short` (empty after strip).
+  const hasBlockingCharset =
+    issues.some((i) => i.code === "non_letter" || i.code === "needs_transliteration") &&
+    normalized.length === 0;
+  if (!hasBlockingCharset && normalized.length < opts.minLength) {
     issues.push({
       code: "too_short",
-      message: `Normalized answer shorter than ${opts.minLength}`,
+      message: `Too short — need ${opts.minLength}–${opts.maxLength} letters after removing spaces and punctuation`,
       answerRaw: raw,
     });
   }
   if (normalized.length > opts.maxLength) {
     issues.push({
       code: "too_long",
-      message: `Normalized answer longer than ${opts.maxLength}`,
+      message: `Too long — max ${opts.maxLength} letters after removing spaces and punctuation`,
       answerRaw: raw,
     });
   }
 
   return { normalized, display, issues };
+}
+
+/** Fold accents to ASCII letters for a suggestion only — never applied silently. */
+export function suggestAsciiSpelling(raw: string): string | undefined {
+  const trimmed = raw.trim();
+  if (!trimmed) return undefined;
+  const folded = trimmed.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  if (folded === trimmed) return undefined;
+  const letters = folded.toUpperCase().replace(/[^A-Z]/g, "");
+  return letters.length >= 3 ? letters : undefined;
 }
 
 export function displayLengthHint(display: string): string | undefined {
@@ -121,7 +144,7 @@ export function makeEntry(input: {
   if (!normalized || issues.some((i) => i.code === "empty" || i.code === "needs_transliteration")) {
     return { entry: null, issues };
   }
-  if (issues.some((i) => i.code === "too_short" || i.code === "too_long" || i.code === "non_ascii_letter")) {
+  if (issues.some((i) => i.code === "too_short" || i.code === "too_long" || i.code === "non_letter")) {
     return { entry: null, issues };
   }
   return {
@@ -160,14 +183,15 @@ export function normalizeEntries(
 
   for (const item of items) {
     const { entry, issues: entryIssues } = makeEntry({ ...item, options });
-    issues.push(...entryIssues);
+    issues.push(...entryIssues.map((issue) => ({ ...issue, entryId: item.id })));
     if (!entry) continue;
     const prior = seen.get(entry.answerNormalized);
     if (prior) {
       issues.push({
         code: "duplicate",
-        message: `Duplicate normalized answer "${entry.answerNormalized}" (also ${prior})`,
+        message: `Duplicate of ${entry.answerNormalized}`,
         answerRaw: item.answerRaw,
+        entryId: item.id,
       });
       continue;
     }
@@ -176,6 +200,24 @@ export function normalizeEntries(
   }
 
   return { entries, issues, normalizationVersion: NORMALIZATION_VERSION };
+}
+
+const ISSUE_PRIORITY: NormalizeIssueCode[] = [
+  "empty",
+  "needs_transliteration",
+  "non_letter",
+  "too_long",
+  "too_short",
+  "duplicate",
+];
+
+/** One teacher-facing reason per dropped answer (most specific first). */
+export function primaryNormalizeIssue(issues: NormalizeIssue[]): NormalizeIssue | undefined {
+  for (const code of ISSUE_PRIORITY) {
+    const hit = issues.find((issue) => issue.code === code);
+    if (hit) return hit;
+  }
+  return issues[0];
 }
 
 /** Detect whether clue contains the full answer as a whole word (not accidental substrings). */

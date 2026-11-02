@@ -13,14 +13,14 @@ const faqs = [
   },
   {
     q: "When should I use the teachers page instead?",
-    a: "Use crossword maker for teachers when you want a classroom word-list preset and Class header defaults. Stay here for general PDF/paper-size export settings.",
+    a: "Use crossword maker for teachers when you want a classroom word-list preset and Class header defaults. Stay here for PDF export, name-line presets, and a matching answer key.",
   },
 ];
 ---
 
 <BaseLayout
   title="Printable Crossword Maker — PDF & Answer Key"
-  description="Printable crossword maker with PDF export, answer key page, Letter/A4 layouts, and optional name/date lines. Free watermarked exports; Pro removes the footer."
+  description="Printable crossword maker with PDF export, a separate answer-key page, and optional name/date lines. Free watermarked exports; Pro removes the footer."
   canonicalPath="/printable-crossword-maker/"
   jsonLd={{
     "@context": "https://schema.org",
@@ -57,7 +57,7 @@ const faqs = [
   <section class="container section">
     <h2 class="section-title">Print settings available</h2>
     <ul>
-      <li>US Letter and A4</li>
+      <li>Student PDFs export at US Letter; pick A4 or scale in your printer dialog if needed (no in-maker paper-size selector yet)</li>
       <li>Name line presets: Name+Date, Name+Class+Date, Name+Period+Date, or none</li>
       <li>Student sheet without embedded answers</li>
       <li>Answer key as a separate download</li>
