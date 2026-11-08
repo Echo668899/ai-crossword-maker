@@ -1,0 +1,192 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+
+const site = import.meta.env.PUBLIC_SITE_URL || "https://crosswordmaker.app";
+const title = "Prizm Maker Crossword Clue — Answer GEO (3 Letters)";
+const description =
+  "The crossword clue “Prizm maker” is GEO — the former GM brand behind the Geo Prizm. See why, then make a printable car or geography crossword.";
+const path = "/prizm-maker-crossword-clue/";
+
+const faqs = [
+  {
+    q: "What is the answer to the Prizm maker crossword clue?",
+    a: "GEO. It is a 3-letter fill for the former General Motors brand that sold the Prizm compact.",
+  },
+  {
+    q: "Why is GEO the Prizm maker?",
+    a: "Geo was GM’s badge for the Prizm from the 1989 through 1997 model years. Constructors use the marque name, not the Toyota plant that assembled the car.",
+  },
+  {
+    q: "Is “former Prizm maker” a different clue?",
+    a: "No. “Former Prizm maker” is the same 3-letter fill: GEO. The wording flags that the Geo brand is gone; Chevrolet sold later Prizms after Geo folded.",
+  },
+  {
+    q: "Could Toyota or Chevrolet be the answer?",
+    a: "Not for the usual 3-letter American crossword. Toyota helped build Prizms at NUMMI, and Chevrolet sold the car after 1997, but published puzzles treat Prizm maker as GEO.",
+  },
+  {
+    q: "How do I make a crossword with clues like this?",
+    a: "Use Topic mode for a car-history or geography prompt, or paste a word list (GEO, PRIZM, METRO, COROLLA) and write short definition clues. The program builds the grid; you edit every clue before print.",
+  },
+];
+---
+
+<BaseLayout
+  title={title}
+  description={description}
+  canonicalPath={path}
+  jsonLd={[
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      name: title,
+      description,
+      url: `${site}${path}`,
+      inLanguage: "en",
+      isPartOf: { "@type": "WebSite", name: "AI Crossword Maker", url: site },
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Home", item: `${site}/` },
+        { "@type": "ListItem", position: 2, name: "Blog", item: `${site}/blog/` },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: "Prizm maker crossword clue",
+          item: `${site}${path}`,
+        },
+      ],
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqs.map((f) => ({
+        "@type": "Question",
+        name: f.q,
+        acceptedAnswer: { "@type": "Answer", text: f.a },
+      })),
+    },
+  ]}
+>
+  <article class="container section prose" style="padding-top:1.5rem;">
+    <nav class="muted" style="font-size:0.9rem;margin-bottom:0.75rem;">
+      <a href="/">Home</a> / <a href="/blog/">Blog</a> / Prizm maker crossword clue
+    </nav>
+    <h1>Prizm Maker Crossword Clue</h1>
+    <p>
+      The standard American crossword answer for <strong>Prizm maker</strong> is
+      <strong>GEO</strong> (3 letters). Geo was General Motors’ short-lived marque;
+      the Prizm compact wore that badge through the 1997 model year.
+    </p>
+
+    <div
+      style="border:1px solid var(--color-border);background:var(--color-surface);border-radius:8px;padding:1rem 1.1rem;margin:1.1rem 0 1.4rem;"
+    >
+      <p style="margin:0 0 0.35rem;font-size:0.9rem;color:var(--color-muted);">Crossword fill</p>
+      <p style="margin:0;font-size:2rem;font-family:var(--font-display);letter-spacing:0.12em;">GEO</p>
+      <p style="margin:0.4rem 0 0;">
+        Clue: Prizm maker · Length: 3 letters · Close variant: former Prizm maker
+      </p>
+    </div>
+
+    <p>
+      This is a crossword <em>maker</em>, not a daily puzzle desk. We published this FAQ
+      because people search the clue, then often want to write similar marque or geography
+      clues for a class worksheet.
+    </p>
+    <p>
+      <a href="/ai-crossword-maker/"><strong>Open the AI crossword maker</strong></a>
+      — free topic preview, no signup wall — or
+      <a href="/crossword-maker-from-word-list/">paste a word list</a>.
+    </p>
+
+    <h2>Why the answer is GEO</h2>
+    <p>
+      Geo launched as GM’s import-fighting brand for the 1989 model year and disappeared
+      after 1997, when remaining models moved under Chevrolet. The Geo Prizm was a compact
+      built at NUMMI in Fremont, California — a GM–Toyota joint plant — and shared its
+      bones with the Toyota Corolla. Chevrolet sold a Prizm for a few more years
+      (1998–2002), which is why later puzzles say <strong>former</strong> Prizm maker.
+    </p>
+    <p>
+      Constructors like GEO because it is a clean 3-letter fill. “Prizm maker” points at
+      the badge on the car, not the Toyota factory that assembled it. Other Geo nameplates
+      you may see in the same puzzle family include Metro, Storm, and Tracker.
+    </p>
+    <p class="muted" style="font-size:0.92rem;">
+      Crossword databases commonly list this fill in the New York Times (6 October 1999)
+      and USA Today (28 December 2006). We are not a complete puzzle archive, and we do
+      not mark this page as fact-verified encyclopedia copy.
+    </p>
+
+    <h2>Close wording you may have in the grid</h2>
+    <ul>
+      <li><strong>Prizm maker</strong> / <strong>Prizm maker crossword clue</strong> → GEO</li>
+      <li><strong>Former Prizm maker</strong> → GEO (same length, same brand)</li>
+      <li><strong>Prizm maker, 3 letters</strong> → GEO</li>
+    </ul>
+    <p>
+      If your squares are longer than three letters, you are probably looking at a
+      different clue. Do not force TOYOTA or CHEVROLET into a 3-letter slot.
+    </p>
+
+    <h2>How to write clues like this (then print)</h2>
+    <p>
+      Short definition clues work better in a classroom grid than trivia riddles.
+      “GM brand that sold the Prizm” is clearer for students than an obscure year-or-plant
+      gag. Keep answers A–Z only; skip digits and punctuation.
+    </p>
+    <ol>
+      <li>
+        Start from a topic such as “1990s cars for grade 8” in
+        <a href="/ai-crossword-maker/">AI Topic mode</a>, or paste terms in
+        <a href="/crossword-maker-from-word-list/">word-list mode</a>.
+      </li>
+      <li>
+        Edit every AI draft. Clues are not labeled fact-verified; shorten leaks and swap
+        any word that does not fit the lesson.
+      </li>
+      <li>
+        Click Build grid. Layout reshuffles do not spend another AI credit.
+        <a href="/how-it-works/">How AI vs the grid engine works</a>.
+      </li>
+      <li>
+        Export a student PDF plus answer key from
+        <a href="/printable-crossword-maker/">printable crossword maker</a>.
+      </li>
+    </ol>
+    <p>
+      Geography classes can treat GEO as a prefix (geography, geology) instead of a car
+      brand — see
+      <a href="/blog/how-to-make-a-geography-vocabulary-crossword/">how to make a geography vocabulary crossword</a>
+      and ready printables for
+      <a href="/examples/map-skills/">map skills</a>,
+      <a href="/examples/world-capitals/">world capitals</a>, and
+      <a href="/examples/us-states/">US states</a>.
+    </p>
+
+    <h2>Related guides</h2>
+    <ul>
+      <li><a href="/blog/how-to-make-a-crossword-puzzle/">How to make a crossword puzzle</a></li>
+      <li>
+        <a href="/blog/how-to-make-a-geography-vocabulary-crossword/">Geography vocabulary crossword</a>
+      </li>
+      <li><a href="/blog/how-to-print-crossword-worksheets/">How to print crossword worksheets</a></li>
+      <li><a href="/examples/">Examples library</a> · <a href="/blog/">How-to blog</a></li>
+    </ul>
+  </article>
+
+  <section class="container section faq" style="padding-top:0;">
+    <h2 class="section-title">FAQ</h2>
+    {
+      faqs.map((f) => (
+        <details>
+          <summary>{f.q}</summary>
+          <p style="margin:0.6rem 0 0;">{f.a}</p>
+        </details>
+      ))
+    }
+  </section>
+</BaseLayout>
