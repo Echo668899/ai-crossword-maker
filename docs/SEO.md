@@ -15,6 +15,7 @@
 | `/esl-crossword-generator/` | ESL vocabulary + CEFR presets |
 | `/cefr-crossword/` | A1–C1 level picker (independent page) |
 | `/blog/` + how-to posts | crawlable guides ↔ examples mesh + maker / printable / word-list |
+| `/prizm-maker-crossword-clue/` | long-tail clue FAQ (GEO) → maker conversion |
 | `/crossword-maker-from-word-list/` | vocabulary list → grid (FAQ + how-to CTA) |
 | `/pricing/`, `/how-it-works/` | conversion / trust |
 
@@ -39,6 +40,7 @@
 - Social studies vocabulary how-to bridges AI/word-list → printable civics/geography example seeds
 - History vocabulary how-to bridges AI/word-list → printable history example seeds
 - Geography vocabulary how-to bridges AI/word-list → printable geography example seeds
+- Clue FAQ `/prizm-maker-crossword-clue/` answers GEO for “Prizm maker” / “former Prizm maker” and converts to Topic / word-list / geography how-to (not a solver portal)
 
 ## 90-day
 

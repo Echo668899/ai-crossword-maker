@@ -370,6 +370,37 @@ describe("SEO shell hardening", () => {
     expect(maker).toContain("Prompt hint only");
   });
 
+  it("ships a Prizm maker clue FAQ that answers GEO and links back to the maker", () => {
+    const clue = readFileSync(join(pagesRoot, "prizm-maker-crossword-clue/index.astro"), "utf8");
+    const footer = readFileSync(join(import.meta.dirname, "../layouts/BaseLayout.astro"), "utf8");
+    const help = readFileSync(join(pagesRoot, "help/index.astro"), "utf8");
+    const blogIndex = readFileSync(join(pagesRoot, "blog/index.astro"), "utf8");
+    const geographyHowto = readFileSync(
+      join(pagesRoot, "blog/how-to-make-a-geography-vocabulary-crossword/index.astro"),
+      "utf8",
+    );
+    const howItWorks = readFileSync(join(pagesRoot, "how-it-works/index.astro"), "utf8");
+    const examplesIndex = readFileSync(join(pagesRoot, "examples/index.astro"), "utf8");
+    expect(clue).toContain('canonicalPath={path}');
+    expect(clue).toContain("/prizm-maker-crossword-clue/");
+    expect(clue).toContain("Prizm Maker Crossword Clue — Answer GEO (3 Letters)");
+    expect(clue).toContain("FAQPage");
+    expect(clue).toContain("BreadcrumbList");
+    expect(clue).toContain("GEO");
+    expect(clue).toContain("former Prizm maker");
+    expect(clue).toContain("/ai-crossword-maker/");
+    expect(clue).toContain("/crossword-maker-from-word-list/");
+    expect(clue).toContain("/blog/how-to-make-a-geography-vocabulary-crossword/");
+    expect(clue).not.toMatch(/"@type"\s*:\s*"AggregateRating"/);
+    expect(clue).not.toMatch(/lang=["']zh/i);
+    expect(footer).toContain("/prizm-maker-crossword-clue/");
+    expect(help).toContain("/prizm-maker-crossword-clue/");
+    expect(blogIndex).toContain("/prizm-maker-crossword-clue/");
+    expect(geographyHowto).toContain("/prizm-maker-crossword-clue/");
+    expect(howItWorks).toContain("/prizm-maker-crossword-clue/");
+    expect(examplesIndex).toContain("/prizm-maker-crossword-clue/");
+  });
+
   it("does not claim CEFR-certified difficulty", () => {
     const esl = readFileSync(join(pagesRoot, "esl-crossword-generator/index.astro"), "utf8");
     const cefr = readFileSync(join(pagesRoot, "cefr-crossword/index.astro"), "utf8");
